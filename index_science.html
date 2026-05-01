@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🔬 Bobo 智慧自然冒險</title>
+    <script>
+    /**
+     * Minified by jsDelivr using Terser v5.37.0.
+     * Original file: /npm/canvas-confetti@1.6.0/dist/confetti.browser.js
+     */
+    !function(t,e){!function t(e,n,a,i){var o=!!(e.Worker&&e.Blob&&e.Promise&&e.OffscreenCanvas&&e.OffscreenCanvasRenderingContext2D&&e.HTMLCanvasElement&&e.HTMLCanvasElement.prototype.transferControlToOffscreen&&e.URL&&e.URL.createObjectURL);function r(){}function l(t){var a=n.exports.Promise,i=void 0!==a?a:e.Promise;return"function"==typeof i?new i(t):(t(r,r),null)}var c,s,u,h,f,d,m,g,b,v=(u=Math.floor(1e3/60),h={},f=0,"function"==typeof requestAnimationFrame&&"function"==typeof cancelAnimationFrame?(c=function(t){var e=Math.random();return h[e]=requestAnimationFrame((function n(a){f===a||f+u-1<a?(f=a,delete h[e],t()):h[e]=requestAnimationFrame(n)})),e},s=function(t){h[t]&&cancelAnimationFrame(h[t])}):(c=function(t){return setTimeout(t,u)},s=function(t){return clearTimeout(t)}),{frame:c,cancel:s}),M=(g={},function(){if(d)return d;if(!a&&o){var e=["var CONFETTI, SIZE = {}, module = {};","("+t.toString()+")(this, module, true, SIZE);","onmessage = function(msg) {","  if (msg.data.options) {","    CONFETTI(msg.data.options).then(function () {","      if (msg.data.callback) {","        postMessage({ callback: msg.data.callback });","      }","    });","  } else if (msg.data.reset) {","    CONFETTI && CONFETTI.reset();","  } else if (msg.data.resize) {","    SIZE.width = msg.data.resize.width;","    SIZE.height = msg.data.resize.height;","  } else if (msg.data.canvas) {","    SIZE.width = msg.data.canvas.width;","    SIZE.height = msg.data.canvas.height;","    CONFETTI = module.exports.create(msg.data.canvas);","  }","}"].join("\n");try{d=new Worker(URL.createObjectURL(new Blob([e])))}catch(t){return void 0!==typeof console&&"function"==typeof console.warn&&console.warn("🎊 Could not load worker",t),null}!function(t){function e(e,n){t.postMessage({options:e||{},callback:n})}t.init=function(e){var n=e.transferControlToOffscreen();t.postMessage({canvas:n},[n])},t.fire=function(n,a,i){if(m)return e(n,null),m;var o=Math.random().toString(36).slice(2);return m=l((function(a,r){t.postMessage({options:n||{},callback:o}),g[o]={resolve:a,reject:r}})),m},t.reset=function(){t.postMessage({reset:true})},window.addEventListener("resize",(function(){t.postMessage({resize:{width:window.innerWidth,height:window.innerHeight}})}),false),t.postMessage({resize:{width:window.innerWidth,height:window.innerHeight}}),t.onmessage=function(t){var e=t.data.callback;if(e&&g[e]){g[e].resolve(),delete g[e]}}}(d),d}return null});function x(t,e,n,a){var i,o,r,c,s,u,h,f=e.width,d=e.height,g=Math.floor(t.x*f),b=Math.floor(t.y*d),v=Math.floor(t.w),M=Math.floor(t.h),x=Math.floor(t.vx),w=Math.floor(t.vy),y=Math.floor(t.r),C=Math.floor(t.vr),k=Math.floor(t.p),A=Math.floor(t.scale),E=t.color,S=t.shape,I=t.scalar,P=t.drift,O=t.gravity,T=t.ticks,B=t.opacity,L=0<p.length,H=P*L?p[0]:0,R=O*L?p[1]:0,W=T*L?p[2]:0,N=B*L?p[3]:0;return{update:function(){g+=x+H,b+=w+R,y+=C,v+=c,M+=s,u+=h,T-=1,B-=N},draw:function(t){t.save(),t.translate(g,b),t.rotate(y*Math.PI/180),t.scale(A,A),t.globalAlpha=B,t.fillStyle=E,t.beginPath(),"circle"===S?t.arc(0,0,1,0,2*Math.PI,false):"square"===S?t.rect(-1,-1,2,2):"star"===S?function(t,e,n,a,i){for(var o=5,r=Math.PI/o,c=0;c<2*o;c++){var s=c%2==0?n:a,u=r*c;t.lineTo(e*Math.cos(u)*s,e*Math.sin(u)*s)}}(t,0,0,2,1):"emoji"===S?function(t,e,n,a,i){t.font=i+"px serif",t.textAlign="center",t.textBaseline="middle",t.fillText(n,0,0)}(t,0,a,1,I):t.moveTo(0,0),t.fill(),t.restore()}}}var w,y,C,k,A,E,S,I,P,O,T,B,L,H,R,W,N,z,D,F,G,V,U,q,j,X,Y,K,J,Z,Q,tt,et,nt,at,it,ot,rt,ct,st,ut,ht,ft,dt,mt,gt,bt,vt,Mt,xt,wt,yt,Ct,kt,At,Et,St,It,Pt,Ot,Tt,Bt,Lt,Ht,Rt,Wt,Nt,zt,Dt,Ft,Gt,Vt,Ut,qt,jt,Xt,Yt,Kt,Jt,Zt,Qt,te,ee,ne,ae,ie,oe,re,le,ce,se,ue,he,fe,de,me,ge,be,ve,Me,xe,we,ye,Ce,ke,Ae,Ee,Se,Ie,Pe,Oe,Te,Be,Le,He,Re,We,Ne,ze,De,Fe,Ge,Ve,Ue,qe,je,Xe,Ye,Ke,Je,Ze,Qe,tn,en,nn,an,in,on,rn,cn,sn,un,hn,fn,dn,mn,gn,bn,vn,Mn,xn,wn,yn,Cn,kn,An,En,Sn,In,Pn,On,Tn,Bn,Ln,Hn,Rn,Wn,Nn,zn,Dn,Fn,Gn,Vn,Un,qn,jn,Xn,Yn,Kn,Jn,Zn,Qn,ta,ea,na,aa,ia,oa,ra,ca,sa,ua,ha,fa,da,ma,ga,ba,va,Ma,xa,wa,ya,Ca,ka,Aa,Ea,Sa,Ia,Pa,Oa,Ta,Ba,La,Ha,Ra,Wa,Na,za,Da,Fa,Ga,Va,Ua,qa,ja,Xa,Ya,Ka,Ja,Za,Qa,ti,ei,ni,ai,ii,oi,ri,ci,si,ui,hi,fi,di,mi,gi,bi,vi,Mi,xi,wi,yi,Ci,ki,Ai,Ei,Si,Ii,Pi,Oi,Ti,Bi,Li,Hi,Ri,Wi,Ni,zi,Di,Fi,Gi,Vi,Ui,qi,ji,Xi,Yi,Ki,Ji,Zi,Qi,to,eo,no,ao,io,oo,ro,co,so,uo,ho,fo,do,mo,go,bo,vo,Mo,xo,wo,yo,Co,ko,Ao,Eo,So,Io,Po,Oo,To,Bo,Lo,Ho,Ro,Wo,No,zo,Do,Fo,Go,Vo,Uo,qo,jo,Xo,Yo,Ko,Jo,Zo,Qo,tr,er,nr,ar,ir,or,rr,cr,sr,ur,hr,fr,dr,mr,gr,br,vr,Mr,xr,wr,yr,Cr,kr,Ar,Er,Sr,Ir,Pr,Or,Tr,Br,Lr,Hr,Rr,Wr,Nr,zr,Dr,Fr,Gr,Vr,Ur,qr,jr,Xr,Yr,Kr,Jr,Zr,Qr,tl,el,nl,al,il,ol,rl,cl,sl,ul,hl,fl,dl,ml,gl,bl,vl,Ml,xl,wl,yl,Cl,kl,Al,El,Sl,Il,Pl,Ol,Tl,Bl,Ll,Hl,Rl,Wl,Nl,zl,Dl,Fl,Gl,Vl,Ul,ql,jl,Xl,Yl,Kl,Jl,Zl,Ql,tc,ec,nc,ac,ic,oc,rc,cc,sc,uc,hc,fc,dc,mc,gc,bc,vc,Mc,xc,wc,yc,Cc,kc,Ac,Ec,Sc,Ic,Pc,Oc,Tc,Bc,Lc,Hc,Rc,Wc,Nc,zc,Dc,Fc,Gc,Vc,Uc,qc,jc,Xc,Yc,Kc,Jc,Zc,Qc,ts,es,ns,as,is,os,rs,cs,ss,us,hs,fs,ds,ms,gs,bs,vs,Ms,xs,ws,ys,Cs,ks,As,Es,Ss,Is,Ps,Os,Ts,Bs,Ls,Hs,Rs,Ws,Ns,zs,Ds,Fs,Gs,Vs,Us,qs,js,Xs,Ys,Ks,Js,Zs,Qs,tu,eu,nu,au,iu,ou,ru,cu,su,uu,hu,fu,du,mu,gu,bu,vu,Mu,xu,wu,yu,Cu,ku,Au,Eu,Su,Iu,Pu,Ou,Tu,Bu,Lu,Hu,Ru,Wu,Nu,zu,Du,Fu,Gu,Vu,Uu,qu,ju,Xu,Yu,Ku,Ju,Zu,Qu,th,eh,nh,ah,ih,oh,rh,ch,sh,uh,hh,fh,dh,mh,gh,bh,vh,Mh,xh,wh,yh,Ch,kh,Ah,Eh,Sh,Ih,Ph,Oh,Th,Bh,Lh,Hh,Rh,Wh,Nh,zh,Dh,Fh,Gh,Vh,Uh,qh,jh,Xh,Yh,Kh,Jh,Zh,Qh,tf,ef,nf,af,if,of,rf,cf,sf,uf,hf,ff,df,mf,gf,bf,vf,Mf,xf,wf,yf,Cf,kf,Af,Ef,Sf,If,Pf,Of,Tf,Bf,Lf,Hf,Rf,Wf,Nf,zf,Df,Ff,Gf,Vf,Uf,qf,jf,Xf,Yf,Kf,Jf,Zf,Qf,td,ed,nd,ad,id,od,rd,cd,sd,ud,hd,fd,dd,md,gd,bd,vd,Md,xd,wd,yd,Cd,kd,Ad,Ed,Sd,Id,Pd,Od,Td,Bd,Ld,Hd,Rd,Wd,Nd,zd,Dd,Fd,Gd,Vd,Ud,qd,jd,Xd,Yd,Kd,Jd,Zd,Qd,tm,em,nm,am,im,om,rm,cm,sm,um,hm,fm,dm,mm,gm,bm,vm,Mm,xm,wm,ym,Cm,km,Am,Em,Sm,Im,Pm,Om,Tm,Bm,Lm,Hm,Rm,Wm,Nm,zm,Dm,Fm,Gm,Vm,Um,qm,jm,Xm,Ym,Km,Jm,Zm,Qm,tg,eg,ng,ag,ig,og,rg,cg,sg,ug,hg,fg,dg,mg,gg,bg,vg,Mg,xg,wg,yg,Cg,kg,Ag,Eg,Sg,Ig,Pg,Og,Tg,Bg,Lg,Hg,Rg,Wg,Ng,zg,Dg,Fg,Gg,Vg,Ug,qg,jg,Xg,Yg,Kg,Jg,Zg,Qg,tb,eb,nb,ab,ib,ob,rb,cb,sb,ub,hb,fb,db,mb,gb,bb,vb,Mb,xb,wb,yb,Cb,kb,Ab,Eb,Sb,Ib,Pb,Ob,Tb,Bb,Lb,Hb,Rb,Wb,Nb,zb,Db,Fb,Gb,Vb,Ub,qb,jb,Xb,Yb,Kb,Jb,Zb,Qb,tv,ev,nv,av,iv,ov,rv,cv,sv,uv,hv,fv,dv,mv,gv,bv,vv,Mv,xv,wv,yv,Cv,kv,Av,Ev,Sv,Iv,Pv,Ov,Tv,Bv,Lv,Hv,Rv,Wv,Nv,zv,Dv,Fv,Gv,Vv,Uv,qv,jv,Xv,Yv,Kv,Jv,Zv,Qv,tM,eM,nM,aM,iM,oM,rM,cM,sM,uM,hM,fM,dM,mM,gM,bM,vM,MM,xM,wM,yM,CM,kM,AM,EM,SM,IM,PM,OM,TM,BM,LM,HM,RM,WM,NM,zM,DM,FM,GM,VM,UM,qM,jM,XM,YM,KM,JM,ZM,QM,tx,ex,nx,ax,ix,ox,rx,cx,sx,ux,hx,fx,dx,mx,gx,bx,vx,Mx,xx,wx,yx,Cx,kx,Ax,Ex,Sx,Ix,Px,Ox,Tx,Bx,Lx,Hx,Rx,Wx,Nx,zx,Dx,Fx,Gx,Vx,Ux,qx,jx,Xx,Yx,Kx,Jx,Zx,Qx,tw,ew,nw,aw,iw,ow,rw,cw,sw,uw,hw,fw,dw,mw,gw,bw,vw,Mw,xw,ww,yw,Cw,kw,Aw,Ew,Sw,Iw,Pw,Ow,Tw,Bw,Lw,Hw,Rw,Ww,Nw,zw,Dw,Fw,Gw,Vw,Uw,qw,jw,Xw,Yw,Kw,Jw,Zw,Qw,ty,ey,ny,ay,iy,oy,ry,cy,sy,uy,hy,fy,dy,my,gy,by,vy,My,xy,wy,yy,Cy,ky,Ay,Ey,Sy,Iy,Py,Oy,Ty,By,Ly,Hy,Ry,Wy,Ny,zy,DY,FY,GY,VY,UY,qy,jy,XY,YY,KY,JY,ZY,QY,tK,eK,nK,aK,iK,oK,rK,cK,sK,uK,hK,fK,dK,mK,gK,bK,vK,MK,xK,wK,yk,CK,kK,AK,EK,SK,IK,PK,OK,TK,BK,LK,HK,RK,WK,NK,zk,DK,FK,GK,VK,UK,qk,jK,XK,YK,KK,JK,ZK,QK,tJ,eJ,nJ,aJ,iJ,oJ,rJ,cJ,sJ,uJ,hJ,fJ,dJ,mJ,gJ,bJ,vJ,MJ,xJ,wJ,yj,CJ,kJ,AJ,EJ,SJ,IJ,PJ,OJ,TJ,BJ,LJ,HJ,RJ,WJ,NJ,zj,DJ,FJ,GJ,VJ,UJ,qj,jJ,XJ,YJ,KJ,JJ,ZJ,QJ,tZ,eZ,nZ,aZ,iZ,oZ,rZ,cZ,sZ,uZ,hZ,fZ,dZ,mZ,gZ,bZ,vZ,MZ,xZ,wZ,yz,CZ,kZ,AZ,EZ,SZ,IZ,PZ,OZ,TZ,BZ,LZ,HZ,RZ,WZ,NZ,zz,DZ,FZ,GZ,VZ,UZ,qz,jZ,XZ,YZ,KZ,JZ,ZZ,QZ,tQ,eQ,nQ,aQ,iQ,oQ,rQ,cQ,sQ,uQ,hQ,fQ,dQ,mQ,gQ,bQ,vQ,MQ,xQ,wQ,yq,CQ,kQ,AQ,EQ,SQ,IQ,PQ,OQ,TQ,BQ,LQ,HQ,RQ,WQ,NQ,zq,DQ,FQ,GQ,VQ,UQ,qq,jQ,XQ,YQ,KQ,JQ,ZQ,QQ;t.create=function(n,i){var o=i&&i.resize,r=i&&i.useWorker,p=o?M:v,l=!!(n&&n.transferControlToOffscreen),c=!!(n&&n.getContext),s=l&&r?M():null,u=function(t){var e=n.getContext("2d");return x(t,n,e,u)};function h(t){var e=t.colors||["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42","#ffa62d","#ff36ff"];return e.map((function(t){return function(t){return{r:parseInt(t.substring(1,3),16),g:parseInt(t.substring(3,5),16),b:parseInt(t.substring(5,7),16)}}(t)}))}return function f(i){var o,r=i||{},v=l&&!u;if(v){var M=Math.random().toString(36).slice(2);return o=p.fire(r,u,M),s.fire(r,l?null:n,M)}return p.fire(r,u)}},t.exports=t.create(),t.exports.create=t.create}(function(){var t={exports:{}};return function(t,e,n,a){var i,o,r=!!(t.Worker&&t.Blob&&t.Promise&&t.OffscreenCanvas&&t.OffscreenCanvasRenderingContext2D&&t.HTMLCanvasElement&&t.HTMLCanvasElement.prototype.transferControlToOffscreen&&t.URL&&t.URL.createObjectURL),l=function(){},c=function(t){var n=e.exports.Promise,a=void 0!==n?n:t.Promise;return"function"==typeof a?new a(t):(t(l,l),null)},s=(i=Math.floor(1e3/60),o={},function(t){var e=Math.random();return o[e]=requestAnimationFrame((function n(a){f===a||f+i-1<a?(f=a,delete o[e],t()):o[e]=requestAnimationFrame(n)})),e}),u=function(t){o[t]&&cancelAnimationFrame(o[t])},h=function(t,e,n,a){var i,o,r,c,s,u,h,f=e.width,d=e.height,g=Math.floor(t.x*f),b=Math.floor(t.y*d),v=Math.floor(t.w),M=Math.floor(t.h),x=Math.floor(t.vx),w=Math.floor(t.vy),y=Math.floor(t.r),C=Math.floor(t.vr),k=Math.floor(t.p),A=Math.floor(t.scale),E=t.color,S=t.shape,I=t.scalar,P=t.drift,O=t.gravity,T=t.ticks,B=t.opacity,L=0<p.length,H=P*L?p[0]:0,R=O*L?p[1]:0,W=T*L?p[2]:0,N=B*L?p[3]:0;return{update:function(){g+=x+H,b+=w+R,y+=C,v+=c,M+=s,u+=h,T-=1,B-=N},draw:function(t){t.save(),t.translate(g,b),t.rotate(y*Math.PI/180),t.scale(A,A),t.globalAlpha=B,t.fillStyle=E,t.beginPath(),"circle"===S?t.arc(0,0,1,0,2*Math.PI,false):"square"===S?t.rect(-1,-1,2,2):"star"===S?function(t,e,n,a,i){for(var o=5,r=Math.PI/o,c=0;c<2*o;c++){var s=c%2==0?n:a,u=r*c;t.lineTo(e*Math.cos(u)*s,e*Math.sin(u)*s)}}(t,0,0,2,1):"emoji"===S?function(t,e,n,a,i){t.font=i+"px serif",t.textAlign="center",t.textBaseline="middle",t.fillText(n,0,0)}(t,0,a,1,I):t.moveTo(0,0),t.fill(),t.restore()}}},f=0,p=[];function d(t){var e=t.angle*(Math.PI/180),n=t.spread*(Math.PI/180);return{x:t.x,y:t.y,w:t.w,h:t.h,vx:t.velocity*Math.cos(e+n),vy:t.velocity*Math.sin(e+n),r:2*Math.PI*Math.random(),vr:t.rotation*Math.PI/180,p:t.p,scale:t.scale,color:t.color,shape:t.shape,scalar:t.scalar,drift:t.drift,gravity:t.gravity,ticks:t.ticks,opacity:t.opacity}}function m(t,e,n){var a=0,i=[],o=n.length,r=t.getContext("2d");return function n(){if(r.clearRect(0,0,t.width,t.height),i=i.filter((function(t){return t.update(),t.draw(r),0<t.ticks})),i.length)a=s(n);else if(e)e()}}function g(t,e){var n,a,i=t.particleCount||50,o=t.angle||90,r=t.spread||45,l=t.startVelocity||45,f=t.decay||.9,p=t.gravity||1,v=t.drift||0,M=t.ticks||200,x=t.x||.5,w=t.y||.5,y=t.shapes||["square","circle"],C=t.scalar||1,k=t.colors||["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42","#ffa62d","#ff36ff"],A=t.opacity||1,E=(n=k,a=[],n.forEach((function(t){a.push(function(t){return{r:parseInt(t.substring(1,3),16),g:parseInt(t.substring(3,5),16),b:parseInt(t.substring(5,7),16)}}(t))})),a),S=[];for(var I=0;I<i;I++){var P=l+l*(Math.random()-.5),O=o+(Math.random()-.5)*r,T=E[Math.floor(Math.random()*E.length)],B=y[Math.floor(Math.random()*y.length)];S.push(d({x:x,y:w,angle:O,spread:0,velocity:P,rotation:45*Math.random(),p:Math.random(),scale:1,color:"rgb("+T.r+","+T.g+","+T.b+")",shape:B,scalar:C,decay:f,drift:v,gravity:p,ticks:M,opacity:A}))}return S}return e.exports=function(e){var n,a,i=e.particleCount||50,o=e.angle||90,l=e.spread||45,f=e.startVelocity||45,p=e.decay||.9,v=e.gravity||1,M=e.drift||0,x=e.ticks||200,w=e.x||.5,y=e.y||.5,C=e.shapes||["square","circle"],k=e.scalar||1,A=e.colors||["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42","#ffa62d","#ff36ff"],E=e.opacity||1,S=(n=A,a=[],n.forEach((function(t){a.push(function(t){return{r:parseInt(t.substring(1,3),16),g:parseInt(t.substring(3,5),16),b:parseInt(t.substring(5,7),16)}}(t))})),a),I=[];for(var P=0;P<i;P++){var O=f+f*(Math.random()-.5),T=o+(Math.random()-.5)*l,B=S[Math.floor(Math.random()*S.length)],L=C[Math.floor(Math.random()*C.length)];I.push(d({x:w,y:y,angle:T,spread:0,velocity:O,rotation:45*Math.random(),p:Math.random(),scale:1,color:"rgb("+B.r+","+B.g+","+B.b+")",shape:L,scalar:k,decay:p,drift:M,gravity:v,ticks:x,opacity:E}))}return g(e,I)},e.exports.create=function(e,n){var a=!!(n&&n.resize),i=!!(n&&n.useWorker),o=a?u:s,l=function(e){var n=g(e);return function a(){n=n.filter((function(t){return t.update(),t.draw(e.canvas.getContext("2d")),0<t.ticks})),n.length?o(a):e.done()}},f=function(e,n,a){var i=l({canvas:e,done:a});i()},p=function(t){return c((function(e){f(n,t,e)}))};return p.reset=function(){},p},e.exports}(window,t,false,{})}(),t.exports}(this,module,false,SIZE);
+    </script>
+    <style>
+        :root { --primary: #4A90E2; --secondary: #50E3C2; --accent: #F5A623; --bg: #F0F7FF; --text: #2C3E50; --success: #7ED321; --danger: #FF5E5E; }
+        body { font-family: 'Chalkboard SE', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; touch-action: manipulation; }
+        #game-container { width: 100%; max-width: 500px; padding: 15px; box-sizing: border-box; text-align: center; }
+        
+        .zy-word { display: inline-flex; flex-direction: column; align-items: center; vertical-align: bottom; margin: 0 2px; line-height: 1.1; }
+        .zy-top { font-size: 0.75rem; color: #888; height: 0.9rem; font-weight: normal; font-family: sans-serif; }
+        .zy-bottom { font-size: 1.6rem; font-weight: bold; }
+        
+        .mission-panel { display: flex; flex-direction: column; gap: 12px; margin: 15px 0; }
+        .mission-item { background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--primary); display: flex; align-items: center; justify-content: space-between; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--primary); }
+        .mission-item:active { transform: translateY(2px); box-shadow: none; }
+        .mission-item.mastered { border-color: var(--success); opacity: 0.8; box-shadow: 0 4px 0 var(--success); }
+        .check-box { width: 35px; height: 35px; border: 2px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mission-item.mastered .check-box { background: var(--success); color: white; border-color: var(--success); }
+
+        .game-screen { display: none; }
+        .game-screen.active { display: block; }
+        
+        .question-box { background: white; border-radius: 30px; padding: 25px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .opt-btn { background: var(--primary); color: white; border: none; border-radius: 18px; padding: 15px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 0 #357ABD; min-height: 50px; }
+        .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        #reward-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--accent); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #reward-screen.active { display: flex; animation: bounceIn 0.8s; }
+        
+        .voice-btn { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
+        
+        #teaching-screen { display: none; background: white; border-radius: 30px; padding: 30px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        #teaching-screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .teaching-content { font-size: 1.2rem; line-height: 1.6; color: var(--text); text-align: left; }
+        .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
+        .start-btn:active { transform: translateY(4px); box-shadow: none; }
+        .mastered-tag { background: #FFD700; color: #8B4513; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
+
+        .svg-container { background: #f9f9f9; border-radius: 15px; padding: 10px; margin-bottom: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="menu" class="game-screen active">
+        <h1 id="title-area">🔬 Bobo 自然大冒險</h1>
+        <p id="sub-area">探索科學的奧秘</p>
+        <div id="mastery-info" style="font-size: 0.9rem; color: #666;"></div>
+        <div class="mission-panel" id="mission-list"></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
+            <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
+            <button onclick="toggleTgConfig()" style="border:1px solid #ccc; background:white; color:#0088cc; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📢 設定通知</button>
+            <button onclick="resetData()" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
+        </div>
+
+        <div id="tg-config-panel" style="background: #eef; padding: 10px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; text-align: left; display: none;">
+            <strong>Telegram 通知設定：</strong><br>
+            Token: <input type="text" id="tg-token" placeholder="Bot Token" onchange="saveTgConfig()" style="width:100%; margin-bottom:5px; font-size:0.7rem;"><br>
+            Chat ID: <input type="text" id="tg-chatid" placeholder="Chat ID" onchange="saveTgConfig()" style="width:100%; margin-bottom:5px; font-size:0.7rem;">
+            <small style="color: #888;">設定後，挑戰完成會自動發送報告給家長。</small>
+        </div>
+    </div>
+
+    <div id="teaching-screen" class="game-screen">
+        <h2 id="teaching-title" style="color: var(--primary);"></h2>
+        <div id="teaching-body" class="teaching-content"></div>
+        <button onclick="startChallenge()" class="start-btn" id="start-challenge-btn">開始挑戰</button>
+    </div>
+
+    <div id="game" class="game-screen">
+        <div id="stars" style="font-size: 1.5rem; margin-bottom: 5px;"></div>
+        <h2 id="mode-title" style="color: var(--primary); margin: 0;"></h2>
+        <div id="question" class="question-box"></div>
+        <div id="options" class="options-grid"></div>
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <button onclick="speakCurrentQuestion()" class="voice-btn">🔊 唸題目</button>
+            <button onclick="showHint()" class="voice-btn" id="hint-btn">💡 提示</button>
+        </div>
+        <button onclick="goHome()" id="stop-btn" style="margin-top:15px; border:none; background:none; color:#bbb;">返回主頁</button>
+    </div>
+</div>
+
+<div id="reward-screen">
+    <h1 style="font-size: 5rem;">🏆</h1>
+    <h2 id="reward-title">大成功！</h2>
+    <div style="background:white; padding:25px; border-radius:25px; text-align:center;">
+        <p id="reward-text" style="font-size: 1.5rem; margin:0;">Bobo 真是個科學小天才！</p>
+        <p id="time-reward" style="font-size: 1.1rem; color: var(--success); margin-top:10px; font-weight:bold;"></p>
+    </div>
+    <button class="opt-btn" style="margin-top:30px; background:white; color:var(--text); padding: 15px 40px;" onclick="resetRoundAndReload()">下一關</button>
+</div>
+
+<script>
+    function zy(zi, py) {
+        return `<span class="zy-word"><span class="zy-top">${py||''}</span><span class="zy-bottom">${zi}</span></span>`;
+    }
+
+    const ALL_UNITS = [
+        {
+            id: 'tools',
+            title: '🏗️ '+zy('巧','ㄑㄧㄠˇ')+zy('妙','ㄇㄧㄠˋ')+zy('的','ㄉㄜ˙')+zy('工','ㄍㄨㄥ')+zy('具','ㄐㄩˋ'),
+            text: '槓桿、滑輪與輪軸的奧秘',
+            teaching: [
+                "Bobo你看！槓桿有三個重點：支點、施力點和抗力點。如果支點離抗力點越近，就會越省力喔！",
+                "滑輪有兩種：定滑輪可以改變施力方向，動滑輪可以省力。把它們組合起來就是滑輪組！",
+                "輪軸就像方向盤，大的圓盤是『輪』，中間的小軸是『軸』。轉動大輪來帶動小軸，可以幫我們省下很多力氣！"
+            ]
+        },
+        {
+            id: 'micro',
+            title: '🧫 '+zy('微','ㄨㄟˊ')+zy('小','ㄒㄧㄠˇ')+zy('的','ㄉㄜ˙')+zy('世','ㄕˋ')+zy('界','ㄐㄧㄝˋ'),
+            text: '微生物與食物保存',
+            teaching: [
+                "微生物無所不在！有些微生物會讓食物腐敗，我們可以用低溫、乾燥或是加鹽的方式來防止它們生長。",
+                "為什麼冰箱可以保存食物？因為低溫可以減緩微生物的生長速度喔！",
+                "加鹽或是曬乾（脫水）可以讓微生物失去生存所需的水分，這樣食物就能放比較久。"
+            ]
+        },
+        {
+            id: 'change',
+            title: '🧪 '+zy('物','ㄨˋ')+zy('質','ㄓˊ')+zy('的','ㄉㄜ˙')+zy('變','ㄅㄧㄢˋ')+zy('化','ㄏㄨㄚˋ'),
+            text: '物理變化與化學變化',
+            teaching: [
+                "物理變化：只有外表或狀態改變，本質沒有變。例如：冰塊融化成水、紙張撕碎。",
+                "化學變化：產生了新物質，通常不可逆。例如：鐵釘生鏽、燃燒、食物煮熟。",
+                "鐵為什麼會生鏽？是因為鐵遇到了空氣中的氧氣和水分，產生了『氧化鐵』這種新物質！"
+            ]
+        },
+        {
+            id: 'ecology',
+            title: '🌿 '+zy('我','ㄨㄛˇ')+zy('們','ㄇㄣ˙')+zy('的','ㄉㄜ˙')+zy('環','ㄏㄨˊ')+zy('境','ㄐㄧㄥˋ'),
+            text: '生態系與食物鏈',
+            teaching: [
+                "食物鏈的開始通常是『生產者』（植物），它們會利用光合作用製造養分。",
+                "吃植物的叫『初級消費者』，吃動物的叫『次級消費者』。最後還有『分解者』負責回收營養。",
+                "如果食物鏈中的某個環節消失了，會影響到整個生態系的平衡喔！所以我們要愛護環境。"
+            ]
+        },
+        {
+            id: 'space',
+            title: '🌍 '+zy('地','ㄉㄧˋ')+zy('球','ㄑㄧㄡˊ')+zy('與','ㄩˇ')+zy('宇','ㄩˇ')+zy('宙','ㄓㄡˋ'),
+            text: '地球運動與月相',
+            teaching: [
+                "地球會『自轉』，一圈大約是 24 小時，這造成了白晝與黑夜的交替。",
+                "地球還會繞著太陽『公轉』，一圈大約是一年，這造成了四季的變化喔！",
+                "月亮的形狀為什麼會變？是因為月球繞著地球公轉，我們看到的受光面不同，這叫『月相變化』。"
+            ]
+        },
+        {
+            id: 'nature',
+            title: '🌦️ '+zy('自','ㄗˋ')+zy('然','ㄖㄢˊ')+zy('現','ㄒㄧㄢˋ')+zy('象','ㄒㄧㄤˋ'),
+            text: '水循環、光與聲音',
+            teaching: [
+                "水在地球上不斷循環：蒸發變成水蒸氣，凝結成雲，最後降雨回到地面。",
+                "光走直線，但遇到水或玻璃會產生『折射』，讓水中的魚看起來比較淺。",
+                "聲音是靠振動產生的，而且需要介質（固體、液體、氣體）才能傳播，真空中是聽不到聲音的！"
+            ]
+        }
+    ];
+
+    const QUESTION_BANK = {
+        tools: [
+            { q: "使用下列哪種滑輪時，可以『省力』，但不能改變施力方向？", a: "動滑輪", o: ["定滑輪", "動滑輪", "滑輪組", "齒輪"] },
+            { q: "使用剪刀剪紙時，剪刀是屬於哪種簡單機械？", a: "槓桿", o: ["槓桿", "輪軸", "斜面", "滑輪"] },
+            { q: "關於槓桿，支點在中間的工具是？", a: "翹翹板", o: ["翹翹板", "開瓶器", "鑷子", "筷子"] },
+            { q: "轉動螺絲起子時，手握的手把部分是屬於？", a: "輪", o: ["輪", "軸", "支點", "施力點"] },
+            { q: "下列何者可以『改變施力方向』但不省力？", a: "定滑輪", o: ["定滑輪", "動滑輪", "斜面", "輪軸"] },
+            { q: "要讓燈泡亮起來，簡單電路至少需要哪三樣元件？", a: "電池、導線、燈泡", o: ["電池、導線、燈泡", "電池、開關、燈泡", "電池、導線、電池座", "導線、燈泡、電池座"] },
+            { q: "串聯電路中，如果一個燈泡壞了，其他燈泡還會亮嗎？", a: "不會亮", o: ["不會亮", "會亮", "變得更亮", "有時候會亮"] },
+            { q: "並聯電路中，如果其中一個燈泡壞了，其他燈泡還會亮嗎？", a: "會亮", o: ["會亮", "不會亮", "變得更暗", "會閃爍"] },
+            { q: "使電磁鐵磁力增強的方法有哪兩種？", a: "增加線圈匝數、增加電池數", o: ["增加線圈匝數、增加電池數", "減少線圈匝數、增加電池數", "增加線圈匝數、減少電池數", "改變電流方向、增加線圈"] },
+            { q: "在電路中，下列哪種材料是『良導體』？", a: "銅線", o: ["銅線", "橡皮擦", "木頭", "塑膠"] }
+        ],
+        micro: [
+            { q: "下列哪種方法是利用『降低溫度』來保存食物？", a: "放在冰箱冷凍", o: ["放在冰箱冷凍", "加入大量的鹽", "放在陽光下曝曬", "真空包裝"] },
+            { q: "食物腐敗主要是由什麼引起的？", a: "微生物生長", o: ["微生物生長", "陽光直射", "水分蒸發", "包裝破損"] },
+            { q: "為什麼曬乾的香菇可以放很久？", a: "因為脫水讓微生物不易生存", o: ["因為脫水讓微生物不易生存", "因為香菇變硬了", "因為顏色變深了", "因為香味變濃了"] },
+            { q: "製作蜜餞是利用哪種原理保存？", a: "利用糖降低水活性", o: ["利用糖降低水活性", "降低溫度", "隔絕空氣", "高溫殺菌"] },
+            { q: "下列何者屬於有益的微生物應用？", a: "利用酵母菌發酵麵包", o: ["利用酵母菌發酵麵包", "食物發霉", "鐵釘生鏽", "木頭朽"] },
+            { q: "食物在胃裡消化，被酵素分解成不同的分子，這是屬於什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "狀態變化", "外形變化"] },
+            { q: "牛奶加入醋後變得濃稠結塊，這是什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "蒸發現象", "凝結現象"] }
+        ],
+        change: [
+            { q: "下列哪一個屬於『化學變化』？", a: "鐵釘生鏽", o: ["鐵釘生鏽", "冰塊融化", "紙張撕碎", "玻璃破碎"] },
+            { q: "物理變化與化學變化最主要的區別是？", a: "是否產生新物質", o: ["是否產生新物質", "是否顏色改變", "是否體積改變", "是否形狀改變"] },
+            { q: "下列哪一個屬於『物理變化』？", a: "糖溶解在水中", o: ["糖溶解在水中", "木柴燃燒", "牛奶變酸", "雞蛋煎熟"] },
+            { q: "鐵生鏽需要哪兩個重要條件？", a: "水分與氧氣", o: ["水分與氧氣", "陽光與空氣", "溫度與土壤", "二氧化碳與氮氣"] },
+            { q: "小蘇打加醋產生氣泡，這屬於？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "狀態變化"] },
+            { q: "冰塊融化成水，屬於哪一種變化？", a: "物理變化", o: ["物理變化", "化學變化", "不可逆變化", "以上皆非"] },
+            { q: "紙張燃燒後變成灰燼，這屬於哪種變化？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "狀態變化"] },
+            { q: "水加熱變成水蒸氣，屬於哪種變化？", a: "物理變化", o: ["物理變化", "化學變化", "不可逆變化", "燃燒現象"] },
+            { q: "下列哪一個是化學變化？", a: "食物腐爛", o: ["食物腐爛", "玻璃破碎", "水結成冰", "布料剪成碎片"] },
+            { q: "下列哪一個是物理變化？", a: "水蒸發", o: ["水蒸發", "火柴燃燒", "鐵生鏽", "麵包烤熟"] },
+            { q: "雞蛋煎熟後蛋白從透明變白色、變硬，這是什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "溶解現象"] },
+            { q: "把蠟燭加熱融化成液態，再冷卻固化，屬於哪種變化？", a: "物理變化", o: ["物理變化", "化學變化", "燃燒變化", "不可逆變化"] }
+        ],
+        ecology: [
+            { q: "在食物鏈『草 → 蚱蜢 → 青蛙 → 蛇』中，誰是生產者？", a: "草", o: ["草", "蚱蜢", "青蛙", "蛇"] },
+            { q: "關於生態系，下列何者屬於『分解者』？", a: "蕈菇（真菌）", o: ["蕈菇（真菌）", "綠色植物", "老虎", "兔子"] },
+            { q: "如果老鷹吃蛇，蛇吃青蛙，青蛙吃蝗蟲，蝗蟲吃草。誰是『初級消費者』？", a: "蝗蟲", o: ["蝗蟲", "青蛙", "蛇", "老鷹"] },
+            { q: "植物進行光合作用，產生的氣體是？", a: "氧氣", o: ["氧氣", "二氧化碳", "氮氣", "水蒸氣"] },
+            { q: "下列何種行為最能保護生態環境？", a: "節約能源與垃圾分類", o: ["節約能源與垃圾分類", "大量開發山林", "隨意排放廢水", "引進外來物種"] },
+            { q: "在實驗中，研究者主動改變的條件（如溫度），稱為什麼變因？", a: "操縱變因", o: ["操縱變因", "控制變因", "應變變因", "不變變因"] },
+            { q: "植物的根有哪兩個主要功能？", a: "吸收水分、固定植物", o: ["吸收水分、固定植物", "進行光合作用、呼吸", "散發水分、保護莖", "儲存養分、開花"] },
+            { q: "植物葉子的哪個作用能讓水分散發到空氣中？", a: "蒸散作用", o: ["蒸散作用", "光合作用", "呼吸作用", "消化作用"] },
+            { q: "如果一個生態系中的『草』突然全部消失，會對食物鏈造成什麼影響？", a: "整個食物鏈崩潰", o: ["整個食物鏈崩潰", "動物會自己製造食物", "頂級消費者變多", "沒有任何影響"] },
+            { q: "若初級消費者（如兔子）數量大量減少，生產者（植物）的數量會如何變化？", a: "增加", o: ["增加", "減少", "不變", "全部死亡"] }
+        ],
+        space: [
+            { q: "地球『自轉』一圈大約需要多久？", a: "24 小時", o: ["24 小時", "30 天", "365 天", "12 小時"] },
+            { q: "地球繞著太陽公轉，會造成什麼現象？", a: "四季的變化", o: ["四季的變化", "晝夜交替", "月相盈虧", "潮汐現象"] },
+            { q: "月相變化（朔望月）的週期大約是？", a: "29.5 天", o: ["29.5 天", "365 天", "24 小時", "7 天"] },
+            { q: "當地球運行到太陽與月球之間，且三者在一條直線上時，可能發生？", a: "月食", o: ["月食", "日食", "流星雨", "極光"] },
+            { q: "為什麼我們在地球上看到的月亮每天形狀不同？", a: "月球繞地球公轉", o: ["月球繞地球公轉", "地球繞月球公轉", "太陽繞地球公轉", "月球自己會發光"] },
+            { q: "地球公轉一圈大約需要多長時間？", a: "約 1 年", o: ["約 1 年", "約 1 個月", "約 24 小時", "約 7 天"] },
+            { q: "日食是怎麼形成的？", a: "月球擋住了太陽光", o: ["月球擋住了太陽光", "地球擋住了太陽光", "太陽被黑洞遮住", "流星群經過"] },
+            { q: "岩石依形成方式分為三大類，下列何者屬於火成岩？", a: "花崗岩", o: ["花崗岩", "石灰岩", "大理岩", "砂岩"] },
+            { q: "哪一種岩石是由沉積物壓實固結而成，且最常發現化石？", a: "沉積岩", o: ["沉積岩", "火成岩", "變質岩", "岩漿岩"] }
+        ],
+        nature: [
+            { q: "下列哪種介質中，聲音的傳播速度『最快』？", a: "固體", o: ["固體", "液體", "氣體", "真空"] },
+            { q: "光從空氣進入水中會產生偏折，這種現象稱為？", a: "折射", o: ["折射", "反射", "直進", "吸收"] },
+            { q: "影響水蒸發速度的因素不包括？", a: "容器的顏色", o: ["容器的顏色", "溫度的高低", "風速的大小", "表面積的大小"] },
+            { q: "彩虹的形成主要是光的什麼現象？", a: "折射與反射", o: ["折射與反射", "直線傳播", "光線遮擋", "影子變化"] },
+            { q: "聲音是如何產生的？", a: "物體振動", o: ["物體振動", "光線照射", "化學反應", "溫度升高"] },
+            { q: "形成影子需要哪些條件？", a: "光源、物體遮擋、屏幕", o: ["光源、物體遮擋、屏幕", "水、鏡子、陽光", "高溫、空氣、水分", "聲音、介質、物體"] },
+            { q: "同溫水一杯放陽光下、一杯放陰影下，哪杯蒸發較快？", a: "陽光下較快", o: ["陽光下較快", "陰影下較快", "一樣快", "都不會蒸發"] },
+            { q: "同溫水一杯放在寬口盤子，一杯放窄口杯子，哪杯蒸發較快？", a: "寬口盤子較快", o: ["寬口盤子較快", "窄口杯子較快", "一樣快", "都不會蒸發"] },
+            { q: "水循環的三個主要過程是什麼？", a: "蒸發、凝結、降水", o: ["蒸發、凝結、降水", "流動、沸騰、融化", "吸收、反射、折射", "生鏽、燃燒、分解"] },
+            { q: "為什麼鹽水比清水不容易蒸發？", a: "鹽降低了水分子逃離表面的速度", o: ["鹽降低了水分子逃離表面的速度", "鹽會吸收空氣中的水", "鹽讓水的溫度降低", "鹽會發熱"] },
+            { q: "光反射時，入射角和反射角的關係是什麼？", a: "入射角等於反射角", o: ["入射角等於反射角", "入射角大於反射角", "入射角小於反射角", "沒有一定關係"] },
+            { q: "站在岸邊看水中的魚，魚看起來比實際位置淺還是深？", a: "淺", o: ["淺", "深", "一樣深", "會變大"] },
+            { q: "台灣的颱風季節主要在哪幾個月？", a: "夏秋季（約7到9月）", o: ["夏秋季（約7到9月）", "冬季（12到2月）", "春季（3到5月）", "全年都有"] }
+        ]
+    };
+
+    let roundState;
+    try {
+        roundState = JSON.parse(localStorage.getItem('bobo_science_round')) || null;
+    } catch (e) {
+        roundState = null;
+    }
+    
+    if (!roundState) {
+        roundState = {
+            completedUnits: [],
+            unitQueue: ALL_UNITS.map(u => u.id),
+            mistakes: []
+        };
+    }
+
+    let currentUnit = null, currentStep = 0, correctAnswer = null, isProcessingAnswer = false;
+    let challengeStartTime = null;
+    let currentQuestionText = "";
+    let sessionMistakes = [];
+
+    function initPage() {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (!config.token) {
+            const defaultConfig = {
+                token: "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
+                chatid: "-5062576908"
+            };
+            localStorage.setItem('bobo_tg_config', JSON.stringify(defaultConfig));
+        }
+        renderMissions();
+        loadTgConfig();
+    }
+
+    function toggleTgConfig() {
+        const panel = document.getElementById('tg-config-panel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveTgConfig() {
+        const config = {
+            token: document.getElementById('tg-token').value,
+            chatid: document.getElementById('tg-chatid').value
+        };
+        localStorage.setItem('bobo_tg_config', JSON.stringify(config));
+    }
+
+    function loadTgConfig() {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (config.token) document.getElementById('tg-token').value = config.token;
+        if (config.chatid) document.getElementById('tg-chatid').value = config.chatid;
+    }
+
+    function renderMissions() {
+        const list = document.getElementById('mission-list');
+        list.innerHTML = ALL_UNITS.map(u => {
+            const isMastered = roundState.completedUnits.includes(u.id);
+            return `
+            <div class="mission-item ${isMastered?'mastered':''}" onclick="startUnit('${u.id}')">
+                <div>
+                    <div style="font-size:1.3rem">${u.title}</div>
+                    <div style="font-size:0.8rem; color:#888;">${u.text}</div>
+                </div>
+                <div class="check-box">${isMastered?'✓':''}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function startUnit(unitId) {
+        currentUnit = ALL_UNITS.find(u => u.id === unitId);
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerHTML = currentUnit.title;
+        const randomTeaching = currentUnit.teaching[Math.floor(Math.random() * currentUnit.teaching.length)];
+        document.getElementById('teaching-body').innerText = randomTeaching;
+        speak("Bobo妳好，" + randomTeaching);
+    }
+
+    function startChallenge() {
+        currentStep = 0;
+        sessionMistakes = [];
+        challengeStartTime = new Date();
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerHTML = currentUnit.title;
+        updateStars(); 
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        isProcessingAnswer = false;
+        const qEl = document.getElementById('question');
+        const oEl = document.getElementById('options');
+        qEl.innerHTML = '';
+        oEl.innerHTML = '';
+
+        const bank = QUESTION_BANK[currentUnit.id];
+        const qData = bank[Math.floor(Math.random() * bank.length)];
+        
+        currentQuestionText = qData.q;
+        correctAnswer = qData.a;
+        qEl.innerText = qData.q;
+
+        const shuffledOptions = [...qData.o].sort(() => 0.5 - Math.random());
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt);
+            oEl.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(val) {
+        if (isProcessingAnswer) return;
+        isProcessingAnswer = true;
+
+        if (val === correctAnswer) {
+            currentStep++;
+            updateStars();
+            confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
+            speak(["答對了！太聰明了！", "好厲害喔！", "正確答案！"][Math.floor(Math.random()*3)]);
+            
+            if (currentStep >= 10) {
+                const duration = Math.floor((new Date() - challengeStartTime) / 1000);
+                const phoneTime = Math.floor(duration / 30) + 5; 
+                
+                if (!roundState.completedUnits.includes(currentUnit.id)) {
+                    roundState.completedUnits.push(currentUnit.id);
+                    localStorage.setItem('bobo_science_round', JSON.stringify(roundState));
+                }
+
+                document.getElementById('time-reward').innerText = `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
+                sendTgNotification(currentUnit.title.replace(/<[^>]*>/g, ''), duration, phoneTime);
+                setTimeout(showReward, 1000);
+            } else { 
+                setTimeout(generateQuestion, 1000); 
+            }
+        } else {
+            sessionMistakes.push({ q: currentQuestionText, wrong: val, correct: correctAnswer });
+            currentStep = 0;
+            updateStars();
+            speak("沒關係，再想一下喔！燈滅了，我們要重新挑戰 10 題了！");
+            document.getElementById('question').style.background = '#FFEBEB';
+            setTimeout(() => { 
+                document.getElementById('question').style.background = 'white'; 
+                isProcessingAnswer = false;
+            }, 500);
+        }
+    }
+
+    async function sendTgNotification(unitTitle, duration, phoneTime) {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (!config.token || !config.chatid) return;
+
+        let mistakeText = "";
+        if (sessionMistakes.length > 0) {
+            mistakeText = "\n\n❌ **本次錯題紀錄：**\n";
+            sessionMistakes.forEach((m, i) => {
+                mistakeText += `${i+1}. 題目：${m.q}\n   Bobo答：${m.wrong} (正解：${m.correct})\n`;
+            });
+        }
+
+        const message = `🌟 Bobo 自然挑戰成功！\n\n` +
+                        `📚 單元：${unitTitle}\n` +
+                        `⏱️ 耗時：${duration} 秒\n` +
+                        `🎯 通關要求：10 題連對\n` +
+                        `📱 獎勵手機時間：${phoneTime} 分鐘` +
+                        mistakeText + 
+                        `\nBobo 表現優異，繼續加油！🔬`;
+
+        const url = `https://api.telegram.org/bot${config.token}/sendMessage`;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: config.chatid, text: message, parse_mode: "Markdown" })
+            });
+        } catch (e) { console.error("TG Notification failed", e); }
+    }
+
+    function showHint() {
+        const hint = `這題考的是我們剛才在單元裡學過的觀念喔！再仔細讀一下題目。`;
+        speak(hint);
+        alert(hint);
+    }
+
+    function speak(t) { 
+        if(window.speechSynthesis) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='zh-TW'; 
+            u.rate=0.9;
+            window.speechSynthesis.speak(u); 
+        } 
+    }
+
+    function speakCurrentQuestion() {
+        speak(document.getElementById('question').innerText);
+    }
+
+    function updateStars() { 
+        document.getElementById('stars').innerText = '⭐'.repeat(currentStep) + '⚪'.repeat(10 - currentStep); 
+    }
+
+    function goHome() {
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('menu').classList.add('active');
+        renderMissions();
+    }
+
+    function showReward() { 
+        document.getElementById('reward-screen').classList.add('active'); 
+        confetti({ particleCount: 500, spread: 120 }); 
+    }
+
+    function resetRoundAndReload() {
+        document.getElementById('reward-screen').classList.remove('active');
+        goHome();
+    }
+
+    function resetData() { 
+        if(confirm("確定要清除 Bobo 的紀錄嗎？")) { 
+            localStorage.removeItem('bobo_science_round');
+            location.reload(); 
+        } 
+    }
+
+    function downloadReport() {
+        let md = "# 🔬 Bobo 自然冒險學習報表\n\n";
+        md += `目前完成單元：${roundState.completedUnits.length} / ${ALL_UNITS.length}\n`;
+        roundState.completedUnits.forEach(id => {
+            const u = ALL_UNITS.find(x => x.id === id);
+            md += `- ✅ ${u.title.replace(/<[^>]*>/g, '')}\n`;
+        });
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Bobo自然學習報表.md';
+        a.click();
+    }
+
+    window.onload = initPage;
+</script>
+
+</body>
+</html>
