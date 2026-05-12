@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🔬 Bobo 智慧自然冒險</title>
+    <script>
+    window.confetti = window.confetti || function() {};
+    </script>
+    <style>
+        :root { --primary: #4A90E2; --secondary: #50E3C2; --accent: #F5A623; --bg: #F0F7FF; --text: #2C3E50; --success: #7ED321; --danger: #FF5E5E; }
+        body { font-family: 'Chalkboard SE', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; touch-action: manipulation; }
+        #game-container { width: 100%; max-width: 500px; padding: 15px; box-sizing: border-box; text-align: center; }
+        
+        .zy-word { display: inline-flex; flex-direction: column; align-items: center; vertical-align: bottom; margin: 0 2px; line-height: 1.1; }
+        .zy-top { font-size: 0.75rem; color: #888; height: 0.9rem; font-weight: normal; font-family: sans-serif; }
+        .zy-bottom { font-size: 1.6rem; font-weight: bold; }
+        
+        .mission-panel { display: flex; flex-direction: column; gap: 12px; margin: 15px 0; }
+        .mission-item { background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--primary); display: flex; align-items: center; justify-content: space-between; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--primary); }
+        .mission-item:active { transform: translateY(2px); box-shadow: none; }
+        .mission-item.mastered { border-color: var(--success); opacity: 0.8; box-shadow: 0 4px 0 var(--success); }
+        .check-box { width: 35px; height: 35px; border: 2px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mission-item.mastered .check-box { background: var(--success); color: white; border-color: var(--success); }
+
+        .game-screen { display: none; }
+        .game-screen.active { display: block; }
+        
+        .question-box { background: white; border-radius: 30px; padding: 25px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .opt-btn { background: var(--primary); color: white; border: none; border-radius: 18px; padding: 15px; font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 0 #357ABD; min-height: 50px; }
+        .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+        .opt-btn.correct { background: var(--success); box-shadow: 0 5px 0 #5fa916; }
+        .opt-btn.wrong { background: var(--danger); box-shadow: 0 5px 0 #d54848; opacity: 0.78; }
+        .opt-btn:disabled { cursor: default; }
+        .feedback { min-height: 28px; margin-top: 10px; font-weight: bold; color: var(--primary); }
+        
+        #reward-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--accent); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #reward-screen.active { display: flex; animation: bounceIn 0.8s; }
+        
+        .voice-btn { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
+        
+        #teaching-screen { display: none; background: white; border-radius: 30px; padding: 30px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        #teaching-screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .teaching-content { font-size: 1.2rem; line-height: 1.6; color: var(--text); text-align: left; }
+        .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
+        .start-btn:active { transform: translateY(4px); box-shadow: none; }
+        .mastered-tag { background: #FFD700; color: #8B4513; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
+
+        .svg-container { background: #f9f9f9; border-radius: 15px; padding: 10px; margin-bottom: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="menu" class="game-screen active">
+        <h1 id="title-area">🔬 Bobo 自然大冒險</h1>
+        <p id="sub-area">探索科學的奧秘</p>
+        <div id="mastery-info" style="font-size: 0.9rem; color: #666;"></div>
+        <div class="mission-panel" id="mission-list"></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
+            <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
+            <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
+            <button onclick="toggleTgConfig()" style="border:1px solid #ccc; background:white; color:#0088cc; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📢 設定通知</button>
+            <button onclick="resetData()" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
+        </div>
+
+        <div id="tg-config-panel" style="background: #eef; padding: 10px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; text-align: left; display: none;">
+            <strong>Telegram 通知設定：</strong><br>
+            Token: <input type="text" id="tg-token" placeholder="Bot Token" onchange="saveTgConfig()" style="width:100%; margin-bottom:5px; font-size:0.7rem;"><br>
+            Chat ID: <input type="text" id="tg-chatid" placeholder="Chat ID" onchange="saveTgConfig()" style="width:100%; margin-bottom:5px; font-size:0.7rem;">
+            <small style="color: #888;">設定後，挑戰完成會自動發送報告給家長。</small>
+        </div>
+    </div>
+
+    <div id="teaching-screen" class="game-screen">
+        <h2 id="teaching-title" style="color: var(--primary);"></h2>
+        <div id="teaching-body" class="teaching-content"></div>
+        <button onclick="startChallenge()" class="start-btn" id="start-challenge-btn">開始挑戰</button>
+    </div>
+
+    <div id="game" class="game-screen">
+        <div id="stars" style="font-size: 1.5rem; margin-bottom: 5px;"></div>
+        <h2 id="mode-title" style="color: var(--primary); margin: 0;"></h2>
+        <div id="question" class="question-box"></div>
+        <div id="options" class="options-grid"></div>
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <button onclick="speakCurrentQuestion()" class="voice-btn">🔊 唸題目</button>
+            <button onclick="showHint()" class="voice-btn" id="hint-btn">💡 提示</button>
+        </div>
+        <button onclick="goHome()" id="stop-btn" style="margin-top:15px; border:none; background:none; color:#bbb;">返回主頁</button>
+    </div>
+</div>
+
+<div id="reward-screen">
+    <h1 style="font-size: 5rem;">🏆</h1>
+    <h2 id="reward-title">大成功！</h2>
+    <div style="background:white; padding:25px; border-radius:25px; text-align:center;">
+        <p id="reward-text" style="font-size: 1.5rem; margin:0;">Bobo 真是個科學小天才！</p>
+        <p id="time-reward" style="font-size: 1.1rem; color: var(--success); margin-top:10px; font-weight:bold;"></p>
+    </div>
+    <button class="opt-btn" style="margin-top:30px; background:white; color:var(--text); padding: 15px 40px;" onclick="resetRoundAndReload()">下一關</button>
+</div>
+
+<script>
+    function zy(zi, py) {
+        return zi;
+    }
+
+    const ALL_UNITS = [
+        {
+            id: 'tools',
+            title: '🏗️ '+zy('巧','ㄑㄧㄠˇ')+zy('妙','ㄇㄧㄠˋ')+zy('的','ㄉㄜ˙')+zy('工','ㄍㄨㄥ')+zy('具','ㄐㄩˋ'),
+            text: '槓桿、滑輪與輪軸的奧秘',
+            teaching: [
+                "Bobo你看！槓桿有三個重點：支點、施力點和抗力點。如果支點離抗力點越近，就會越省力喔！",
+                "滑輪有兩種：定滑輪可以改變施力方向，動滑輪可以省力。把它們組合起來就是滑輪組！",
+                "輪軸就像方向盤，大的圓盤是『輪』，中間的小軸是『軸』。轉動大輪來帶動小軸，可以幫我們省下很多力氣！"
+            ]
+        },
+        {
+            id: 'micro',
+            title: '🧫 '+zy('微','ㄨㄟˊ')+zy('小','ㄒㄧㄠˇ')+zy('的','ㄉㄜ˙')+zy('世','ㄕˋ')+zy('界','ㄐㄧㄝˋ'),
+            text: '微生物與食物保存',
+            teaching: [
+                "微生物無所不在！有些微生物會讓食物腐敗，我們可以用低溫、乾燥或是加鹽的方式來防止它們生長。",
+                "為什麼冰箱可以保存食物？因為低溫可以減緩微生物的生長速度喔！",
+                "加鹽或是曬乾（脫水）可以讓微生物失去生存所需的水分，這樣食物就能放比較久。"
+            ]
+        },
+        {
+            id: 'change',
+            title: '🧪 '+zy('物','ㄨˋ')+zy('質','ㄓˊ')+zy('的','ㄉㄜ˙')+zy('變','ㄅㄧㄢˋ')+zy('化','ㄏㄨㄚˋ'),
+            text: '物理變化與化學變化',
+            teaching: [
+                "物理變化：只有外表或狀態改變，本質沒有變。例如：冰塊融化成水、紙張撕碎。",
+                "化學變化：產生了新物質，通常不可逆。例如：鐵釘生鏽、燃燒、食物煮熟。",
+                "鐵為什麼會生鏽？是因為鐵遇到了空氣中的氧氣和水分，產生了『氧化鐵』這種新物質！"
+            ]
+        },
+        {
+            id: 'ecology',
+            title: '🌿 '+zy('我','ㄨㄛˇ')+zy('們','ㄇㄣ˙')+zy('的','ㄉㄜ˙')+zy('環','ㄏㄨˊ')+zy('境','ㄐㄧㄥˋ'),
+            text: '生態系與食物鏈',
+            teaching: [
+                "食物鏈的開始通常是『生產者』（植物），它們會利用光合作用製造養分。",
+                "吃植物的叫『初級消費者』，吃動物的叫『次級消費者』。最後還有『分解者』負責回收營養。",
+                "如果食物鏈中的某個環節消失了，會影響到整個生態系的平衡喔！所以我們要愛護環境。"
+            ]
+        },
+        {
+            id: 'space',
+            title: '🌍 '+zy('地','ㄉㄧˋ')+zy('球','ㄑㄧㄡˊ')+zy('與','ㄩˇ')+zy('宇','ㄩˇ')+zy('宙','ㄓㄡˋ'),
+            text: '地球運動與月相',
+            teaching: [
+                "地球會『自轉』，一圈大約是 24 小時，這造成了白晝與黑夜的交替。",
+                "地球還會繞著太陽『公轉』，一圈大約是一年，這造成了四季的變化喔！",
+                "月亮的形狀為什麼會變？是因為月球繞著地球公轉，我們看到的受光面不同，這叫『月相變化』。"
+            ]
+        },
+        {
+            id: 'nature',
+            title: '🌦️ '+zy('自','ㄗˋ')+zy('然','ㄖㄢˊ')+zy('現','ㄒㄧㄢˋ')+zy('象','ㄒㄧㄤˋ'),
+            text: '水循環、光與聲音',
+            teaching: [
+                "水在地球上不斷循環：蒸發變成水蒸氣，凝結成雲，最後降雨回到地面。",
+                "光走直線，但遇到水或玻璃會產生『折射』，讓水中的魚看起來比較淺。",
+                "聲音是靠振動產生的，而且需要介質（固體、液體、氣體）才能傳播，真空中是聽不到聲音的！"
+            ]
+        }
+    ];
+
+    const QUESTION_BANK = {
+        tools: [
+            { q: "使用下列哪種滑輪時，可以『省力』，但不能改變施力方向？", a: "動滑輪", o: ["定滑輪", "動滑輪", "滑輪組", "齒輪"] },
+            { q: "使用剪刀剪紙時，剪刀是屬於哪種簡單機械？", a: "槓桿", o: ["槓桿", "輪軸", "斜面", "滑輪"] },
+            { q: "關於槓桿，支點在中間的工具是？", a: "翹翹板", o: ["翹翹板", "開瓶器", "鑷子", "筷子"] },
+            { q: "轉動螺絲起子時，手握的手把部分是屬於？", a: "輪", o: ["輪", "軸", "支點", "施力點"] },
+            { q: "下列何者可以『改變施力方向』但不省力？", a: "定滑輪", o: ["定滑輪", "動滑輪", "斜面", "輪軸"] },
+            { q: "要讓一顆燈泡亮起來，最基本的簡單電路至少需要哪三樣元件？", a: "電池、導線、燈泡", o: ["電池、導線、燈泡", "電池、開關、燈泡", "電池、導線、電池座", "導線、燈泡、電池座"] },
+            { q: "串聯電路中，如果一個燈泡壞了，其他燈泡還會亮嗎？", a: "不會亮", o: ["不會亮", "會亮", "變得更亮", "有時候會亮"] },
+            { q: "並聯電路中，如果其中一個燈泡壞了，其他燈泡還會亮嗎？", a: "會亮", o: ["會亮", "不會亮", "變得更暗", "會閃爍"] },
+            { q: "使電磁鐵磁力增強的方法有哪兩種？", a: "增加線圈匝數、增加電流", o: ["增加線圈匝數、增加電流", "減少線圈匝數、增加電流", "增加線圈匝數、減少電流", "改變電流方向、減少線圈"] },
+            { q: "在電路中，下列哪種材料是『良導體』？", a: "銅線", o: ["銅線", "橡皮擦", "木頭", "塑膠"] }
+        ],
+        micro: [
+            { q: "下列哪種方法是利用『降低溫度』來保存食物？", a: "放在冰箱冷凍", o: ["放在冰箱冷凍", "加入大量的鹽", "放在陽光下曝曬", "真空包裝"] },
+            { q: "食物腐敗主要是由什麼引起的？", a: "微生物生長", o: ["微生物生長", "陽光直射", "水分蒸發", "包裝破損"] },
+            { q: "為什麼曬乾的香菇可以放很久？", a: "因為脫水讓微生物不易生存", o: ["因為脫水讓微生物不易生存", "因為香菇變硬了", "因為顏色變深了", "因為香味變濃了"] },
+            { q: "製作蜜餞是利用哪種原理保存？", a: "利用糖降低水活性", o: ["利用糖降低水活性", "降低溫度", "隔絕空氣", "高溫殺菌"] },
+            { q: "下列何者屬於有益的微生物應用？", a: "利用酵母菌發酵麵包", o: ["利用酵母菌發酵麵包", "食物發霉", "鐵釘生鏽", "木頭朽"] },
+            { q: "食物在胃裡消化，被酵素分解成不同的分子，這是屬於什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "狀態變化", "外形變化"] },
+            { q: "牛奶加入醋後變得濃稠結塊，這是什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "蒸發現象", "凝結現象"] },
+            { q: "用鹽醃製食物可以保存較久，主要原因是什麼？", a: "降低微生物可利用的水分", o: ["降低微生物可利用的水分", "讓食物完全沒有空氣", "讓食物變成金屬", "讓食物不再有重量"] },
+            { q: "真空包裝能延長食物保存，主要是減少哪一項條件？", a: "空氣中的氧氣", o: ["空氣中的氧氣", "食物中的顏色", "食物的形狀", "包裝的重量"] },
+            { q: "下列哪一種方法可以用高溫殺死部分微生物來保存食物？", a: "加熱殺菌", o: ["加熱殺菌", "放在桌上", "增加水分", "打開包裝"] }
+        ],
+        change: [
+            { q: "下列哪一個屬於『化學變化』？", a: "鐵釘生鏽", o: ["鐵釘生鏽", "冰塊融化", "紙張撕碎", "玻璃破碎"] },
+            { q: "物理變化與化學變化最主要的區別是？", a: "是否產生新物質", o: ["是否產生新物質", "是否顏色改變", "是否體積改變", "是否形狀改變"] },
+            { q: "下列哪一個屬於『物理變化』？", a: "糖溶解在水中", o: ["糖溶解在水中", "木柴燃燒", "牛奶變酸", "雞蛋煎熟"] },
+            { q: "鐵生鏽需要哪兩個重要條件？", a: "水分與氧氣", o: ["水分與氧氣", "陽光與空氣", "溫度與土壤", "二氧化碳與氮氣"] },
+            { q: "小蘇打加醋產生氣泡，這屬於？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "狀態變化"] },
+            { q: "冰塊融化成水，屬於哪一種變化？", a: "物理變化", o: ["物理變化", "化學變化", "不可逆變化", "以上皆非"] },
+            { q: "紙張燃燒後變成灰燼，這屬於哪種變化？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "狀態變化"] },
+            { q: "水加熱變成水蒸氣，屬於哪種變化？", a: "物理變化", o: ["物理變化", "化學變化", "不可逆變化", "燃燒現象"] },
+            { q: "下列哪一個是化學變化？", a: "食物腐爛", o: ["食物腐爛", "玻璃破碎", "水結成冰", "布料剪成碎片"] },
+            { q: "下列哪一個是物理變化？", a: "水蒸發", o: ["水蒸發", "火柴燃燒", "鐵生鏽", "麵包烤熟"] },
+            { q: "雞蛋煎熟後蛋白從透明變白色、變硬，這是什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "可逆變化", "溶解現象"] },
+            { q: "把蠟燭加熱融化成液態，再冷卻固化，屬於哪種變化？", a: "物理變化", o: ["物理變化", "化學變化", "燃燒變化", "不可逆變化"] }
+        ],
+        ecology: [
+            { q: "在食物鏈『草 → 蚱蜢 → 青蛙 → 蛇』中，誰是生產者？", a: "草", o: ["草", "蚱蜢", "青蛙", "蛇"] },
+            { q: "關於生態系，下列何者屬於『分解者』？", a: "蕈菇（真菌）", o: ["蕈菇（真菌）", "綠色植物", "老虎", "兔子"] },
+            { q: "如果老鷹吃蛇，蛇吃青蛙，青蛙吃蝗蟲，蝗蟲吃草。誰是『初級消費者』？", a: "蝗蟲", o: ["蝗蟲", "青蛙", "蛇", "老鷹"] },
+            { q: "植物進行光合作用，產生的氣體是？", a: "氧氣", o: ["氧氣", "二氧化碳", "氮氣", "水蒸氣"] },
+            { q: "下列何種行為最能保護生態環境？", a: "節約能源與垃圾分類", o: ["節約能源與垃圾分類", "大量開發山林", "隨意排放廢水", "引進外來物種"] },
+            { q: "在實驗中，研究者主動改變的條件（如溫度），稱為什麼變因？", a: "操縱變因", o: ["操縱變因", "控制變因", "應變變因", "不變變因"] },
+            { q: "植物的根有哪兩個主要功能？", a: "吸收水分、固定植物", o: ["吸收水分、固定植物", "進行光合作用、呼吸", "散發水分、保護莖", "儲存養分、開花"] },
+            { q: "植物葉子的哪個作用能讓水分散發到空氣中？", a: "蒸散作用", o: ["蒸散作用", "光合作用", "呼吸作用", "消化作用"] },
+            { q: "如果一個生態系中的『草』突然全部消失，會對食物鏈造成什麼影響？", a: "以草為食的動物減少，並影響整個食物鏈", o: ["以草為食的動物減少，並影響整個食物鏈", "動物會自己製造食物", "頂級消費者一定變多", "沒有任何影響"] },
+            { q: "若初級消費者（如兔子）數量大量減少，生產者（植物）的數量會如何變化？", a: "增加", o: ["增加", "減少", "不變", "全部死亡"] }
+        ],
+        space: [
+            { q: "地球『自轉』一圈大約需要多久？", a: "24 小時", o: ["24 小時", "30 天", "365 天", "12 小時"] },
+            { q: "地球繞著太陽公轉，會造成什麼現象？", a: "四季的變化", o: ["四季的變化", "晝夜交替", "月相盈虧", "潮汐現象"] },
+            { q: "月相變化（朔望月）的週期大約是？", a: "29.5 天", o: ["29.5 天", "365 天", "24 小時", "7 天"] },
+            { q: "當地球運行到太陽與月球之間，且三者在一條直線上時，可能發生？", a: "月食", o: ["月食", "日食", "流星雨", "極光"] },
+            { q: "為什麼我們在地球上看到的月亮每天形狀不同？", a: "月球繞地球公轉", o: ["月球繞地球公轉", "地球繞月球公轉", "太陽繞地球公轉", "月球自己會發光"] },
+            { q: "地球公轉一圈大約需要多長時間？", a: "約 1 年", o: ["約 1 年", "約 1 個月", "約 24 小時", "約 7 天"] },
+            { q: "日食是怎麼形成的？", a: "月球擋住了太陽光", o: ["月球擋住了太陽光", "地球擋住了太陽光", "太陽被黑洞遮住", "流星群經過"] },
+            { q: "岩石依形成方式分為三大類，下列何者屬於火成岩？", a: "花崗岩", o: ["花崗岩", "石灰岩", "大理岩", "砂岩"] },
+            { q: "哪一種岩石是由沉積物壓實固結而成，且最常發現化石？", a: "沉積岩", o: ["沉積岩", "火成岩", "變質岩", "岩漿岩"] },
+            { q: "變質岩主要是原本的岩石受到什麼作用後形成？", a: "高溫與高壓", o: ["高溫與高壓", "低溫冷凍", "陽光照射", "風吹乾燥"] }
+        ],
+        nature: [
+            { q: "下列哪種介質中，聲音的傳播速度『最快』？", a: "固體", o: ["固體", "液體", "氣體", "真空"] },
+            { q: "光從空氣進入水中會產生偏折，這種現象稱為？", a: "折射", o: ["折射", "反射", "直進", "吸收"] },
+            { q: "在溫度、風速、表面積都相同的情況下，哪一項通常不是影響水蒸發速度的主要因素？", a: "容器的顏色", o: ["容器的顏色", "溫度的高低", "風速的大小", "表面積的大小"] },
+            { q: "彩虹的形成主要和光的哪些現象有關？", a: "折射、反射與色散", o: ["折射、反射與色散", "只有直線傳播", "只有光線遮擋", "只有影子變化"] },
+            { q: "聲音是如何產生的？", a: "物體振動", o: ["物體振動", "光線照射", "化學反應", "溫度升高"] },
+            { q: "形成影子需要哪些條件？", a: "光源、物體遮擋、屏幕", o: ["光源、物體遮擋、屏幕", "水、鏡子、陽光", "高溫、空氣、水分", "聲音、介質、物體"] },
+            { q: "同溫水一杯放陽光下、一杯放陰影下，哪杯蒸發較快？", a: "陽光下較快", o: ["陽光下較快", "陰影下較快", "一樣快", "都不會蒸發"] },
+            { q: "同溫水一杯放在寬口盤子，一杯放窄口杯子，哪杯蒸發較快？", a: "寬口盤子較快", o: ["寬口盤子較快", "窄口杯子較快", "一樣快", "都不會蒸發"] },
+            { q: "水循環的三個主要過程是什麼？", a: "蒸發、凝結、降水", o: ["蒸發、凝結、降水", "流動、沸騰、融化", "吸收、反射、折射", "生鏽、燃燒、分解"] },
+            { q: "為什麼鹽水比清水不容易蒸發？", a: "鹽降低了水分子逃離表面的速度", o: ["鹽降低了水分子逃離表面的速度", "鹽會吸收空氣中的水", "鹽讓水的溫度降低", "鹽會發熱"] },
+            { q: "光反射時，入射角和反射角的關係是什麼？", a: "入射角等於反射角", o: ["入射角等於反射角", "入射角大於反射角", "入射角小於反射角", "沒有一定關係"] },
+            { q: "站在岸邊看水中的魚，魚看起來比實際位置淺還是深？", a: "淺", o: ["淺", "深", "一樣深", "會變大"] },
+            { q: "台灣颱風最常影響的月份大多落在哪一段時間？", a: "夏秋季，約7到9月最多", o: ["夏秋季，約7到9月最多", "冬季，約12到2月最多", "春季，約3到5月最多", "每天都一定有颱風"] }
+        ]
+    };
+
+    let roundState;
+    try {
+        roundState = JSON.parse(localStorage.getItem('bobo_science_round')) || null;
+    } catch (e) {
+        roundState = null;
+    }
+    
+    if (!roundState) {
+        roundState = {
+            completedUnits: [],
+            unitQueue: ALL_UNITS.map(u => u.id),
+            mistakes: [],
+            streaks: {},
+            recentResults: {}
+        };
+    }
+    if (!Array.isArray(roundState.completedUnits)) roundState.completedUnits = [];
+    if (!Array.isArray(roundState.unitQueue)) roundState.unitQueue = ALL_UNITS.map(u => u.id);
+    if (!Array.isArray(roundState.mistakes)) roundState.mistakes = [];
+    if (!roundState.streaks) roundState.streaks = {};
+    if (!roundState.recentResults) roundState.recentResults = {};
+
+    let currentUnit = null, currentStep = 0, targetQuestionCount = 0, correctAnswer = null, isProcessingAnswer = false;
+    let challengeStartTime = null;
+    let currentQuestionText = "", currentQuestionData = null;
+    let sessionMistakes = [];
+    let currentHints = [];
+    let hintCountInQuestion = 0;
+    let isFirstAttempt = true;
+    let questionQueue = [];
+    let lastQuestionText = "";
+
+    function safeSaveState() {
+        try {
+            localStorage.setItem('bobo_science_round', JSON.stringify(roundState));
+        } catch (e) {
+            console.warn("Could not save science state:", e);
+        }
+    }
+
+    function updateRecentResults(correct) {
+        if (!currentUnit) return;
+        const id = currentUnit.id;
+        if (!roundState.recentResults[id]) roundState.recentResults[id] = [];
+        const results = roundState.recentResults[id];
+        results.push(!!correct);
+        if (results.length > 10) results.shift();
+        safeSaveState();
+    }
+
+    function cleanTitle(html) {
+        return html.replace(/<[^>]*>/g, '').trim();
+    }
+
+    function shuffleItems(items) {
+        const arr = [...items];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function refillQuestionQueue() {
+        if (!currentUnit) return;
+        const bank = QUESTION_BANK[currentUnit.id] || [];
+        questionQueue = shuffleItems(bank);
+        if (questionQueue.length > 1 && questionQueue[0].q === lastQuestionText) {
+            const swapIndex = questionQueue.findIndex(item => item.q !== lastQuestionText);
+            if (swapIndex > 0) {
+                [questionQueue[0], questionQueue[swapIndex]] = [questionQueue[swapIndex], questionQueue[0]];
+            }
+        }
+    }
+
+    function getNextQuestion() {
+        if (!questionQueue.length) refillQuestionQueue();
+        const qData = questionQueue.shift();
+        lastQuestionText = qData ? qData.q : "";
+        return qData;
+    }
+
+    function makeHints(qData) {
+        const q = qData.q;
+        const answer = qData.a;
+        if (q.includes("螺絲起子") || q.includes("手把")) {
+            return [
+                "這題考輪軸。輪軸要分清楚：大的手把是輪，中間細細轉動的部分是軸。",
+                "題目問「手握的手把部分」，不是問中間那根，也不是問支點或施力點。",
+                `所以手把部分屬於「${answer}」。`
+            ];
+        }
+        if (q.includes("省力") && q.includes("施力方向")) {
+            return [
+                "滑輪題先分兩件事：省力、改變施力方向。這兩件事不是同一個答案。",
+                "定滑輪主要改變方向；動滑輪主要省力；滑輪組兩種效果可能都有。",
+                `這題要「省力但不改變方向」，答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("槓桿") || q.includes("剪刀") || q.includes("支點")) {
+            return [
+                "槓桿一定會繞某個點轉動，重點是支點、施力點、抗力點三個位置。",
+                "剪刀、翹翹板、開瓶器都可以從「繞著哪裡轉」來判斷是不是槓桿。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("電路") || q.includes("燈泡") || q.includes("電磁鐵") || q.includes("導體")) {
+            return [
+                "電路題先看電流能不能形成完整路徑。",
+                "串聯是一條路，斷一個就全斷；並聯是多條路，一條壞了其他還能通。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("保存食物") || q.includes("腐敗") || q.includes("微生物") || q.includes("蜜餞") || q.includes("曬乾")) {
+            return [
+                "食物保存題核心是：讓微生物變慢、變少，或不容易生長。",
+                "低溫會讓微生物長得慢；乾燥、加鹽、加糖會讓微生物比較難取得水分。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("物理變化") || q.includes("化學變化") || q.includes("生鏽") || q.includes("燃燒") || q.includes("融化") || q.includes("蒸發") || q.includes("煎熟") || q.includes("腐爛")) {
+            return [
+                "先問自己：有沒有產生新物質？有新物質通常是化學變化。",
+                "融化、蒸發、溶解、破碎多半只是狀態或外形改變；燃燒、生鏽、腐爛、煮熟多半是化學變化。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("食物鏈") || q.includes("生產者") || q.includes("消費者") || q.includes("分解者") || q.includes("光合作用") || q.includes("生態系")) {
+            return [
+                "食物鏈先找誰自己製造養分。植物通常是生產者。",
+                "吃植物的是初級消費者；吃動物的是更高級的消費者；真菌、細菌常是分解者。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("變因") || q.includes("實驗")) {
+            return [
+                "實驗題先找三件事：你主動改什麼、你觀察什麼、哪些條件要保持一樣。",
+                "操縱變因是研究者主動改變的條件；應變變因是觀察到的結果。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("自轉") || q.includes("公轉") || q.includes("月相") || q.includes("月食") || q.includes("日食")) {
+            return [
+                "地球自轉造成白天黑夜；地球公轉造成一年和四季。",
+                "月相跟月球繞地球有關；日食是月球擋太陽，月食是地球擋住太陽照到月球的光。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("岩石") || q.includes("化石")) {
+            return [
+                "岩石題先看形成方式：岩漿冷卻是火成岩，沉積壓實是沉積岩，高溫高壓改變是變質岩。",
+                "化石最常出現在沉積岩，因為生物遺體比較可能被一層層沉積物保存。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("聲音") || q.includes("介質") || q.includes("振動")) {
+            return [
+                "聲音是物體振動產生的，傳播需要介質。",
+                "聲音在固體通常最快，液體其次，氣體較慢；真空不能傳聲。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("光") || q.includes("折射") || q.includes("反射") || q.includes("影子") || q.includes("彩虹") || q.includes("魚")) {
+            return [
+                "光題先分清楚：反射是彈回來，折射是進入不同介質時方向改變。",
+                "水中的魚看起來位置變了，是光從水到空氣時發生折射。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        if (q.includes("水循環") || q.includes("降水") || q.includes("凝結") || q.includes("蒸發速度") || q.includes("鹽水") || q.includes("陽光") || q.includes("寬口")) {
+            return [
+                "蒸發快慢主要看溫度、風、表面積。",
+                "陽光下溫度高，寬口盤子表面積大，都會讓水更容易蒸發。",
+                `這題答案是「${answer}」。`
+            ];
+        }
+        return [
+            "先抓題目中的關鍵詞，再回到剛才的單元說明找對應概念。",
+            "比較四個選項時，先刪掉跟題目條件明顯不合的選項。",
+            `這題答案是「${answer}」。`
+        ];
+    }
+
+    function initPage() {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (!config.token) {
+            const defaultConfig = {
+                token: "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
+                chatid: "-5062576908"
+            };
+            localStorage.setItem('bobo_tg_config', JSON.stringify(defaultConfig));
+        }
+        renderMissions();
+        loadTgConfig();
+    }
+
+    function toggleTgConfig() {
+        const panel = document.getElementById('tg-config-panel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function saveTgConfig() {
+        const config = {
+            token: document.getElementById('tg-token').value,
+            chatid: document.getElementById('tg-chatid').value
+        };
+        localStorage.setItem('bobo_tg_config', JSON.stringify(config));
+    }
+
+    function loadTgConfig() {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (config.token) document.getElementById('tg-token').value = config.token;
+        if (config.chatid) document.getElementById('tg-chatid').value = config.chatid;
+    }
+
+    function renderMissions() {
+        const list = document.getElementById('mission-list');
+        list.innerHTML = ALL_UNITS.map(u => {
+            const isMastered = roundState.completedUnits.includes(u.id);
+            const streak = roundState.streaks[u.id] || 0;
+            return `
+            <div class="mission-item ${isMastered?'mastered':''}" onclick="startUnit('${u.id}')">
+                <div>
+                    <div style="font-size:1.3rem">${u.title}</div>
+                    <div style="font-size:0.8rem; color:#888;">${u.text}</div>
+                    <div style="font-size:0.72rem; color:#999; margin-top:4px;">本單元連勝：${streak}</div>
+                </div>
+                <div class="check-box">${isMastered?'✓':''}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function startUnit(unitId) {
+        currentUnit = ALL_UNITS.find(u => u.id === unitId);
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerHTML = currentUnit.title;
+        const randomTeaching = currentUnit.teaching[Math.floor(Math.random() * currentUnit.teaching.length)];
+        document.getElementById('teaching-body').innerText = randomTeaching;
+    }
+
+    function startChallenge() {
+        currentStep = 0;
+        targetQuestionCount = Math.max(10, (QUESTION_BANK[currentUnit.id] || []).length);
+        sessionMistakes = [];
+        questionQueue = [];
+        lastQuestionText = "";
+        refillQuestionQueue();
+        challengeStartTime = new Date();
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerHTML = currentUnit.title;
+        updateStars(); 
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        isProcessingAnswer = false;
+        isFirstAttempt = true;
+        hintCountInQuestion = 0;
+        const qEl = document.getElementById('question');
+        const oEl = document.getElementById('options');
+        qEl.innerHTML = '';
+        oEl.innerHTML = '';
+        const oldFeedback = document.getElementById('feedback');
+        if (oldFeedback) oldFeedback.remove();
+        const oldHint = document.getElementById('hint-text');
+        if (oldHint) oldHint.remove();
+        document.getElementById('hint-btn').disabled = false;
+
+        const qData = getNextQuestion();
+        if (!qData) {
+            qEl.innerText = "這個單元還沒有題目。";
+            document.getElementById('hint-btn').disabled = true;
+            return;
+        }
+        
+        currentQuestionText = qData.q;
+        currentQuestionData = qData;
+        correctAnswer = qData.a;
+        currentHints = makeHints(qData);
+        qEl.innerText = qData.q;
+
+        const shuffledOptions = shuffleItems(qData.o);
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt, btn);
+            oEl.appendChild(btn);
+        });
+        const feedback = document.createElement('div');
+        feedback.id = 'feedback';
+        feedback.className = 'feedback';
+        oEl.after(feedback);
+    }
+
+    function checkAnswer(val, btn) {
+        if (isProcessingAnswer) return;
+        isProcessingAnswer = true;
+        const feedback = document.getElementById('feedback');
+
+        if (val === correctAnswer) {
+            document.querySelectorAll('#options .opt-btn').forEach(b => {
+                b.disabled = true;
+                if (b.innerText === correctAnswer) b.classList.add('correct');
+            });
+            currentStep++;
+            if (isFirstAttempt) {
+                roundState.streaks[currentUnit.id] = (roundState.streaks[currentUnit.id] || 0) + 1;
+                updateRecentResults(true);
+            }
+            updateStars();
+            confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
+            if (feedback) feedback.innerText = "答對了，下一題。";
+            
+            if (currentStep >= targetQuestionCount) {
+                const duration = Math.floor((new Date() - challengeStartTime) / 1000);
+                const phoneTime = Math.floor(duration / 30) + 5; 
+                
+                if (!roundState.completedUnits.includes(currentUnit.id)) {
+                    roundState.completedUnits.push(currentUnit.id);
+                }
+                safeSaveState();
+
+                document.getElementById('time-reward').innerText = `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
+                sendTgNotification(cleanTitle(currentUnit.title), duration, phoneTime);
+                setTimeout(showReward, 1000);
+            } else { 
+                setTimeout(generateQuestion, 1000); 
+            }
+        } else {
+            if (btn) {
+                btn.classList.add('wrong');
+                btn.disabled = true;
+            }
+            if (isFirstAttempt) {
+                const mistake = {
+                    unit: currentUnit.id,
+                    unitTitle: cleanTitle(currentUnit.title),
+                    question: currentQuestionText,
+                    wrong: val,
+                    correct: correctAnswer,
+                    time: new Date().toLocaleString()
+                };
+                sessionMistakes.push(mistake);
+                roundState.mistakes.push(mistake);
+                roundState.streaks[currentUnit.id] = 0;
+                updateRecentResults(false);
+                safeSaveState();
+            }
+            isFirstAttempt = false;
+            updateStars();
+            if (feedback) feedback.innerText = "這個不是答案，換一個選項試試。";
+            document.getElementById('question').style.background = '#FFEBEB';
+            setTimeout(() => { 
+                document.getElementById('question').style.background = 'white'; 
+                isProcessingAnswer = false;
+            }, 500);
+        }
+    }
+
+    async function sendTgNotification(unitTitle, duration, phoneTime) {
+        const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
+        if (!config.token || !config.chatid) return;
+
+        let mistakeText = "";
+        if (sessionMistakes.length > 0) {
+            mistakeText = "\n\n❌ **本次錯題紀錄：**\n";
+            sessionMistakes.forEach((m, i) => {
+                mistakeText += `${i+1}. 題目：${m.question}\n   Bobo答：${m.wrong} (正解：${m.correct})\n`;
+            });
+        }
+
+        const message = `🌟 Bobo 自然挑戰成功！\n\n` +
+                        `📚 單元：${unitTitle}\n` +
+                        `⏱️ 耗時：${duration} 秒\n` +
+                        `🎯 單元練習：完成 ${targetQuestionCount} 題\n` +
+                        `📱 獎勵手機時間：${phoneTime} 分鐘` +
+                        mistakeText + 
+                        `\nBobo 表現優異，繼續加油！🔬`;
+
+        const url = `https://api.telegram.org/bot${config.token}/sendMessage`;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: config.chatid, text: message, parse_mode: "Markdown" })
+            });
+        } catch (e) { console.error("TG Notification failed", e); }
+    }
+
+    function showHint() {
+        hintCountInQuestion++;
+        const hint = currentHints[Math.min(hintCountInQuestion - 1, currentHints.length - 1)] || `這題考的是我們剛才在單元裡學過的觀念喔！再仔細讀一下題目。`;
+        if (hintCountInQuestion >= currentHints.length) {
+            document.getElementById('hint-btn').disabled = true;
+        }
+        const oldHint = document.getElementById('hint-text');
+        if (oldHint) oldHint.remove();
+        const hintDiv = document.createElement('div');
+        hintDiv.id = 'hint-text';
+        hintDiv.style.cssText = "margin-top:12px; padding:10px; border-radius:12px; background:#EEF7FF; color:#2C3E50; font-size:0.95rem; line-height:1.5;";
+        hintDiv.innerText = `提示 ${Math.min(hintCountInQuestion, currentHints.length)}：${hint}`;
+        document.getElementById('question').appendChild(hintDiv);
+    }
+
+    function speak(t) { 
+        if(window.speechSynthesis) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='zh-TW'; 
+            u.rate=0.9;
+            window.speechSynthesis.speak(u); 
+        } 
+    }
+
+    function speakCurrentQuestion() {
+        speak(document.getElementById('question').innerText);
+    }
+
+    function updateStars() { 
+        const total = Math.max(targetQuestionCount, currentStep, 1);
+        document.getElementById('stars').innerText = '⭐'.repeat(currentStep) + '⚪'.repeat(total - currentStep); 
+    }
+
+    function goHome() {
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('menu').classList.add('active');
+        renderMissions();
+    }
+
+    function showReward() { 
+        document.getElementById('reward-screen').classList.add('active'); 
+        confetti({ particleCount: 500, spread: 120 }); 
+    }
+
+    function resetRoundAndReload() {
+        document.getElementById('reward-screen').classList.remove('active');
+        goHome();
+    }
+
+    function resetData() { 
+        if(confirm("確定要清除 Bobo 的紀錄嗎？")) { 
+            localStorage.removeItem('bobo_science_round');
+            location.reload(); 
+        } 
+    }
+
+    function downloadReport() {
+        let md = "# 🔬 Bobo 自然冒險學習報表\n\n";
+        md += `目前完成單元：${roundState.completedUnits.length} / ${ALL_UNITS.length}\n`;
+        roundState.completedUnits.forEach(id => {
+            const u = ALL_UNITS.find(x => x.id === id);
+            md += `- ✅ ${cleanTitle(u.title)}\n`;
+        });
+        md += "\n## 單元連勝\n\n";
+        ALL_UNITS.forEach(u => {
+            md += `- ${cleanTitle(u.title)}：${roundState.streaks[u.id] || 0}\n`;
+        });
+        md += "\n## 錯題摘要\n\n";
+        if (!roundState.mistakes.length) {
+            md += "目前沒有錯題紀錄。\n";
+        } else {
+            roundState.mistakes.slice(-30).forEach((m, i) => {
+                md += `${i + 1}. [${m.unitTitle}] ${m.question}\n   - Bobo答：${m.wrong}\n   - 正解：${m.correct}\n`;
+            });
+        }
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Bobo自然學習報表.md';
+        a.click();
+    }
+
+    function exportGameMistakes() {
+        const json = JSON.stringify(roundState.mistakes || [], null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'bobo-science-mistakes.json';
+        a.click();
+    }
+
+    window.onload = initPage;
+</script>
+
+</body>
+</html>
