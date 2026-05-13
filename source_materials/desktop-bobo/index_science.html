@@ -69,6 +69,7 @@
         <div class="mission-panel" id="mission-list"></div>
         <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
             <button onclick="startMistakeReview()" id="mistake-review-btn" class="review-btn">🎯 錯題加強</button>
+            <button onclick="startAssessmentReview()" id="assessment-review-btn" class="review-btn">📝 評量錯題</button>
             <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
             <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
             <button onclick="toggleMistakeImport()" id="mistake-import-toggle" style="border:1px solid #F5A623; background:white; color:#C07800; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 匯入錯題</button>
@@ -81,8 +82,10 @@
             <textarea id="mistake-import-text" placeholder="可以貼匯出的 JSON，或 Telegram 裡的「題目：... Bobo答：... 正解：...」文字"></textarea>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                 <button onclick="importMistakesFromText()" class="review-btn">匯入到錯題池</button>
+                <button onclick="importAssessmentMistakesFromText()" class="review-btn">匯入評量錯題</button>
                 <button onclick="generateTaskLink()" class="review-btn">產生縮網址</button>
                 <button onclick="loadDemoMistake()" class="voice-btn" style="margin-top:0;">載入測試錯題</button>
+                <button onclick="loadDemoAssessmentMistakes()" class="voice-btn" style="margin-top:0;">載入評量範例</button>
             </div>
             <div id="mistake-import-status" style="font-size:0.85rem; color:#666; margin-top:8px;"></div>
             <label id="generated-task-link-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">給 Bobo 的縮網址：</label>
@@ -314,12 +317,29 @@
     let reviewTotalOriginals = 0;
     let pendingStartMode = "unit";
     let isTaskLinkMode = false;
+    let reviewSource = "curriculum";
+    let assessmentState;
+    try {
+        assessmentState = JSON.parse(localStorage.getItem('bobo_science_assessment')) || null;
+    } catch (e) {
+        assessmentState = null;
+    }
+    if (!assessmentState) assessmentState = { mistakes: [] };
+    if (!Array.isArray(assessmentState.mistakes)) assessmentState.mistakes = [];
 
     function safeSaveState() {
         try {
             localStorage.setItem('bobo_science_round', JSON.stringify(roundState));
         } catch (e) {
             console.warn("Could not save science state:", e);
+        }
+    }
+
+    function safeSaveAssessmentState() {
+        try {
+            localStorage.setItem('bobo_science_assessment', JSON.stringify(assessmentState));
+        } catch (e) {
+            console.warn("Could not save assessment state:", e);
         }
     }
 
@@ -353,6 +373,16 @@
             if (!original) return items;
             seen.add(mistake.question);
             items.push({ ...original, reviewUnitTitle: mistake.unitTitle || "錯題" });
+            return items;
+        }, []);
+    }
+
+    function assessmentPracticeBank() {
+        const seen = new Set();
+        return [...assessmentState.mistakes].reverse().reduce((items, mistake) => {
+            if (!mistake.question || !mistake.correct || seen.has(mistake.question)) return items;
+            seen.add(mistake.question);
+            items.push(externalQuestionFromRecord(mistake));
             return items;
         }, []);
     }
@@ -446,6 +476,105 @@
         return [];
     }
 
+    function inferAssessmentConcept(record) {
+        const text = `${record.concept || ""} ${record.question || ""} ${record.correct || ""}`;
+        if (text.includes("齒輪") || text.includes("鏈條")) return { key: "gear", label: "齒輪傳動" };
+        if (text.includes("輪軸") || text.includes("摩天輪") || text.includes("方向盤") || text.includes("螺絲起子")) return { key: "wheel", label: "輪軸" };
+        if (text.includes("滑輪") || text.includes("定滑輪") || text.includes("動滑輪")) return { key: "pulley", label: "滑輪" };
+        if (text.includes("槓桿") || text.includes("支點") || text.includes("施力點") || text.includes("抗力點")) return { key: "lever", label: "槓桿" };
+        if (text.includes("鳥") || text.includes("羽毛") || text.includes("喙") || text.includes("卵生")) return { key: "bird", label: "鳥類特徵" };
+        if (text.includes("生態") || text.includes("棲地") || text.includes("保育") || text.includes("生物")) return { key: "foodchain", label: "生態與保育" };
+        return { key: "general", label: record.concept || "評量錯題觀念" };
+    }
+
+    function assessmentOptionPool(conceptKey) {
+        const pools = {
+            gear: ["相鄰齒輪轉向相反", "小齒輪轉得較快", "大齒輪轉得較慢", "齒輪可以傳送動力"],
+            wheel: ["輪軸", "輪", "軸", "轉動時輪和軸會一起轉"],
+            pulley: ["定滑輪", "動滑輪", "改變施力方向", "省力"],
+            lever: ["支點", "施力點", "抗力點", "槓桿"],
+            bird: ["有羽毛", "有喙", "卵生", "多數會飛"],
+            foodchain: ["保護棲地", "維持生態平衡", "減少人為干擾", "尊重野生動物"],
+            general: ["觀察關鍵詞", "回到核心概念", "排除不合條件的選項", "比較題目條件"]
+        };
+        return pools[conceptKey] || pools.general;
+    }
+
+    function makeAssessmentOptions(record, conceptKey) {
+        const correct = record.correct;
+        const rawOptions = record.options || record.o || [];
+        const options = rawOptions.map(String).filter(Boolean);
+        if (correct && !options.includes(correct)) options.unshift(correct);
+        assessmentOptionPool(conceptKey).forEach(option => {
+            if (options.length < 4 && option !== correct && !options.includes(option)) options.push(option);
+        });
+        ["輪軸", "槓桿", "滑輪", "齒輪", "鳥類", "生態系"].forEach(option => {
+            if (options.length < 4 && option !== correct && !options.includes(option)) options.push(option);
+        });
+        return options.slice(0, 4);
+    }
+
+    function externalQuestionFromRecord(record) {
+        const inferred = inferAssessmentConcept(record);
+        const conceptKey = record.conceptKey || inferred.key;
+        const q = record.question || record.q;
+        const a = record.correct || record.a;
+        return {
+            q,
+            a,
+            o: makeAssessmentOptions({ ...record, correct: a }, conceptKey),
+            source: record.source || "評量錯題",
+            reviewUnitTitle: record.source || record.unitTitle || "評量錯題",
+            conceptKey,
+            conceptLabel: record.concept || inferred.label,
+            teach: record.teach || record.explanation || "",
+            variations: record.variations || []
+        };
+    }
+
+    function assessmentVariationQuestions(qData) {
+        if (Array.isArray(qData.variations) && qData.variations.length) {
+            return qData.variations.slice(0, 2).map(item => {
+                const q = item.question || item.q;
+                const a = item.correct || item.a;
+                return { q, a, o: makeAssessmentOptions({ ...item, correct: a }, qData.conceptKey), conceptKey: qData.conceptKey };
+            }).filter(item => item.q && item.a);
+        }
+        const key = qData.conceptKey || conceptKey(qData);
+        const label = qData.conceptLabel || "這個觀念";
+        const templates = {
+            gear: [
+                { q: "兩個齒輪互相咬合轉動時，轉動方向通常會怎樣？", a: "方向相反", o: ["方向相反", "方向相同", "都不會動", "一定變省力"] },
+                { q: "大齒輪帶動小齒輪時，小齒輪通常會轉得如何？", a: "比較快", o: ["比較快", "比較慢", "完全不動", "變成滑輪"] }
+            ],
+            wheel: [
+                { q: "方向盤帶動中間轉軸時，方向盤本身屬於輪軸中的哪一部分？", a: "輪", o: ["輪", "軸", "支點", "抗力點"] },
+                { q: "門把轉動時，手握的較大部分主要屬於什麼？", a: "輪", o: ["輪", "軸", "滑輪", "齒輪"] }
+            ],
+            pulley: [
+                { q: "固定在高處、不跟著重物移動的滑輪叫什麼？", a: "定滑輪", o: ["定滑輪", "動滑輪", "齒輪", "輪軸"] },
+                { q: "會跟著重物一起移動、通常可以省力的滑輪叫什麼？", a: "動滑輪", o: ["動滑輪", "定滑輪", "槓桿", "斜面"] }
+            ],
+            lever: [
+                { q: "工具轉動時繞著不動的點，稱為什麼？", a: "支點", o: ["支點", "輪", "軸", "齒輪"] },
+                { q: "使用工具時，手施力的位置稱為什麼？", a: "施力點", o: ["施力點", "抗力點", "支點", "定滑輪"] }
+            ],
+            bird: [
+                { q: "下列哪一項是鳥類常見的共同特徵？", a: "有羽毛", o: ["有羽毛", "有六隻腳", "用鰓呼吸", "身體有鱗片"] },
+                { q: "鳥類繁殖時通常會怎麼做？", a: "產卵", o: ["產卵", "分裂生殖", "用孢子繁殖", "不需要繁殖"] }
+            ],
+            foodchain: [
+                { q: "保護野生動物最重要的做法之一是什麼？", a: "保護棲地", o: ["保護棲地", "大量捕捉", "餵牠們人類食物", "破壞森林"] },
+                { q: "如果棲地被破壞，最可能造成什麼影響？", a: "生物數量下降", o: ["生物數量下降", "所有生物變多", "天氣立刻變冷", "齒輪轉更快"] }
+            ],
+            general: [
+                { q: `遇到「${label}」題目時，第一步應該做什麼？`, a: "找關鍵詞", o: ["找關鍵詞", "直接猜答案", "只看第一個字", "跳過題目"] },
+                { q: `如果同一個「${label}」觀念一直錯，最應該補強什麼？`, a: "理解原理", o: ["理解原理", "只背選項順序", "少看題目", "一直換題"] }
+            ]
+        };
+        return templates[key] || templates.general;
+    }
+
     function buildMistakeReviewQueue(bank) {
         const groups = [];
         const byConcept = new Map();
@@ -466,7 +595,7 @@
             const conceptCard = {
                 type: "concept",
                 conceptKey: group.key,
-                conceptText: conceptExplanation(representative),
+                conceptText: representative.teach || conceptExplanation(representative),
                 conceptIndex: groupIndex + 1,
                 conceptTotal: groups.length,
                 originalQuestions
@@ -478,7 +607,7 @@
                 conceptKey: group.key,
                 reviewKind: "原錯題"
             };
-            const variations = variationQuestions(representative).map((variation, index) => ({
+            const variations = (representative.source ? assessmentVariationQuestions(representative) : variationQuestions(representative)).map((variation, index) => ({
                 ...variation,
                 originalQuestion: representative.q,
                 originalQuestions,
@@ -513,18 +642,51 @@
         return true;
     }
 
+    function addAssessmentMistakeRecord(record) {
+        if (!record || !record.question || !record.correct) return false;
+        const inferred = inferAssessmentConcept(record);
+        const question = String(record.question).trim();
+        const exists = assessmentState.mistakes.some(m => m.question === question);
+        if (exists) return false;
+        assessmentState.mistakes.push({
+            source: record.source || record.unitTitle || "外來評量",
+            question,
+            wrong: record.wrong || "未記錄",
+            correct: String(record.correct).trim(),
+            options: record.options || record.o || [],
+            concept: record.concept || inferred.label,
+            conceptKey: record.conceptKey || inferred.key,
+            teach: record.teach || record.explanation || "",
+            variations: record.variations || [],
+            time: record.time || new Date().toLocaleString()
+        });
+        safeSaveAssessmentState();
+        return true;
+    }
+
+    function removeAssessmentMistakeQuestion(questionText) {
+        assessmentState.mistakes = assessmentState.mistakes.filter(m => m.question !== questionText);
+        safeSaveAssessmentState();
+    }
+
     function parseMistakeImportText(text) {
         const trimmed = text.trim();
         if (!trimmed) return [];
         try {
             const parsed = JSON.parse(trimmed);
-            const items = Array.isArray(parsed) ? parsed : [parsed];
+            const items = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.records) ? parsed.records : [parsed]);
             return items.map(item => ({
                 unit: item.unit,
                 unitTitle: item.unitTitle,
+                source: item.source,
                 question: item.question || item.q,
                 wrong: item.wrong,
-                correct: item.correct,
+                correct: item.correct || item.a,
+                options: item.options || item.o,
+                concept: item.concept,
+                conceptKey: item.conceptKey,
+                teach: item.teach || item.explanation,
+                variations: item.variations,
                 time: item.time
             })).filter(item => item.question);
         } catch (e) {
@@ -619,8 +781,13 @@
 
     function importTaskRecords(records) {
         let imported = 0;
+        let assessmentImported = 0;
         records.forEach(record => {
-            if (addMistakeRecord(record)) imported++;
+            if (addMistakeRecord(record)) {
+                imported++;
+            } else if (addAssessmentMistakeRecord(record)) {
+                assessmentImported++;
+            }
         });
         isTaskLinkMode = true;
         const importToggle = document.getElementById('mistake-import-toggle');
@@ -628,12 +795,16 @@
         if (importToggle) importToggle.style.display = 'none';
         if (resetBtn) resetBtn.style.display = 'none';
         renderMissions();
-        if (mistakePracticeBank().length) startMistakeReview();
+        if (assessmentImported) {
+            startAssessmentReview();
+        } else if (mistakePracticeBank().length) {
+            startMistakeReview();
+        }
         const masteryInfo = document.getElementById('mastery-info');
         if (masteryInfo) {
-            masteryInfo.innerText = imported
-                ? `任務連結已載入 ${imported} 題錯題，請完成錯題加強。`
-                : "這份錯題任務已經練過，或題目不在目前題庫中。";
+            masteryInfo.innerText = imported || assessmentImported
+                ? `任務連結已載入 ${imported + assessmentImported} 題錯題，請完成錯題加強。`
+                : "這份錯題任務已經練過，或題目資料不完整。";
         }
     }
 
@@ -672,6 +843,12 @@
         const q = qData.q;
         if (q.includes("螺絲起子") || q.includes("手把")) {
             return "輪軸題要先分清楚「輪」和「軸」：手握、比較大的圓形或粗的部分通常是輪；中間比較細、被帶動旋轉的部分是軸。";
+        }
+        if (q.includes("齒輪") || q.includes("鏈條") || q.includes("轉速") || q.includes("大齒輪") || q.includes("小齒輪")) {
+            return "齒輪題先看咬合和大小：相鄰齒輪轉動方向相反；大齒輪帶小齒輪時，小齒輪通常轉得比較快。";
+        }
+        if (q.includes("鳥") || q.includes("羽毛") || q.includes("喙") || q.includes("飛行") || q.includes("卵生")) {
+            return "鳥類題先抓共同特徵：有羽毛、有喙、卵生、多數會飛，但不是每一種鳥都很會飛。";
         }
         if (q.includes("省力") && q.includes("施力方向")) {
             return "滑輪題先分兩件事：定滑輪主要改變施力方向，動滑輪主要省力，滑輪組可能同時有兩種效果。";
@@ -713,8 +890,11 @@
     }
 
     function conceptKey(qData) {
+        if (qData.conceptKey) return qData.conceptKey;
         const q = qData.q;
         if (q.includes("螺絲起子") || q.includes("手把")) return "wheel";
+        if (q.includes("齒輪") || q.includes("鏈條") || q.includes("轉速") || q.includes("大齒輪") || q.includes("小齒輪")) return "gear";
+        if (q.includes("鳥") || q.includes("羽毛") || q.includes("喙") || q.includes("飛行") || q.includes("卵生")) return "bird";
         if (q.includes("省力") && q.includes("施力方向")) return "pulley";
         if (q.includes("槓桿") || q.includes("剪刀") || q.includes("支點")) return "lever";
         if (q.includes("電磁鐵")) return "magnet";
@@ -739,6 +919,27 @@
                 <rect x="110" y="62" width="115" height="16" rx="8" fill="#F5A623"></rect>
                 <text x="86" y="126" font-size="18" fill="#2C3E50">輪：手握的大部分</text>
                 <text x="180" y="52" font-size="18" fill="#2C3E50">軸：中間細細轉</text>
+            </svg>`,
+            gear: `<svg viewBox="0 0 320 140" role="img" aria-label="齒輪圖解">
+                <circle cx="100" cy="70" r="38" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <circle cx="190" cy="70" r="24" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                <circle cx="100" cy="70" r="8" fill="#4A90E2"></circle>
+                <circle cx="190" cy="70" r="7" fill="#F5A623"></circle>
+                <path d="M82 37 L72 24 M118 37 L128 24 M82 103 L72 116 M118 103 L128 116 M166 51 L154 42 M214 51 L226 42 M166 89 L154 98 M214 89 L226 98" stroke="#2C3E50" stroke-width="4" stroke-linecap="round"></path>
+                <text x="54" y="126" font-size="17" fill="#2C3E50">大齒輪慢</text>
+                <text x="166" y="126" font-size="17" fill="#2C3E50">小齒輪快</text>
+                <text x="96" y="24" font-size="17" fill="#2C3E50">相鄰方向相反</text>
+            </svg>`,
+            bird: `<svg viewBox="0 0 320 140" role="img" aria-label="鳥類特徵圖解">
+                <ellipse cx="145" cy="74" rx="52" ry="34" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></ellipse>
+                <circle cx="198" cy="55" r="24" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <polygon points="220,54 250,44 226,66" fill="#F5A623"></polygon>
+                <path d="M118 76 q34 34 62 0" fill="#B9E8FF" stroke="#4A90E2" stroke-width="4"></path>
+                <line x1="135" y1="106" x2="124" y2="126" stroke="#2C3E50" stroke-width="4"></line>
+                <line x1="165" y1="106" x2="176" y2="126" stroke="#2C3E50" stroke-width="4"></line>
+                <text x="36" y="28" font-size="17" fill="#2C3E50">羽毛</text>
+                <text x="224" y="84" font-size="17" fill="#2C3E50">喙</text>
+                <text x="96" y="132" font-size="17" fill="#2C3E50">卵生、兩足</text>
             </svg>`,
             pulley: `<svg viewBox="0 0 320 140" role="img" aria-label="滑輪圖解">
                 <line x1="70" y1="20" x2="70" y2="120" stroke="#4A90E2" stroke-width="6"></line>
@@ -1038,14 +1239,23 @@
     function renderMissions() {
         const list = document.getElementById('mission-list');
         const mistakeCount = mistakePracticeBank().length;
+        const assessmentCount = assessmentPracticeBank().length;
         const reviewBtn = document.getElementById('mistake-review-btn');
+        const assessmentBtn = document.getElementById('assessment-review-btn');
         const masteryInfo = document.getElementById('mastery-info');
         if (reviewBtn) {
             reviewBtn.disabled = mistakeCount === 0;
             reviewBtn.innerText = mistakeCount ? `🎯 錯題加強（${mistakeCount}）` : "🎯 目前沒有錯題";
         }
+        if (assessmentBtn) {
+            assessmentBtn.disabled = assessmentCount === 0;
+            assessmentBtn.innerText = assessmentCount ? `📝 評量錯題（${assessmentCount}）` : "📝 目前沒有評量錯題";
+        }
         if (masteryInfo) {
-            masteryInfo.innerText = mistakeCount ? `目前錯題池有 ${mistakeCount} 題，先加強再往下推進。` : "目前沒有待加強錯題。";
+            const parts = [];
+            if (mistakeCount) parts.push(`課綱錯題 ${mistakeCount} 題`);
+            if (assessmentCount) parts.push(`評量錯題 ${assessmentCount} 題`);
+            masteryInfo.innerText = parts.length ? `目前有${parts.join("、")}，先補洞再往下推進。` : "目前沒有待加強錯題。";
         }
         list.innerHTML = ALL_UNITS.map(u => {
             const isMastered = roundState.completedUnits.includes(u.id);
@@ -1078,6 +1288,8 @@
     function handleStartButton() {
         if (pendingStartMode === "mistake") {
             beginMistakeReview();
+        } else if (pendingStartMode === "assessment") {
+            beginAssessmentReview();
         } else {
             startChallenge();
         }
@@ -1115,10 +1327,50 @@
         pendingStartMode = "mistake";
     }
 
+    function startAssessmentReview() {
+        const bank = assessmentPracticeBank();
+        if (!bank.length) {
+            alert("目前沒有評量錯題可以加強。");
+            return;
+        }
+        pendingMistakeBank = bank;
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerText = "📝 評量錯題加強";
+        document.getElementById('teaching-body').innerText = `這裡只練考卷或評量帶進來的外來錯題，不會混進原本課綱題庫。\n\n每一組先看觀念卡，再做原本錯題和 2 題同觀念變化題。目標不是背考卷答案，而是把不會的觀念補起來。`;
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "開始評量錯題";
+        pendingStartMode = "assessment";
+    }
+
     function beginMistakeReview() {
         const bank = pendingMistakeBank.length ? pendingMistakeBank : mistakePracticeBank();
         isMistakeMode = true;
+        reviewSource = "curriculum";
         currentUnit = { id: "mistakes", title: "🎯 錯題加強", text: "把今天錯過的題目補起來" };
+        currentStep = 0;
+        const reviewQueue = buildMistakeReviewQueue(bank);
+        reviewOriginalQuestions = new Set(bank.map(item => item.q));
+        reviewFailedOriginals = new Set();
+        reviewTotalOriginals = reviewOriginalQuestions.size;
+        targetQuestionCount = reviewQueue.filter(item => item.type !== "concept").length;
+        sessionMistakes = [];
+        questionQueue = reviewQueue;
+        lastQuestionText = "";
+        challengeStartTime = new Date();
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerText = currentUnit.title;
+        updateStars();
+        generateQuestion();
+    }
+
+    function beginAssessmentReview() {
+        const bank = pendingMistakeBank.length ? pendingMistakeBank : assessmentPracticeBank();
+        isMistakeMode = true;
+        reviewSource = "assessment";
+        currentUnit = { id: "assessment", title: "📝 評量錯題加強", text: "把考卷錯題變成會的觀念" };
         currentStep = 0;
         const reviewQueue = buildMistakeReviewQueue(bank);
         reviewOriginalQuestions = new Set(bank.map(item => item.q));
@@ -1231,15 +1483,19 @@
                 if (isMistakeMode) {
                     reviewOriginalQuestions.forEach(questionText => {
                         if (!reviewFailedOriginals.has(questionText)) {
-                            removeMistakeQuestion(questionText);
+                            if (reviewSource === "assessment") {
+                                removeAssessmentMistakeQuestion(questionText);
+                            } else {
+                                removeMistakeQuestion(questionText);
+                            }
                         }
                     });
                 }
                 safeSaveState();
 
                 const learnedCount = isMistakeMode ? reviewTotalOriginals - reviewFailedOriginals.size : 0;
-                const remainingCount = isMistakeMode ? mistakePracticeBank().length : 0;
-                document.getElementById('reward-title').innerText = isMistakeMode ? "錯題加強完成！" : "大成功！";
+                const remainingCount = isMistakeMode ? (reviewSource === "assessment" ? assessmentPracticeBank().length : mistakePracticeBank().length) : 0;
+                document.getElementById('reward-title').innerText = isMistakeMode ? (reviewSource === "assessment" ? "評量錯題完成！" : "錯題加強完成！") : "大成功！";
                 document.getElementById('reward-text').innerText = isMistakeMode ? `原本 ${reviewTotalOriginals} 題，這輪學會 ${learnedCount} 題。` : "Bobo 真是個科學小天才！";
                 document.getElementById('time-reward').innerText = isMistakeMode ? `剩餘錯題：${remainingCount} 題，可以回首頁再挑戰一次。` : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
                 sendTgNotification(cleanTitle(currentUnit.title), duration, phoneTime);
@@ -1296,11 +1552,11 @@
         }
 
         const message = isMistakeMode
-            ? `🎯 Bobo 自然錯題加強完成！\n\n` +
+            ? `${reviewSource === "assessment" ? "📝 Bobo 自然評量錯題完成！" : "🎯 Bobo 自然錯題加強完成！"}\n\n` +
               `⏱️ 耗時：${duration} 秒\n` +
               `🧩 本次練習：${targetQuestionCount} 題\n` +
               `✅ 這輪學會：${reviewTotalOriginals - reviewFailedOriginals.size} / ${reviewTotalOriginals} 題\n` +
-              `📌 剩餘錯題：${mistakePracticeBank().length} 題` +
+              `📌 剩餘錯題：${reviewSource === "assessment" ? assessmentPracticeBank().length : mistakePracticeBank().length} 題` +
               mistakeText +
               `\n錯題有補起來，這次很紮實！🔬`
             : `🌟 Bobo 自然挑戰成功！\n\n` +
@@ -1375,6 +1631,7 @@
     function resetData() { 
         if(confirm("確定要清除 Bobo 的紀錄嗎？")) { 
             localStorage.removeItem('bobo_science_round');
+            localStorage.removeItem('bobo_science_assessment');
             location.reload(); 
         } 
     }
@@ -1398,6 +1655,20 @@
             : "沒有匯入新錯題。請確認題目文字和題庫內題目一致，或這題是否已在錯題池。";
     }
 
+    function importAssessmentMistakesFromText() {
+        const input = document.getElementById('mistake-import-text');
+        const status = document.getElementById('mistake-import-status');
+        const records = parseMistakeImportText(input.value);
+        let imported = 0;
+        records.forEach(record => {
+            if (addAssessmentMistakeRecord(record)) imported++;
+        });
+        renderMissions();
+        status.innerText = imported
+            ? `已匯入 ${imported} 題評量錯題，可以按「評量錯題」練習。`
+            : "沒有匯入新評量錯題。請確認每筆至少有題目 question/題目 和正解 correct/正解。";
+    }
+
     async function generateTaskLink() {
         const input = document.getElementById('mistake-import-text');
         const status = document.getElementById('mistake-import-status');
@@ -1405,9 +1676,9 @@
         const backupOutput = document.getElementById('generated-task-json');
         const linkLabel = document.getElementById('generated-task-link-label');
         const backupLabel = document.getElementById('generated-task-json-label');
-        const records = parseMistakeImportText(input.value).filter(record => record.question && findQuestionByText(record.question));
+        const records = parseMistakeImportText(input.value).filter(record => record.question && record.correct);
         if (!records.length) {
-            status.innerText = "沒有可產生任務連結的錯題。請確認題目文字和題庫內題目一致。";
+            status.innerText = "沒有可產生任務連結的錯題。請確認每筆至少有題目和正解。";
             [linkOutput, backupOutput, linkLabel, backupLabel].forEach(el => {
                 if (el) el.style.display = 'none';
             });
@@ -1460,6 +1731,39 @@
             }
         ], null, 2);
         importMistakesFromText();
+    }
+
+    function loadDemoAssessmentMistakes() {
+        document.getElementById('mistake-import-text').value = JSON.stringify([
+            {
+                source: "六下期中考",
+                question: "承上題，哪一個工具利用輪軸原理？",
+                wrong: "拉開彩虹劇場的舞台布幕",
+                correct: "轉動彩虹摩天輪",
+                options: ["踩踏龍骨車", "將飛天滑艇 G5 帶到高處", "轉動彩虹摩天輪", "拉開彩虹劇場的舞台布幕"],
+                concept: "輪軸",
+                teach: "輪軸是輪和軸一起轉動的工具。像摩天輪、方向盤、門把都可以用輪軸來判斷。"
+            },
+            {
+                source: "六下期中考",
+                question: "兩個相鄰齒輪互相咬合時，轉動方向通常會如何？",
+                wrong: "方向相同",
+                correct: "方向相反",
+                options: ["方向相同", "方向相反", "都不會動", "一定省力"],
+                concept: "齒輪傳動",
+                teach: "齒輪互相咬合時，相鄰兩個齒輪的轉動方向會相反；大齒輪和小齒輪的轉速也不同。"
+            },
+            {
+                source: "六下期中考",
+                question: "下列哪一項是鳥類共同特徵？",
+                wrong: "用鰓呼吸",
+                correct: "有羽毛",
+                options: ["有羽毛", "用鰓呼吸", "有六隻腳", "身體有鱗片"],
+                concept: "鳥類特徵",
+                teach: "鳥類的核心特徵是有羽毛、有喙、卵生，多數會飛，但是否會飛不是判斷鳥類的唯一條件。"
+            }
+        ], null, 2);
+        importAssessmentMistakesFromText();
     }
 
     function downloadReport() {
