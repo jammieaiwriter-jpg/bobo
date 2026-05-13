@@ -288,6 +288,8 @@
     let lastQuestionText = "";
     let isMistakeMode = false;
     let pendingMistakeBank = [];
+    let reviewOriginalQuestions = new Set();
+    let reviewFailedOriginals = new Set();
 
     function safeSaveState() {
         try {
@@ -329,6 +331,109 @@
             items.push({ ...original, reviewUnitTitle: mistake.unitTitle || "錯題" });
             return items;
         }, []);
+    }
+
+    function variationQuestions(qData) {
+        const q = qData.q;
+        if (q.includes("螺絲起子") || q.includes("手把")) {
+            return [
+                { q: "轉動門把時，手握並轉動的圓形把手比較像輪軸中的哪一部分？", a: "輪", o: ["輪", "軸", "支點", "斜面"] },
+                { q: "方向盤帶動中間轉軸時，方向盤本身屬於輪軸中的哪一部分？", a: "輪", o: ["輪", "軸", "抗力點", "定滑輪"] }
+            ];
+        }
+        if (q.includes("省力") && q.includes("施力方向")) {
+            return [
+                { q: "只使用定滑輪升旗時，主要效果是什麼？", a: "改變施力方向", o: ["改變施力方向", "讓物體消失", "增加重量", "產生電流"] },
+                { q: "只使用動滑輪吊起重物時，主要效果是什麼？", a: "省力", o: ["省力", "讓光折射", "產生聲音", "改變物質"] }
+            ];
+        }
+        if (q.includes("槓桿") || q.includes("剪刀") || q.includes("支點")) {
+            return [
+                { q: "翹翹板會繞著中間固定的位置轉動，這個位置稱為什麼？", a: "支點", o: ["支點", "電池", "導線", "分解者"] },
+                { q: "使用開瓶器時，工具繞著某一點轉動來撬開瓶蓋，這類工具主要屬於什麼？", a: "槓桿", o: ["槓桿", "沉積岩", "光合作用", "凝結"] }
+            ];
+        }
+        if (q.includes("電磁鐵")) {
+            return [
+                { q: "想讓電磁鐵吸起更多迴紋針，下列哪個方法通常有效？", a: "增加線圈匝數", o: ["增加線圈匝數", "減少電流", "拿掉電池", "把導線剪斷"] },
+                { q: "在其他條件相同時，電磁鐵的電流變大，磁力通常會如何？", a: "變強", o: ["變強", "完全消失", "變成光", "變成聲音"] }
+            ];
+        }
+        if (q.includes("電路") || q.includes("燈泡") || q.includes("導體")) {
+            return [
+                { q: "簡單電路中，哪一項材料最容易讓電流通過？", a: "金屬線", o: ["金屬線", "橡皮擦", "塑膠尺", "木筷"] },
+                { q: "串聯電路只有一條通路，如果其中一個燈泡斷路，其他燈泡會怎樣？", a: "不會亮", o: ["不會亮", "一定更亮", "變成磁鐵", "開始蒸發"] }
+            ];
+        }
+        if (q.includes("保存") || q.includes("腐敗") || q.includes("微生物") || q.includes("蜜餞") || q.includes("曬乾") || q.includes("真空") || q.includes("殺菌")) {
+            return [
+                { q: "把水果曬乾可以保存較久，主要是減少微生物需要的什麼？", a: "水分", o: ["水分", "聲音", "支點", "月相"] },
+                { q: "把食物放進冰箱，主要是讓微生物生長速度如何？", a: "變慢", o: ["變慢", "立刻變多", "變成岩石", "產生彩虹"] }
+            ];
+        }
+        if (q.includes("物理變化") || q.includes("化學變化") || q.includes("生鏽") || q.includes("燃燒") || q.includes("融化") || q.includes("蒸發") || q.includes("煎熟") || q.includes("腐爛")) {
+            return [
+                { q: "紙張撕成兩半，沒有產生新物質，這屬於什麼變化？", a: "物理變化", o: ["物理變化", "化學變化", "光合作用", "月食"] },
+                { q: "木頭燃燒後變成灰燼和氣體，這屬於什麼變化？", a: "化學變化", o: ["化學變化", "物理變化", "折射", "串聯"] }
+            ];
+        }
+        if (q.includes("食物鏈") || q.includes("生產者") || q.includes("消費者") || q.includes("分解者") || q.includes("光合作用") || q.includes("生態系")) {
+            return [
+                { q: "食物鏈中，能自己製造養分的綠色植物通常稱為什麼？", a: "生產者", o: ["生產者", "初級消費者", "分解者", "導體"] },
+                { q: "真菌把枯枝落葉分解，讓養分回到環境中，真菌屬於什麼角色？", a: "分解者", o: ["分解者", "生產者", "月球", "滑輪"] }
+            ];
+        }
+        if (q.includes("變因") || q.includes("實驗")) {
+            return [
+                { q: "實驗中，研究者主動改變的條件叫什麼？", a: "操縱變因", o: ["操縱變因", "應變變因", "生產者", "沉積岩"] },
+                { q: "實驗中，觀察或測量到的結果叫什麼？", a: "應變變因", o: ["應變變因", "控制變因", "支點", "定滑輪"] }
+            ];
+        }
+        if (q.includes("自轉") || q.includes("公轉") || q.includes("月相") || q.includes("月食") || q.includes("日食")) {
+            return [
+                { q: "地球自轉主要造成哪一種現象？", a: "晝夜交替", o: ["晝夜交替", "四季變化", "食物腐敗", "鐵釘生鏽"] },
+                { q: "月球繞地球公轉，讓我們看到月亮亮面不同，這稱為什麼？", a: "月相變化", o: ["月相變化", "水循環", "光合作用", "串聯電路"] }
+            ];
+        }
+        if (q.includes("岩石") || q.includes("化石")) {
+            return [
+                { q: "岩漿冷卻凝固後形成的岩石屬於哪一類？", a: "火成岩", o: ["火成岩", "沉積岩", "變質岩", "微生物"] },
+                { q: "生物遺骸最常被一層層泥沙保存，化石通常較常出現在什麼岩？", a: "沉積岩", o: ["沉積岩", "火成岩", "變質岩", "電磁鐵"] }
+            ];
+        }
+        if (q.includes("聲音") || q.includes("介質") || q.includes("振動")) {
+            return [
+                { q: "敲鼓時鼓面振動，所以我們聽到什麼？", a: "聲音", o: ["聲音", "光線", "月相", "電流"] },
+                { q: "聲音在真空中無法傳播，主要是因為缺少什麼？", a: "介質", o: ["介質", "光源", "支點", "氧氣"] }
+            ];
+        }
+        if (q.includes("光") || q.includes("折射") || q.includes("反射") || q.includes("影子") || q.includes("彩虹") || q.includes("魚")) {
+            return [
+                { q: "筷子插入水中看起來彎折，主要是因為光發生什麼現象？", a: "折射", o: ["折射", "燃燒", "蒸散", "串聯"] },
+                { q: "照鏡子時看到自己的影像，主要是因為光發生什麼現象？", a: "反射", o: ["反射", "凝結", "生鏽", "發酵"] }
+            ];
+        }
+        if (q.includes("水循環") || q.includes("降水") || q.includes("凝結") || q.includes("蒸發") || q.includes("鹽水") || q.includes("陽光") || q.includes("寬口") || q.includes("颱風")) {
+            return [
+                { q: "水受熱變成水蒸氣進入空氣中，這是水循環中的哪個過程？", a: "蒸發", o: ["蒸發", "凝結", "降水", "折射"] },
+                { q: "水蒸氣遇冷形成小水滴變成雲，這是水循環中的哪個過程？", a: "凝結", o: ["凝結", "蒸發", "燃燒", "自轉"] }
+            ];
+        }
+        return [];
+    }
+
+    function buildMistakeReviewQueue(bank) {
+        return bank.flatMap(item => {
+            const originalQuestion = item.q;
+            const original = { ...item, originalQuestion, reviewKind: "原錯題" };
+            const variations = variationQuestions(item).map((variation, index) => ({
+                ...variation,
+                originalQuestion,
+                reviewKind: `變化題 ${index + 1}`,
+                reviewUnitTitle: item.reviewUnitTitle || "錯題"
+            }));
+            return [original, ...variations];
+        });
     }
 
     function removeMistakeQuestion(questionText) {
@@ -635,9 +740,12 @@
         isMistakeMode = true;
         currentUnit = { id: "mistakes", title: "🎯 錯題加強", text: "把今天錯過的題目補起來" };
         currentStep = 0;
-        targetQuestionCount = bank.length;
+        const reviewQueue = buildMistakeReviewQueue(bank);
+        reviewOriginalQuestions = new Set(bank.map(item => item.q));
+        reviewFailedOriginals = new Set();
+        targetQuestionCount = reviewQueue.length;
         sessionMistakes = [];
-        questionQueue = shuffleItems(bank);
+        questionQueue = reviewQueue;
         lastQuestionText = "";
         challengeStartTime = new Date();
         document.getElementById('menu').classList.remove('active');
@@ -673,7 +781,7 @@
         currentQuestionData = qData;
         correctAnswer = qData.a;
         currentHints = makeHints(qData);
-        qEl.innerText = qData.q;
+        qEl.innerText = qData.reviewKind ? `${qData.reviewKind}：${qData.q}` : qData.q;
 
         const shuffledOptions = shuffleItems(qData.o);
         shuffledOptions.forEach(opt => {
@@ -701,9 +809,7 @@
             });
             currentStep++;
             if (isFirstAttempt) {
-                if (isMistakeMode) {
-                    removeMistakeQuestion(currentQuestionText);
-                } else {
+                if (!isMistakeMode) {
                     roundState.streaks[currentUnit.id] = (roundState.streaks[currentUnit.id] || 0) + 1;
                     updateRecentResults(true);
                 }
@@ -718,6 +824,13 @@
                 
                 if (!isMistakeMode && !roundState.completedUnits.includes(currentUnit.id)) {
                     roundState.completedUnits.push(currentUnit.id);
+                }
+                if (isMistakeMode) {
+                    reviewOriginalQuestions.forEach(questionText => {
+                        if (!reviewFailedOriginals.has(questionText)) {
+                            removeMistakeQuestion(questionText);
+                        }
+                    });
                 }
                 safeSaveState();
 
@@ -744,7 +857,9 @@
                     time: new Date().toLocaleString()
                 };
                 sessionMistakes.push(mistake);
-                if (!isMistakeMode) {
+                if (isMistakeMode) {
+                    reviewFailedOriginals.add(currentQuestionData.originalQuestion || currentQuestionText);
+                } else {
                     roundState.mistakes.push(mistake);
                     roundState.streaks[currentUnit.id] = 0;
                     updateRecentResults(false);
