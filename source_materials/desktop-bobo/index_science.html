@@ -831,12 +831,13 @@
     async function loadTaskFromUrl() {
         const params = new URLSearchParams(location.search);
         const taskId = params.get("task");
+        const taskVersion = params.get("v") || Date.now().toString();
         const taskData = params.get("taskData");
         if (!taskId && !taskData) return;
         let records = [];
         if (taskId) {
             try {
-                const response = await fetch(taskFileUrl(taskId), { cache: "no-store" });
+                const response = await fetch(`${taskFileUrl(taskId)}?v=${encodeURIComponent(taskVersion)}`, { cache: "no-store" });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const payload = await response.json();
                 records = Array.isArray(payload.records) ? payload.records : [];
