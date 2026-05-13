@@ -84,10 +84,13 @@
                 <button onclick="importMistakesFromText()" class="review-btn">匯入到錯題池</button>
                 <button onclick="importAssessmentMistakesFromText()" class="review-btn">匯入評量錯題</button>
                 <button onclick="generateTaskLink()" class="review-btn">產生縮網址</button>
+                <button onclick="createGitHubTaskLink()" class="review-btn">建立 GitHub 短任務</button>
                 <button onclick="loadDemoMistake()" class="voice-btn" style="margin-top:0;">載入測試錯題</button>
                 <button onclick="loadDemoAssessmentMistakes()" class="voice-btn" style="margin-top:0;">載入評量範例</button>
                 <button onclick="loadMidtermAssessmentMistakes()" class="voice-btn" style="margin-top:0;">載入六下期中錯題</button>
             </div>
+            <label style="display:block; font-size:0.85rem; color:#666; margin-top:8px;">GitHub Token（只用來建立任務，不會存進題目）：</label>
+            <input id="github-task-token" type="password" placeholder="貼上 GitHub token 後按「建立 GitHub 短任務」" style="width:100%; box-sizing:border-box; border:1px solid #ddd; border-radius:10px; padding:8px; font-family:inherit;">
             <div id="mistake-import-status" style="font-size:0.85rem; color:#666; margin-top:8px;"></div>
             <label id="generated-task-link-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">給 Bobo 的縮網址：</label>
             <textarea id="generated-task-link" readonly style="display:none; min-height:58px; margin-top:4px;"></textarea>
@@ -714,6 +717,13 @@
         let binary = "";
         bytes.forEach(byte => binary += String.fromCharCode(byte));
         return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function toBase64(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = "";
+        bytes.forEach(byte => binary += String.fromCharCode(byte));
+        return btoa(binary);
     }
 
     function fromBase64Url(text) {
@@ -1721,6 +1731,81 @@
         status.innerText = shortened
             ? `已產生縮網址，內含 ${records.length} 題錯題。把上面的縮網址傳給 Bobo，他打開就會進錯題加強。`
             : `縮網址服務暫時無法使用，已改產生完整任務連結，內含 ${records.length} 題錯題。`;
+    }
+
+    async function createGitHubTaskLink() {
+        const input = document.getElementById('mistake-import-text');
+        const status = document.getElementById('mistake-import-status');
+        const linkOutput = document.getElementById('generated-task-link');
+        const backupOutput = document.getElementById('generated-task-json');
+        const linkLabel = document.getElementById('generated-task-link-label');
+        const backupLabel = document.getElementById('generated-task-json-label');
+        const tokenInput = document.getElementById('github-task-token');
+        const token = (tokenInput?.value || "").trim();
+        const records = parseMistakeImportText(input.value).filter(record => record.question && record.correct);
+        if (!records.length) {
+            status.innerText = "沒有可建立 GitHub 任務的錯題。請確認每筆至少有題目和正解。";
+            return;
+        }
+        if (!token) {
+            status.innerText = "請先貼上 GitHub token，才能一鍵建立 GitHub 任務。";
+            tokenInput?.focus();
+            return;
+        }
+        const taskId = makeTaskId();
+        const payload = {
+            type: "bobo-science-review",
+            id: taskId,
+            createdAt: new Date().toISOString(),
+            records
+        };
+        const path = `source_materials/desktop-bobo/tasks/${taskId}.json`;
+        const body = {
+            message: `新增自然錯題任務 ${taskId}`,
+            content: toBase64(JSON.stringify(payload, null, 2)),
+            branch: "main"
+        };
+        status.innerText = `正在建立 GitHub 短任務 ${taskId}，共 ${records.length} 題...`;
+        try {
+            const response = await fetch(`https://api.github.com/repos/jammieaiwriter-jpg/bobo/contents/${path}`, {
+                method: "PUT",
+                headers: {
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "X-GitHub-Api-Version": "2022-11-28"
+                },
+                body: JSON.stringify(body)
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || `GitHub HTTP ${response.status}`);
+            const link = `${taskPageUrl()}?task=${encodeURIComponent(taskId)}&v=${encodeURIComponent(taskId)}`;
+            if (linkLabel) {
+                linkLabel.style.display = 'block';
+                linkLabel.innerText = "給 Bobo 的 GitHub 短任務網址：";
+            }
+            if (linkOutput) {
+                linkOutput.style.display = 'block';
+                linkOutput.value = link;
+                linkOutput.focus();
+                linkOutput.select();
+            }
+            if (backupLabel) {
+                backupLabel.style.display = 'block';
+                backupLabel.innerText = "GitHub 任務檔：";
+            }
+            if (backupOutput) {
+                backupOutput.style.display = 'block';
+                backupOutput.value = result.content?.html_url || path;
+            }
+            if (navigator.clipboard && location.protocol !== "file:") {
+                navigator.clipboard.writeText(link).catch(() => {});
+            }
+            status.innerText = `已建立 GitHub 短任務，內含 ${records.length} 題。把上面的短任務網址傳給 Bobo。`;
+        } catch (e) {
+            console.error("Could not create GitHub task:", e);
+            status.innerText = `建立 GitHub 任務失敗：${e.message}`;
+        }
     }
 
     function loadDemoMistake() {
