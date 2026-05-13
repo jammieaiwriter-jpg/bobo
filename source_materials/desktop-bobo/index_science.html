@@ -50,6 +50,8 @@
         .concept-card { border: 2px solid #E3F1FF; background: #F8FCFF; border-radius: 16px; padding: 12px; margin: 12px 0; }
         .concept-card svg { width: 100%; max-width: 320px; height: 140px; display: block; margin: 0 auto 8px; }
         .concept-text { font-size: 1rem; line-height: 1.55; }
+        .import-panel { display: none; background: #fff8ef; border: 2px solid var(--accent); border-radius: 16px; padding: 12px; margin-top: 12px; text-align: left; }
+        .import-panel textarea { width: 100%; min-height: 130px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 10px; padding: 8px; font-size: 0.9rem; font-family: inherit; }
         .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
         .start-btn:active { transform: translateY(4px); box-shadow: none; }
         .mastered-tag { background: #FFD700; color: #8B4513; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
@@ -69,8 +71,19 @@
             <button onclick="startMistakeReview()" id="mistake-review-btn" class="review-btn">🎯 錯題加強</button>
             <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
             <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
+            <button onclick="toggleMistakeImport()" style="border:1px solid #F5A623; background:white; color:#C07800; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 匯入錯題</button>
             <button onclick="toggleTgConfig()" style="border:1px solid #ccc; background:white; color:#0088cc; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📢 設定通知</button>
             <button onclick="resetData()" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
+        </div>
+
+        <div id="mistake-import-panel" class="import-panel">
+            <strong>貼上錯題 JSON 或 Telegram 錯題摘要：</strong>
+            <textarea id="mistake-import-text" placeholder="可以貼匯出的 JSON，或 Telegram 裡的「題目：... Bobo答：... 正解：...」文字"></textarea>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                <button onclick="importMistakesFromText()" class="review-btn">匯入到錯題池</button>
+                <button onclick="loadDemoMistake()" class="voice-btn" style="margin-top:0;">載入測試錯題</button>
+            </div>
+            <div id="mistake-import-status" style="font-size:0.85rem; color:#666; margin-top:8px;"></div>
         </div>
 
         <div id="tg-config-panel" style="background: #eef; padding: 10px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; text-align: left; display: none;">
@@ -442,6 +455,57 @@
     function removeMistakeQuestion(questionText) {
         roundState.mistakes = roundState.mistakes.filter(m => m.question !== questionText);
         safeSaveState();
+    }
+
+    function addMistakeRecord(record) {
+        if (!record || !record.question) return false;
+        const original = findQuestionByText(record.question);
+        if (!original) return false;
+        const exists = roundState.mistakes.some(m => m.question === original.q);
+        if (exists) return false;
+        roundState.mistakes.push({
+            unit: record.unit || "imported",
+            unitTitle: record.unitTitle || "匯入錯題",
+            question: original.q,
+            wrong: record.wrong || "未記錄",
+            correct: record.correct || original.a,
+            time: record.time || new Date().toLocaleString()
+        });
+        safeSaveState();
+        return true;
+    }
+
+    function parseMistakeImportText(text) {
+        const trimmed = text.trim();
+        if (!trimmed) return [];
+        try {
+            const parsed = JSON.parse(trimmed);
+            const items = Array.isArray(parsed) ? parsed : [parsed];
+            return items.map(item => ({
+                unit: item.unit,
+                unitTitle: item.unitTitle,
+                question: item.question || item.q,
+                wrong: item.wrong,
+                correct: item.correct,
+                time: item.time
+            })).filter(item => item.question);
+        } catch (e) {
+            const lines = trimmed.split(/\n+/).map(line => line.trim()).filter(Boolean);
+            const records = [];
+            lines.forEach(line => {
+                const questionMatch = line.match(/題目[:：]\s*(.+?)(?:\s+Bobo答|$)/);
+                if (!questionMatch) return;
+                const wrongMatch = line.match(/Bobo答[:：]\s*(.+?)(?:\s*\(|\s+正解|$)/);
+                const correctMatch = line.match(/正解[:：]\s*(.+?)\)?$/);
+                records.push({
+                    unitTitle: "Telegram 匯入",
+                    question: questionMatch[1].trim(),
+                    wrong: wrongMatch ? wrongMatch[1].trim() : "未記錄",
+                    correct: correctMatch ? correctMatch[1].trim() : ""
+                });
+            });
+            return records;
+        }
     }
 
     function conceptExplanation(qData) {
@@ -1117,6 +1181,39 @@
             localStorage.removeItem('bobo_science_round');
             location.reload(); 
         } 
+    }
+
+    function toggleMistakeImport() {
+        const panel = document.getElementById('mistake-import-panel');
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function importMistakesFromText() {
+        const input = document.getElementById('mistake-import-text');
+        const status = document.getElementById('mistake-import-status');
+        const records = parseMistakeImportText(input.value);
+        let imported = 0;
+        records.forEach(record => {
+            if (addMistakeRecord(record)) imported++;
+        });
+        renderMissions();
+        status.innerText = imported
+            ? `已匯入 ${imported} 題錯題，可以按「錯題加強」練習。`
+            : "沒有匯入新錯題。請確認題目文字和題庫內題目一致，或這題是否已在錯題池。";
+    }
+
+    function loadDemoMistake() {
+        document.getElementById('mistake-import-text').value = JSON.stringify([
+            {
+                unit: "tools",
+                unitTitle: "巧妙的工具",
+                question: "轉動螺絲起子時，手握的手把部分是屬於？",
+                wrong: "軸",
+                correct: "輪",
+                time: new Date().toLocaleString()
+            }
+        ], null, 2);
+        importMistakesFromText();
     }
 
     function downloadReport() {
