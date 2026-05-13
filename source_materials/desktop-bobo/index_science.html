@@ -71,9 +71,9 @@
             <button onclick="startMistakeReview()" id="mistake-review-btn" class="review-btn">🎯 錯題加強</button>
             <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
             <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
-            <button onclick="toggleMistakeImport()" style="border:1px solid #F5A623; background:white; color:#C07800; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 匯入錯題</button>
+            <button onclick="toggleMistakeImport()" id="mistake-import-toggle" style="border:1px solid #F5A623; background:white; color:#C07800; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 匯入錯題</button>
             <button onclick="toggleTgConfig()" style="border:1px solid #ccc; background:white; color:#0088cc; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📢 設定通知</button>
-            <button onclick="resetData()" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
+            <button onclick="resetData()" id="reset-data-btn" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
         </div>
 
         <div id="mistake-import-panel" class="import-panel">
@@ -81,9 +81,11 @@
             <textarea id="mistake-import-text" placeholder="可以貼匯出的 JSON，或 Telegram 裡的「題目：... Bobo答：... 正解：...」文字"></textarea>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                 <button onclick="importMistakesFromText()" class="review-btn">匯入到錯題池</button>
+                <button onclick="generateTaskLink()" class="review-btn">產生任務連結</button>
                 <button onclick="loadDemoMistake()" class="voice-btn" style="margin-top:0;">載入測試錯題</button>
             </div>
             <div id="mistake-import-status" style="font-size:0.85rem; color:#666; margin-top:8px;"></div>
+            <textarea id="generated-task-link" readonly style="display:none; min-height:80px; margin-top:8px;"></textarea>
         </div>
 
         <div id="tg-config-panel" style="background: #eef; padding: 10px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; text-align: left; display: none;">
@@ -308,6 +310,7 @@
     let reviewFailedOriginals = new Set();
     let reviewTotalOriginals = 0;
     let pendingStartMode = "unit";
+    let isTaskLinkMode = false;
 
     function safeSaveState() {
         try {
@@ -538,6 +541,54 @@
             });
             return records;
         }
+    }
+
+    function toBase64Url(text) {
+        const bytes = new TextEncoder().encode(text);
+        let binary = "";
+        bytes.forEach(byte => binary += String.fromCharCode(byte));
+        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function fromBase64Url(text) {
+        const base64 = text.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - text.length % 4) % 4);
+        const binary = atob(base64);
+        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+    }
+
+    function taskPageUrl() {
+        if (location.protocol === "http:" || location.protocol === "https:") {
+            return `${location.origin}${location.pathname}`;
+        }
+        return "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_science.html";
+    }
+
+    function loadTaskFromUrl() {
+        const params = new URLSearchParams(location.search);
+        const taskData = params.get("taskData");
+        if (!taskData) return;
+        let records = [];
+        try {
+            const payload = JSON.parse(fromBase64Url(taskData));
+            records = Array.isArray(payload.records) ? payload.records : [];
+        } catch (e) {
+            console.warn("Could not load task data:", e);
+        }
+        let imported = 0;
+        records.forEach(record => {
+            if (addMistakeRecord(record)) imported++;
+        });
+        isTaskLinkMode = true;
+        const importToggle = document.getElementById('mistake-import-toggle');
+        const resetBtn = document.getElementById('reset-data-btn');
+        if (importToggle) importToggle.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'none';
+        if (history.replaceState) history.replaceState(null, "", location.pathname);
+        renderMissions();
+        if (mistakePracticeBank().length) startMistakeReview();
+        const masteryInfo = document.getElementById('mastery-info');
+        if (masteryInfo) masteryInfo.innerText = `任務連結已載入 ${imported || records.length} 題錯題，請完成錯題加強。`;
     }
 
     function conceptExplanation(qData) {
@@ -885,6 +936,7 @@
         }
         renderMissions();
         loadTgConfig();
+        loadTaskFromUrl();
     }
 
     function toggleTgConfig() {
@@ -1267,6 +1319,34 @@
         status.innerText = imported
             ? `已匯入 ${imported} 題錯題，可以按「錯題加強」練習。`
             : "沒有匯入新錯題。請確認題目文字和題庫內題目一致，或這題是否已在錯題池。";
+    }
+
+    function generateTaskLink() {
+        const input = document.getElementById('mistake-import-text');
+        const status = document.getElementById('mistake-import-status');
+        const output = document.getElementById('generated-task-link');
+        const records = parseMistakeImportText(input.value).filter(record => record.question && findQuestionByText(record.question));
+        if (!records.length) {
+            status.innerText = "沒有可產生任務連結的錯題。請確認題目文字和題庫內題目一致。";
+            if (output) output.style.display = 'none';
+            return;
+        }
+        const payload = {
+            type: "bobo-science-review",
+            createdAt: new Date().toISOString(),
+            records
+        };
+        const link = `${taskPageUrl()}?taskData=${toBase64Url(JSON.stringify(payload))}`;
+        if (output) {
+            output.style.display = 'block';
+            output.value = link;
+            output.focus();
+            output.select();
+        }
+        if (navigator.clipboard && location.protocol !== "file:") {
+            navigator.clipboard.writeText(link).catch(() => {});
+        }
+        status.innerText = `已產生任務連結，內含 ${records.length} 題錯題。把下面網址傳給 Bobo，他打開就會進錯題加強。`;
     }
 
     function loadDemoMistake() {
