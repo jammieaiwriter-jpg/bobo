@@ -47,6 +47,9 @@
         #teaching-screen { display: none; background: white; border-radius: 30px; padding: 30px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
         #teaching-screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
         .teaching-content { font-size: 1.2rem; line-height: 1.6; color: var(--text); text-align: left; }
+        .concept-card { border: 2px solid #E3F1FF; background: #F8FCFF; border-radius: 16px; padding: 12px; margin: 12px 0; }
+        .concept-card svg { width: 100%; max-width: 320px; height: 140px; display: block; margin: 0 auto 8px; }
+        .concept-text { font-size: 1rem; line-height: 1.55; }
         .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
         .start-btn:active { transform: translateY(4px); box-shadow: none; }
         .mastered-tag { background: #FFD700; color: #8B4513; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
@@ -485,16 +488,160 @@
         return "先抓題目的關鍵詞，再回到這個單元的核心概念。錯題加強不是背答案，而是確認同一個觀念真的懂了。";
     }
 
+    function conceptKey(qData) {
+        const q = qData.q;
+        if (q.includes("螺絲起子") || q.includes("手把")) return "wheel";
+        if (q.includes("省力") && q.includes("施力方向")) return "pulley";
+        if (q.includes("槓桿") || q.includes("剪刀") || q.includes("支點")) return "lever";
+        if (q.includes("電磁鐵")) return "magnet";
+        if (q.includes("電路") || q.includes("燈泡") || q.includes("導體")) return "circuit";
+        if (q.includes("保存") || q.includes("腐敗") || q.includes("微生物") || q.includes("蜜餞") || q.includes("曬乾") || q.includes("真空") || q.includes("殺菌")) return "microbe";
+        if (q.includes("物理變化") || q.includes("化學變化") || q.includes("生鏽") || q.includes("燃燒") || q.includes("融化") || q.includes("蒸發") || q.includes("煎熟") || q.includes("腐爛")) return "change";
+        if (q.includes("食物鏈") || q.includes("生產者") || q.includes("消費者") || q.includes("分解者") || q.includes("光合作用") || q.includes("生態系")) return "foodchain";
+        if (q.includes("變因") || q.includes("實驗")) return "variables";
+        if (q.includes("自轉") || q.includes("公轉") || q.includes("月相") || q.includes("月食") || q.includes("日食")) return "space";
+        if (q.includes("岩石") || q.includes("化石")) return "rocks";
+        if (q.includes("聲音") || q.includes("介質") || q.includes("振動")) return "sound";
+        if (q.includes("光") || q.includes("折射") || q.includes("反射") || q.includes("影子") || q.includes("彩虹") || q.includes("魚")) return "light";
+        if (q.includes("水循環") || q.includes("降水") || q.includes("凝結") || q.includes("蒸發") || q.includes("鹽水") || q.includes("陽光") || q.includes("寬口") || q.includes("颱風")) return "water";
+        return "general";
+    }
+
+    function conceptDiagram(key) {
+        const diagrams = {
+            wheel: `<svg viewBox="0 0 320 140" role="img" aria-label="輪軸圖解">
+                <circle cx="110" cy="70" r="44" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <circle cx="110" cy="70" r="13" fill="#4A90E2"></circle>
+                <rect x="110" y="62" width="115" height="16" rx="8" fill="#F5A623"></rect>
+                <text x="86" y="126" font-size="18" fill="#2C3E50">輪：手握的大部分</text>
+                <text x="180" y="52" font-size="18" fill="#2C3E50">軸：中間細細轉</text>
+            </svg>`,
+            pulley: `<svg viewBox="0 0 320 140" role="img" aria-label="滑輪圖解">
+                <line x1="70" y1="20" x2="70" y2="120" stroke="#4A90E2" stroke-width="6"></line>
+                <circle cx="70" cy="48" r="28" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <line x1="70" y1="20" x2="170" y2="120" stroke="#F5A623" stroke-width="6"></line>
+                <rect x="145" y="104" width="50" height="28" rx="6" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="3"></rect>
+                <text x="112" y="34" font-size="17" fill="#2C3E50">定滑輪：改變方向</text>
+                <text x="110" y="92" font-size="17" fill="#2C3E50">動滑輪：比較省力</text>
+            </svg>`,
+            lever: `<svg viewBox="0 0 320 140" role="img" aria-label="槓桿圖解">
+                <rect x="50" y="62" width="220" height="16" rx="8" fill="#F5A623"></rect>
+                <polygon points="155,80 135,122 175,122" fill="#4A90E2"></polygon>
+                <circle cx="72" cy="54" r="18" fill="#FFB6B6"></circle>
+                <path d="M246 28 v42" stroke="#7ED321" stroke-width="8" stroke-linecap="round"></path>
+                <text x="128" y="136" font-size="17" fill="#2C3E50">支點</text>
+                <text x="32" y="36" font-size="17" fill="#2C3E50">抗力</text>
+                <text x="224" y="24" font-size="17" fill="#2C3E50">施力</text>
+            </svg>`,
+            circuit: `<svg viewBox="0 0 320 140" role="img" aria-label="電路圖解">
+                <path d="M70 40 H250 V105 H70 Z" fill="none" stroke="#4A90E2" stroke-width="6"></path>
+                <rect x="48" y="60" width="42" height="28" rx="5" fill="#F5A623"></rect>
+                <circle cx="250" cy="72" r="22" fill="#FFF7D6" stroke="#F5A623" stroke-width="5"></circle>
+                <line x1="242" y1="64" x2="258" y2="80" stroke="#F5A623" stroke-width="4"></line>
+                <line x1="258" y1="64" x2="242" y2="80" stroke="#F5A623" stroke-width="4"></line>
+                <text x="42" y="116" font-size="17" fill="#2C3E50">電池</text>
+                <text x="138" y="32" font-size="17" fill="#2C3E50">完整通路</text>
+                <text x="230" y="116" font-size="17" fill="#2C3E50">燈泡</text>
+            </svg>`,
+            magnet: `<svg viewBox="0 0 320 140" role="img" aria-label="電磁鐵圖解">
+                <rect x="70" y="58" width="170" height="18" rx="9" fill="#888"></rect>
+                <path d="M78 56 q12 -24 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" fill="none" stroke="#F5A623" stroke-width="5"></path>
+                <rect x="38" y="96" width="52" height="26" rx="6" fill="#4A90E2"></rect>
+                <path d="M90 109 H245" stroke="#4A90E2" stroke-width="5"></path>
+                <text x="98" y="36" font-size="17" fill="#2C3E50">線圈多 + 電流大</text>
+                <text x="112" y="132" font-size="17" fill="#2C3E50">磁力通常變強</text>
+            </svg>`,
+            microbe: `<svg viewBox="0 0 320 140" role="img" aria-label="食物保存圖解">
+                <circle cx="86" cy="72" r="26" fill="#DFF8EC" stroke="#50E3C2" stroke-width="4"></circle>
+                <circle cx="78" cy="64" r="4" fill="#2C3E50"></circle>
+                <circle cx="94" cy="64" r="4" fill="#2C3E50"></circle>
+                <path d="M74 81 q12 10 24 0" fill="none" stroke="#2C3E50" stroke-width="3"></path>
+                <path d="M160 50 h80 v55 h-80 z" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></path>
+                <text x="166" y="83" font-size="18" fill="#2C3E50">低溫</text>
+                <text x="48" y="126" font-size="17" fill="#2C3E50">微生物變慢或不易生長</text>
+            </svg>`,
+            change: `<svg viewBox="0 0 320 140" role="img" aria-label="物理化學變化圖解">
+                <rect x="50" y="45" width="70" height="46" rx="8" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></rect>
+                <path d="M140 68 H180" stroke="#2C3E50" stroke-width="4" marker-end="url(#arrow)"></path>
+                <circle cx="222" cy="68" r="24" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="4"></circle>
+                <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#2C3E50"/></marker></defs>
+                <text x="42" y="122" font-size="17" fill="#2C3E50">外形改變</text>
+                <text x="178" y="122" font-size="17" fill="#2C3E50">新物質產生</text>
+            </svg>`,
+            foodchain: `<svg viewBox="0 0 320 140" role="img" aria-label="食物鏈圖解">
+                <text x="30" y="72" font-size="28">🌿</text><text x="96" y="72" font-size="28">🐛</text><text x="166" y="72" font-size="28">🐸</text><text x="235" y="72" font-size="28">🐍</text>
+                <path d="M62 62 H92 M128 62 H162 M198 62 H232" stroke="#4A90E2" stroke-width="4" marker-end="url(#fcArrow)"></path>
+                <defs><marker id="fcArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4A90E2"/></marker></defs>
+                <text x="20" y="112" font-size="17" fill="#2C3E50">生產者 → 消費者 → 更高級消費者</text>
+            </svg>`,
+            variables: `<svg viewBox="0 0 320 140" role="img" aria-label="實驗變因圖解">
+                <rect x="36" y="36" width="72" height="56" rx="8" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></rect>
+                <rect x="124" y="36" width="72" height="56" rx="8" fill="#FFF7D6" stroke="#F5A623" stroke-width="4"></rect>
+                <rect x="212" y="36" width="72" height="56" rx="8" fill="#DFF8EC" stroke="#50E3C2" stroke-width="4"></rect>
+                <text x="45" y="68" font-size="17" fill="#2C3E50">改什麼</text>
+                <text x="134" y="68" font-size="17" fill="#2C3E50">看什麼</text>
+                <text x="222" y="68" font-size="17" fill="#2C3E50">不變</text>
+                <text x="42" y="120" font-size="17" fill="#2C3E50">操縱變因 / 應變變因 / 控制變因</text>
+            </svg>`,
+            space: `<svg viewBox="0 0 320 140" role="img" aria-label="地球月相圖解">
+                <circle cx="80" cy="70" r="28" fill="#4A90E2"></circle>
+                <circle cx="210" cy="70" r="18" fill="#DDD"></circle>
+                <ellipse cx="80" cy="70" rx="136" ry="48" fill="none" stroke="#F5A623" stroke-width="4" stroke-dasharray="7 7"></ellipse>
+                <text x="54" y="112" font-size="17" fill="#2C3E50">地球</text>
+                <text x="190" y="112" font-size="17" fill="#2C3E50">月球公轉</text>
+            </svg>`,
+            rocks: `<svg viewBox="0 0 320 140" role="img" aria-label="岩石分類圖解">
+                <polygon points="65,36 34,98 96,98" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="4"></polygon>
+                <rect x="130" y="44" width="62" height="52" rx="8" fill="#FFF7D6" stroke="#F5A623" stroke-width="4"></rect>
+                <ellipse cx="254" cy="72" rx="34" ry="25" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></ellipse>
+                <text x="38" y="124" font-size="16" fill="#2C3E50">火成</text>
+                <text x="132" y="124" font-size="16" fill="#2C3E50">沉積</text>
+                <text x="238" y="124" font-size="16" fill="#2C3E50">變質</text>
+            </svg>`,
+            sound: `<svg viewBox="0 0 320 140" role="img" aria-label="聲音振動圖解">
+                <circle cx="82" cy="70" r="34" fill="#FFF7D6" stroke="#F5A623" stroke-width="5"></circle>
+                <path d="M140 52 q22 18 0 36 M176 42 q34 28 0 56 M220 32 q46 38 0 76" fill="none" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
+                <text x="38" y="122" font-size="17" fill="#2C3E50">振動產生聲音，傳播需要介質</text>
+            </svg>`,
+            light: `<svg viewBox="0 0 320 140" role="img" aria-label="光反射折射圖解">
+                <line x1="28" y1="62" x2="292" y2="62" stroke="#4A90E2" stroke-width="4"></line>
+                <path d="M58 20 L150 62 L240 24" fill="none" stroke="#F5A623" stroke-width="5"></path>
+                <path d="M150 62 L220 116" fill="none" stroke="#FF5E5E" stroke-width="5"></path>
+                <text x="28" y="126" font-size="17" fill="#2C3E50">反射：彈回來　折射：方向改變</text>
+            </svg>`,
+            water: `<svg viewBox="0 0 320 140" role="img" aria-label="水循環圖解">
+                <path d="M78 102 q82 28 164 0" fill="none" stroke="#4A90E2" stroke-width="5"></path>
+                <path d="M100 96 C80 60 118 42 142 58 C154 26 210 34 216 64 C252 62 264 98 234 105" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></path>
+                <path d="M110 104 V74 M160 104 V74 M210 104 V74" stroke="#F5A623" stroke-width="4" stroke-dasharray="6 5"></path>
+                <text x="58" y="130" font-size="17" fill="#2C3E50">蒸發 → 凝結成雲 → 降水</text>
+            </svg>`,
+            general: `<svg viewBox="0 0 320 140" role="img" aria-label="觀念圖解">
+                <circle cx="92" cy="70" r="34" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <rect x="158" y="44" width="88" height="52" rx="12" fill="#FFF7D6" stroke="#F5A623" stroke-width="5"></rect>
+                <path d="M126 70 H154" stroke="#2C3E50" stroke-width="5" marker-end="url(#gArrow)"></path>
+                <defs><marker id="gArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#2C3E50"/></marker></defs>
+                <text x="66" y="124" font-size="17" fill="#2C3E50">關鍵詞</text><text x="166" y="124" font-size="17" fill="#2C3E50">核心觀念</text>
+            </svg>`
+        };
+        return diagrams[key] || diagrams.general;
+    }
+
     function mistakeConceptIntro(bank) {
         const unique = [];
         const seen = new Set();
         bank.forEach(item => {
-            const text = conceptExplanation(item);
-            if (seen.has(text)) return;
-            seen.add(text);
-            unique.push(text);
+            const key = conceptKey(item);
+            if (seen.has(key)) return;
+            seen.add(key);
+            unique.push({ key, text: conceptExplanation(item) });
         });
-        return `先補觀念，再做錯題。\n\n` + unique.slice(0, 4).map((text, index) => `${index + 1}. ${text}`).join("\n\n");
+        const cards = unique.slice(0, 4).map((item, index) => `
+            <div class="concept-card">
+                ${conceptDiagram(item.key)}
+                <div class="concept-text"><strong>${index + 1}. 觀念原理</strong><br>${item.text}</div>
+            </div>
+        `).join('');
+        return `<div class="concept-text"><strong>先看圖解，再做錯題。</strong></div>${cards}`;
     }
 
     function shuffleItems(items) {
@@ -729,7 +876,7 @@
         document.getElementById('menu').classList.remove('active');
         document.getElementById('teaching-screen').classList.add('active');
         document.getElementById('teaching-title').innerText = "🎯 錯題加強：先補觀念";
-        document.getElementById('teaching-body').innerText = mistakeConceptIntro(bank);
+        document.getElementById('teaching-body').innerHTML = mistakeConceptIntro(bank);
         const startBtn = document.getElementById('start-challenge-btn');
         startBtn.innerText = "開始錯題加強";
         startBtn.onclick = beginMistakeReview;
