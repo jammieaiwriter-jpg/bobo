@@ -41,6 +41,8 @@
         #reward-screen.active { display: flex; animation: bounceIn 0.8s; }
         
         .voice-btn { background: white; border: 2px solid var(--primary); border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
+        .review-btn { border: 2px solid var(--danger); background: white; color: var(--danger); padding: 8px 14px; border-radius: 14px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+        .review-btn:disabled { border-color: #ddd; color: #aaa; cursor: default; }
         
         #teaching-screen { display: none; background: white; border-radius: 30px; padding: 30px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
         #teaching-screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
@@ -61,6 +63,7 @@
         <div id="mastery-info" style="font-size: 0.9rem; color: #666;"></div>
         <div class="mission-panel" id="mission-list"></div>
         <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
+            <button onclick="startMistakeReview()" id="mistake-review-btn" class="review-btn">🎯 錯題加強</button>
             <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
             <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
             <button onclick="toggleTgConfig()" style="border:1px solid #ccc; background:white; color:#0088cc; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📢 設定通知</button>
@@ -283,6 +286,8 @@
     let isFirstAttempt = true;
     let questionQueue = [];
     let lastQuestionText = "";
+    let isMistakeMode = false;
+    let pendingMistakeBank = [];
 
     function safeSaveState() {
         try {
@@ -306,6 +311,87 @@
         return html.replace(/<[^>]*>/g, '').trim();
     }
 
+    function allQuestions() {
+        return Object.values(QUESTION_BANK).flat();
+    }
+
+    function findQuestionByText(questionText) {
+        return allQuestions().find(item => item.q === questionText) || null;
+    }
+
+    function mistakePracticeBank() {
+        const seen = new Set();
+        return [...roundState.mistakes].reverse().reduce((items, mistake) => {
+            if (!mistake.question || seen.has(mistake.question)) return items;
+            const original = findQuestionByText(mistake.question);
+            if (!original) return items;
+            seen.add(mistake.question);
+            items.push({ ...original, reviewUnitTitle: mistake.unitTitle || "錯題" });
+            return items;
+        }, []);
+    }
+
+    function removeMistakeQuestion(questionText) {
+        roundState.mistakes = roundState.mistakes.filter(m => m.question !== questionText);
+        safeSaveState();
+    }
+
+    function conceptExplanation(qData) {
+        const q = qData.q;
+        if (q.includes("螺絲起子") || q.includes("手把")) {
+            return "輪軸題要先分清楚「輪」和「軸」：手握、比較大的圓形或粗的部分通常是輪；中間比較細、被帶動旋轉的部分是軸。";
+        }
+        if (q.includes("省力") && q.includes("施力方向")) {
+            return "滑輪題先分兩件事：定滑輪主要改變施力方向，動滑輪主要省力，滑輪組可能同時有兩種效果。";
+        }
+        if (q.includes("槓桿") || q.includes("剪刀") || q.includes("支點")) {
+            return "槓桿一定有支點、施力點、抗力點。判斷工具時，先找它繞著哪裡轉，再看力是從哪裡用、哪裡被移動。";
+        }
+        if (q.includes("電路") || q.includes("燈泡") || q.includes("導體") || q.includes("電磁鐵")) {
+            return "電路題先看電流路徑有沒有完整。電磁鐵磁力跟線圈匝數和電流大小有關；導體則是讓電流容易通過的材料。";
+        }
+        if (q.includes("保存") || q.includes("腐敗") || q.includes("微生物") || q.includes("蜜餞") || q.includes("曬乾") || q.includes("真空") || q.includes("殺菌")) {
+            return "食物保存的核心是讓微生物不容易生長：降低溫度、減少水分、增加糖或鹽、隔絕氧氣、加熱殺菌都可能有幫助。";
+        }
+        if (q.includes("物理變化") || q.includes("化學變化") || q.includes("生鏽") || q.includes("燃燒") || q.includes("融化") || q.includes("蒸發") || q.includes("煎熟") || q.includes("腐爛")) {
+            return "物理變化通常只是形狀或狀態改變；化學變化會產生新物質，例如燃燒、生鏽、腐爛、煮熟。";
+        }
+        if (q.includes("食物鏈") || q.includes("生產者") || q.includes("消費者") || q.includes("分解者") || q.includes("光合作用") || q.includes("生態系")) {
+            return "生態題先找角色：植物多半是生產者，吃植物的是初級消費者，真菌和細菌常是分解者；任何一環改變都會影響其他生物。";
+        }
+        if (q.includes("變因") || q.includes("實驗")) {
+            return "實驗變因要分三種：研究者主動改的是操縱變因，觀察到的結果是應變變因，其他要維持一樣的是控制變因。";
+        }
+        if (q.includes("自轉") || q.includes("公轉") || q.includes("月相") || q.includes("月食") || q.includes("日食")) {
+            return "地球自轉造成晝夜，地球公轉造成一年和四季。日食是月球擋住太陽光，月食是地球擋住太陽照到月球的光。";
+        }
+        if (q.includes("岩石") || q.includes("化石")) {
+            return "岩石依形成方式判斷：岩漿冷卻是火成岩，沉積物壓實是沉積岩，高溫高壓改變是變質岩；化石常出現在沉積岩。";
+        }
+        if (q.includes("聲音") || q.includes("介質") || q.includes("振動")) {
+            return "聲音來自物體振動，傳播需要介質。通常在固體傳最快，液體其次，氣體較慢，真空不能傳聲。";
+        }
+        if (q.includes("光") || q.includes("折射") || q.includes("反射") || q.includes("影子") || q.includes("彩虹") || q.includes("魚")) {
+            return "光學題先分反射和折射：反射是光彈回來，折射是光進入不同介質時方向改變；彩虹還和色散有關。";
+        }
+        if (q.includes("水循環") || q.includes("降水") || q.includes("凝結") || q.includes("蒸發") || q.includes("鹽水") || q.includes("陽光") || q.includes("寬口") || q.includes("颱風")) {
+            return "水與天氣題先抓條件：蒸發快慢常看溫度、風速、表面積；水循環包含蒸發、凝結和降水。";
+        }
+        return "先抓題目的關鍵詞，再回到這個單元的核心概念。錯題加強不是背答案，而是確認同一個觀念真的懂了。";
+    }
+
+    function mistakeConceptIntro(bank) {
+        const unique = [];
+        const seen = new Set();
+        bank.forEach(item => {
+            const text = conceptExplanation(item);
+            if (seen.has(text)) return;
+            seen.add(text);
+            unique.push(text);
+        });
+        return `先補觀念，再做錯題。\n\n` + unique.slice(0, 4).map((text, index) => `${index + 1}. ${text}`).join("\n\n");
+    }
+
     function shuffleItems(items) {
         const arr = [...items];
         for (let i = arr.length - 1; i > 0; i--) {
@@ -317,6 +403,10 @@
 
     function refillQuestionQueue() {
         if (!currentUnit) return;
+        if (isMistakeMode) {
+            questionQueue = [];
+            return;
+        }
         const bank = QUESTION_BANK[currentUnit.id] || [];
         questionQueue = shuffleItems(bank);
         if (questionQueue.length > 1 && questionQueue[0].q === lastQuestionText) {
@@ -328,6 +418,7 @@
     }
 
     function getNextQuestion() {
+        if (isMistakeMode && !questionQueue.length) return null;
         if (!questionQueue.length) refillQuestionQueue();
         const qData = questionQueue.shift();
         lastQuestionText = qData ? qData.q : "";
@@ -469,6 +560,16 @@
 
     function renderMissions() {
         const list = document.getElementById('mission-list');
+        const mistakeCount = mistakePracticeBank().length;
+        const reviewBtn = document.getElementById('mistake-review-btn');
+        const masteryInfo = document.getElementById('mastery-info');
+        if (reviewBtn) {
+            reviewBtn.disabled = mistakeCount === 0;
+            reviewBtn.innerText = mistakeCount ? `🎯 錯題加強（${mistakeCount}）` : "🎯 目前沒有錯題";
+        }
+        if (masteryInfo) {
+            masteryInfo.innerText = mistakeCount ? `目前錯題池有 ${mistakeCount} 題，先加強再往下推進。` : "目前沒有待加強錯題。";
+        }
         list.innerHTML = ALL_UNITS.map(u => {
             const isMastered = roundState.completedUnits.includes(u.id);
             const streak = roundState.streaks[u.id] || 0;
@@ -485,15 +586,20 @@
     }
 
     function startUnit(unitId) {
+        isMistakeMode = false;
         currentUnit = ALL_UNITS.find(u => u.id === unitId);
         document.getElementById('menu').classList.remove('active');
         document.getElementById('teaching-screen').classList.add('active');
         document.getElementById('teaching-title').innerHTML = currentUnit.title;
         const randomTeaching = currentUnit.teaching[Math.floor(Math.random() * currentUnit.teaching.length)];
         document.getElementById('teaching-body').innerText = randomTeaching;
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "開始挑戰";
+        startBtn.onclick = startChallenge;
     }
 
     function startChallenge() {
+        isMistakeMode = false;
         currentStep = 0;
         targetQuestionCount = Math.max(10, (QUESTION_BANK[currentUnit.id] || []).length);
         sessionMistakes = [];
@@ -505,6 +611,40 @@
         document.getElementById('game').classList.add('active');
         document.getElementById('mode-title').innerHTML = currentUnit.title;
         updateStars(); 
+        generateQuestion();
+    }
+
+    function startMistakeReview() {
+        const bank = mistakePracticeBank();
+        if (!bank.length) {
+            alert("目前沒有錯題可以加強。");
+            return;
+        }
+        pendingMistakeBank = bank;
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerText = "🎯 錯題加強：先補觀念";
+        document.getElementById('teaching-body').innerText = mistakeConceptIntro(bank);
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "開始錯題加強";
+        startBtn.onclick = beginMistakeReview;
+    }
+
+    function beginMistakeReview() {
+        const bank = pendingMistakeBank.length ? pendingMistakeBank : mistakePracticeBank();
+        isMistakeMode = true;
+        currentUnit = { id: "mistakes", title: "🎯 錯題加強", text: "把今天錯過的題目補起來" };
+        currentStep = 0;
+        targetQuestionCount = bank.length;
+        sessionMistakes = [];
+        questionQueue = shuffleItems(bank);
+        lastQuestionText = "";
+        challengeStartTime = new Date();
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerText = currentUnit.title;
+        updateStars();
         generateQuestion();
     }
 
@@ -561,8 +701,12 @@
             });
             currentStep++;
             if (isFirstAttempt) {
-                roundState.streaks[currentUnit.id] = (roundState.streaks[currentUnit.id] || 0) + 1;
-                updateRecentResults(true);
+                if (isMistakeMode) {
+                    removeMistakeQuestion(currentQuestionText);
+                } else {
+                    roundState.streaks[currentUnit.id] = (roundState.streaks[currentUnit.id] || 0) + 1;
+                    updateRecentResults(true);
+                }
             }
             updateStars();
             confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
@@ -572,12 +716,14 @@
                 const duration = Math.floor((new Date() - challengeStartTime) / 1000);
                 const phoneTime = Math.floor(duration / 30) + 5; 
                 
-                if (!roundState.completedUnits.includes(currentUnit.id)) {
+                if (!isMistakeMode && !roundState.completedUnits.includes(currentUnit.id)) {
                     roundState.completedUnits.push(currentUnit.id);
                 }
                 safeSaveState();
 
-                document.getElementById('time-reward').innerText = `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
+                document.getElementById('reward-title').innerText = isMistakeMode ? "錯題加強完成！" : "大成功！";
+                document.getElementById('reward-text').innerText = isMistakeMode ? "Bobo 把錯題補起來了！" : "Bobo 真是個科學小天才！";
+                document.getElementById('time-reward').innerText = isMistakeMode ? `剩餘錯題：${mistakePracticeBank().length} 題` : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
                 sendTgNotification(cleanTitle(currentUnit.title), duration, phoneTime);
                 setTimeout(showReward, 1000);
             } else { 
@@ -598,10 +744,12 @@
                     time: new Date().toLocaleString()
                 };
                 sessionMistakes.push(mistake);
-                roundState.mistakes.push(mistake);
-                roundState.streaks[currentUnit.id] = 0;
-                updateRecentResults(false);
-                safeSaveState();
+                if (!isMistakeMode) {
+                    roundState.mistakes.push(mistake);
+                    roundState.streaks[currentUnit.id] = 0;
+                    updateRecentResults(false);
+                    safeSaveState();
+                }
             }
             isFirstAttempt = false;
             updateStars();
@@ -626,13 +774,20 @@
             });
         }
 
-        const message = `🌟 Bobo 自然挑戰成功！\n\n` +
-                        `📚 單元：${unitTitle}\n` +
-                        `⏱️ 耗時：${duration} 秒\n` +
-                        `🎯 單元練習：完成 ${targetQuestionCount} 題\n` +
-                        `📱 獎勵手機時間：${phoneTime} 分鐘` +
-                        mistakeText + 
-                        `\nBobo 表現優異，繼續加油！🔬`;
+        const message = isMistakeMode
+            ? `🎯 Bobo 自然錯題加強完成！\n\n` +
+              `⏱️ 耗時：${duration} 秒\n` +
+              `🧩 本次練習：${targetQuestionCount} 題\n` +
+              `📌 剩餘錯題：${mistakePracticeBank().length} 題` +
+              mistakeText +
+              `\n錯題有補起來，這次很紮實！🔬`
+            : `🌟 Bobo 自然挑戰成功！\n\n` +
+              `📚 單元：${unitTitle}\n` +
+              `⏱️ 耗時：${duration} 秒\n` +
+              `🎯 單元練習：完成 ${targetQuestionCount} 題\n` +
+              `📱 獎勵手機時間：${phoneTime} 分鐘` +
+              mistakeText + 
+              `\nBobo 表現優異，繼續加油！🔬`;
 
         const url = `https://api.telegram.org/bot${config.token}/sendMessage`;
         try {
