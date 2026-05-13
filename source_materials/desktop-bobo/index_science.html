@@ -97,7 +97,7 @@
     <div id="teaching-screen" class="game-screen">
         <h2 id="teaching-title" style="color: var(--primary);"></h2>
         <div id="teaching-body" class="teaching-content"></div>
-        <button onclick="startChallenge()" class="start-btn" id="start-challenge-btn">開始挑戰</button>
+        <button onclick="handleStartButton()" class="start-btn" id="start-challenge-btn">開始挑戰</button>
     </div>
 
     <div id="game" class="game-screen">
@@ -306,6 +306,8 @@
     let pendingMistakeBank = [];
     let reviewOriginalQuestions = new Set();
     let reviewFailedOriginals = new Set();
+    let reviewTotalOriginals = 0;
+    let pendingStartMode = "unit";
 
     function safeSaveState() {
         try {
@@ -439,16 +441,46 @@
     }
 
     function buildMistakeReviewQueue(bank) {
-        return bank.flatMap(item => {
-            const originalQuestion = item.q;
-            const original = { ...item, originalQuestion, reviewKind: "原錯題" };
-            const variations = variationQuestions(item).map((variation, index) => ({
+        const groups = [];
+        const byConcept = new Map();
+        bank.forEach(item => {
+            const key = conceptKey(item);
+            if (!byConcept.has(key)) {
+                const group = { key, items: [], originalQuestions: [] };
+                byConcept.set(key, group);
+                groups.push(group);
+            }
+            const group = byConcept.get(key);
+            group.items.push(item);
+            group.originalQuestions.push(item.q);
+        });
+        return groups.flatMap((group, groupIndex) => {
+            const representative = group.items[0];
+            const originalQuestions = [...new Set(group.originalQuestions)];
+            const conceptCard = {
+                type: "concept",
+                conceptKey: group.key,
+                conceptText: conceptExplanation(representative),
+                conceptIndex: groupIndex + 1,
+                conceptTotal: groups.length,
+                originalQuestions
+            };
+            const original = {
+                ...representative,
+                originalQuestion: representative.q,
+                originalQuestions,
+                conceptKey: group.key,
+                reviewKind: "原錯題"
+            };
+            const variations = variationQuestions(representative).map((variation, index) => ({
                 ...variation,
-                originalQuestion,
+                originalQuestion: representative.q,
+                originalQuestions,
+                conceptKey: group.key,
                 reviewKind: `變化題 ${index + 1}`,
-                reviewUnitTitle: item.reviewUnitTitle || "錯題"
+                reviewUnitTitle: representative.reviewUnitTitle || "錯題"
             }));
-            return [original, ...variations];
+            return [conceptCard, original, ...variations];
         });
     }
 
@@ -911,7 +943,15 @@
         document.getElementById('teaching-body').innerText = randomTeaching;
         const startBtn = document.getElementById('start-challenge-btn');
         startBtn.innerText = "開始挑戰";
-        startBtn.onclick = startChallenge;
+        pendingStartMode = "unit";
+    }
+
+    function handleStartButton() {
+        if (pendingStartMode === "mistake") {
+            beginMistakeReview();
+        } else {
+            startChallenge();
+        }
     }
 
     function startChallenge() {
@@ -939,11 +979,11 @@
         pendingMistakeBank = bank;
         document.getElementById('menu').classList.remove('active');
         document.getElementById('teaching-screen').classList.add('active');
-        document.getElementById('teaching-title').innerText = "🎯 錯題加強：先補觀念";
-        document.getElementById('teaching-body').innerHTML = mistakeConceptIntro(bank);
+        document.getElementById('teaching-title').innerText = "🎯 錯題加強";
+        document.getElementById('teaching-body').innerText = `今天錯題會依照觀念分組練習。\n\n每一組會先看一張觀念圖卡，再做原錯題和 2 題變化題。這一組不管有沒有全對，都會繼續下一個觀念；全部跑完後再看已學會幾題、還剩幾題。`;
         const startBtn = document.getElementById('start-challenge-btn');
         startBtn.innerText = "開始錯題加強";
-        startBtn.onclick = beginMistakeReview;
+        pendingStartMode = "mistake";
     }
 
     function beginMistakeReview() {
@@ -954,7 +994,8 @@
         const reviewQueue = buildMistakeReviewQueue(bank);
         reviewOriginalQuestions = new Set(bank.map(item => item.q));
         reviewFailedOriginals = new Set();
-        targetQuestionCount = reviewQueue.length;
+        reviewTotalOriginals = reviewOriginalQuestions.size;
+        targetQuestionCount = reviewQueue.filter(item => item.type !== "concept").length;
         sessionMistakes = [];
         questionQueue = reviewQueue;
         lastQuestionText = "";
@@ -985,6 +1026,28 @@
         if (!qData) {
             qEl.innerText = "這個單元還沒有題目。";
             document.getElementById('hint-btn').disabled = true;
+            return;
+        }
+
+        if (qData.type === "concept") {
+            isProcessingAnswer = false;
+            currentQuestionText = "";
+            currentQuestionData = qData;
+            correctAnswer = null;
+            currentHints = [];
+            document.getElementById('hint-btn').disabled = true;
+            qEl.innerHTML = `
+                <div style="font-size:0.95rem; color:#888; margin-bottom:6px;">觀念 ${qData.conceptIndex} / ${qData.conceptTotal}</div>
+                <div class="concept-card" style="width:100%; box-sizing:border-box;">
+                    ${conceptDiagram(qData.conceptKey)}
+                    <div class="concept-text"><strong>先看懂這個觀念</strong><br>${qData.conceptText}</div>
+                </div>
+            `;
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = "開始這個觀念練習";
+            btn.onclick = () => generateQuestion();
+            oEl.appendChild(btn);
             return;
         }
         
@@ -1045,9 +1108,11 @@
                 }
                 safeSaveState();
 
+                const learnedCount = isMistakeMode ? reviewTotalOriginals - reviewFailedOriginals.size : 0;
+                const remainingCount = isMistakeMode ? mistakePracticeBank().length : 0;
                 document.getElementById('reward-title').innerText = isMistakeMode ? "錯題加強完成！" : "大成功！";
-                document.getElementById('reward-text').innerText = isMistakeMode ? "Bobo 把錯題補起來了！" : "Bobo 真是個科學小天才！";
-                document.getElementById('time-reward').innerText = isMistakeMode ? `剩餘錯題：${mistakePracticeBank().length} 題` : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
+                document.getElementById('reward-text').innerText = isMistakeMode ? `原本 ${reviewTotalOriginals} 題，這輪學會 ${learnedCount} 題。` : "Bobo 真是個科學小天才！";
+                document.getElementById('time-reward').innerText = isMistakeMode ? `剩餘錯題：${remainingCount} 題，可以回首頁再挑戰一次。` : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
                 sendTgNotification(cleanTitle(currentUnit.title), duration, phoneTime);
                 setTimeout(showReward, 1000);
             } else { 
@@ -1069,7 +1134,8 @@
                 };
                 sessionMistakes.push(mistake);
                 if (isMistakeMode) {
-                    reviewFailedOriginals.add(currentQuestionData.originalQuestion || currentQuestionText);
+                    const originals = currentQuestionData.originalQuestions || [currentQuestionData.originalQuestion || currentQuestionText];
+                    originals.forEach(questionText => reviewFailedOriginals.add(questionText));
                 } else {
                     roundState.mistakes.push(mistake);
                     roundState.streaks[currentUnit.id] = 0;
@@ -1104,6 +1170,7 @@
             ? `🎯 Bobo 自然錯題加強完成！\n\n` +
               `⏱️ 耗時：${duration} 秒\n` +
               `🧩 本次練習：${targetQuestionCount} 題\n` +
+              `✅ 這輪學會：${reviewTotalOriginals - reviewFailedOriginals.size} / ${reviewTotalOriginals} 題\n` +
               `📌 剩餘錯題：${mistakePracticeBank().length} 題` +
               mistakeText +
               `\n錯題有補起來，這次很紮實！🔬`
