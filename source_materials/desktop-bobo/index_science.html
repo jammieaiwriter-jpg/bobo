@@ -81,15 +81,14 @@
             <textarea id="mistake-import-text" placeholder="可以貼匯出的 JSON，或 Telegram 裡的「題目：... Bobo答：... 正解：...」文字"></textarea>
             <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
                 <button onclick="importMistakesFromText()" class="review-btn">匯入到錯題池</button>
-                <button onclick="generateTaskLink()" class="review-btn">產生短任務</button>
+                <button onclick="generateTaskLink()" class="review-btn">產生縮網址</button>
                 <button onclick="loadDemoMistake()" class="voice-btn" style="margin-top:0;">載入測試錯題</button>
             </div>
             <div id="mistake-import-status" style="font-size:0.85rem; color:#666; margin-top:8px;"></div>
-            <label id="generated-task-link-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">給 Bobo 的短連結：</label>
+            <label id="generated-task-link-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">給 Bobo 的縮網址：</label>
             <textarea id="generated-task-link" readonly style="display:none; min-height:58px; margin-top:4px;"></textarea>
-            <label id="generated-task-json-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">要放到 tasks 資料夾的任務 JSON：</label>
-            <textarea id="generated-task-json" readonly style="display:none; min-height:130px; margin-top:4px;"></textarea>
-            <button onclick="downloadGeneratedTaskJson()" id="download-task-json-btn" class="voice-btn" style="display:none; margin-top:8px;">下載任務 JSON</button>
+            <label id="generated-task-json-label" style="display:none; font-size:0.85rem; color:#666; margin-top:8px;">備用完整連結：</label>
+            <textarea id="generated-task-json" readonly style="display:none; min-height:80px; margin-top:4px;"></textarea>
         </div>
 
         <div id="tg-config-panel" style="background: #eef; padding: 10px; border-radius: 10px; font-size: 0.7rem; margin-top: 10px; text-align: left; display: none;">
@@ -566,6 +565,37 @@
             return `${location.origin}${location.pathname}`;
         }
         return "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_science.html";
+    }
+
+    function shortenUrl(longUrl) {
+        return new Promise((resolve, reject) => {
+            const callbackName = `boboShortUrl${Date.now()}${Math.floor(Math.random() * 1000)}`;
+            const script = document.createElement('script');
+            const cleanup = () => {
+                delete window[callbackName];
+                script.remove();
+            };
+            const timer = setTimeout(() => {
+                cleanup();
+                reject(new Error("shortener timeout"));
+            }, 8000);
+            window[callbackName] = data => {
+                clearTimeout(timer);
+                cleanup();
+                if (data && data.shorturl) {
+                    resolve(data.shorturl);
+                } else {
+                    reject(new Error(data?.errormessage || "shortener failed"));
+                }
+            };
+            script.onerror = () => {
+                clearTimeout(timer);
+                cleanup();
+                reject(new Error("shortener network error"));
+            };
+            script.src = `https://is.gd/create.php?format=json&callback=${callbackName}&url=${encodeURIComponent(longUrl)}`;
+            document.body.appendChild(script);
+        });
     }
 
     function makeTaskId() {
@@ -1368,65 +1398,54 @@
             : "沒有匯入新錯題。請確認題目文字和題庫內題目一致，或這題是否已在錯題池。";
     }
 
-    function generateTaskLink() {
+    async function generateTaskLink() {
         const input = document.getElementById('mistake-import-text');
         const status = document.getElementById('mistake-import-status');
         const linkOutput = document.getElementById('generated-task-link');
-        const jsonOutput = document.getElementById('generated-task-json');
+        const backupOutput = document.getElementById('generated-task-json');
         const linkLabel = document.getElementById('generated-task-link-label');
-        const jsonLabel = document.getElementById('generated-task-json-label');
-        const downloadBtn = document.getElementById('download-task-json-btn');
+        const backupLabel = document.getElementById('generated-task-json-label');
         const records = parseMistakeImportText(input.value).filter(record => record.question && findQuestionByText(record.question));
         if (!records.length) {
-            status.innerText = "沒有可產生短任務的錯題。請確認題目文字和題庫內題目一致。";
-            [linkOutput, jsonOutput, linkLabel, jsonLabel, downloadBtn].forEach(el => {
+            status.innerText = "沒有可產生任務連結的錯題。請確認題目文字和題庫內題目一致。";
+            [linkOutput, backupOutput, linkLabel, backupLabel].forEach(el => {
                 if (el) el.style.display = 'none';
             });
             return;
         }
-        const taskId = makeTaskId();
         const payload = {
             type: "bobo-science-review",
-            id: taskId,
             createdAt: new Date().toISOString(),
             records
         };
-        const link = `${taskPageUrl()}?task=${encodeURIComponent(taskId)}`;
-        const jsonText = JSON.stringify(payload, null, 2);
+        const fullLink = `${taskPageUrl()}?taskData=${toBase64Url(JSON.stringify(payload))}`;
+        status.innerText = `正在縮短任務連結，內含 ${records.length} 題錯題...`;
+        let shareLink = fullLink;
+        let shortened = false;
+        try {
+            shareLink = await shortenUrl(fullLink);
+            shortened = true;
+        } catch (e) {
+            console.warn("Could not shorten task link:", e);
+        }
         if (linkLabel) linkLabel.style.display = 'block';
-        if (jsonLabel) jsonLabel.style.display = 'block';
+        if (backupLabel) backupLabel.style.display = shortened ? 'block' : 'none';
         if (linkOutput) {
             linkOutput.style.display = 'block';
-            linkOutput.value = link;
+            linkOutput.value = shareLink;
             linkOutput.focus();
             linkOutput.select();
         }
-        if (jsonOutput) {
-            jsonOutput.style.display = 'block';
-            jsonOutput.value = jsonText;
-        }
-        if (downloadBtn) {
-            downloadBtn.style.display = 'inline-block';
-            downloadBtn.dataset.taskId = taskId;
+        if (backupOutput) {
+            backupOutput.style.display = shortened ? 'block' : 'none';
+            backupOutput.value = fullLink;
         }
         if (navigator.clipboard && location.protocol !== "file:") {
-            navigator.clipboard.writeText(link).catch(() => {});
+            navigator.clipboard.writeText(shareLink).catch(() => {});
         }
-        status.innerText = `已產生短任務 ${taskId}，內含 ${records.length} 題錯題。先把任務 JSON 存成 tasks/${taskId}.json 並推上 GitHub，再把短連結傳給 Bobo。`;
-    }
-
-    function downloadGeneratedTaskJson() {
-        const jsonOutput = document.getElementById('generated-task-json');
-        const downloadBtn = document.getElementById('download-task-json-btn');
-        if (!jsonOutput || !jsonOutput.value) return;
-        const taskId = downloadBtn?.dataset.taskId || "science-task";
-        const blob = new Blob([jsonOutput.value], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${taskId}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        status.innerText = shortened
+            ? `已產生縮網址，內含 ${records.length} 題錯題。把上面的縮網址傳給 Bobo，他打開就會進錯題加強。`
+            : `縮網址服務暫時無法使用，已改產生完整任務連結，內含 ${records.length} 題錯題。`;
     }
 
     function loadDemoMistake() {
