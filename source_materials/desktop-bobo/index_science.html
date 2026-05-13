@@ -784,7 +784,10 @@
         let imported = 0;
         let assessmentImported = 0;
         records.forEach(record => {
-            if (addMistakeRecord(record)) {
+            const looksLikeAssessment = record.source || record.concept || record.conceptKey || record.teach || record.options;
+            if (looksLikeAssessment && addAssessmentMistakeRecord(record)) {
+                assessmentImported++;
+            } else if (addMistakeRecord(record)) {
                 imported++;
             } else if (addAssessmentMistakeRecord(record)) {
                 assessmentImported++;
