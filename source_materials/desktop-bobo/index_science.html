@@ -50,6 +50,8 @@
         .concept-card { border: 2px solid #E3F1FF; background: #F8FCFF; border-radius: 16px; padding: 12px; margin: 12px 0; }
         .concept-card svg { width: 100%; max-width: 320px; height: 140px; display: block; margin: 0 auto 8px; }
         .concept-text { font-size: 1rem; line-height: 1.55; }
+        .question-figure { width: 100%; max-width: 360px; margin: 0 auto 12px; padding: 8px; border-radius: 14px; background: #F8FCFF; box-sizing: border-box; }
+        .question-figure svg { width: 100%; height: auto; display: block; }
         .import-panel { display: none; background: #fff8ef; border: 2px solid var(--accent); border-radius: 16px; padding: 12px; margin-top: 12px; text-align: left; }
         .import-panel textarea { width: 100%; min-height: 130px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 10px; padding: 8px; font-size: 0.9rem; font-family: inherit; }
         .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
@@ -1098,6 +1100,72 @@
         return diagrams[key] || diagrams.general;
     }
 
+    function questionFigure(qData) {
+        const q = qData.q || "";
+        if (q.includes("滑輪組") || (q.includes("右圖") && q.includes("滑輪"))) {
+            return `<div class="question-figure" aria-label="滑輪組題目圖">
+                <svg viewBox="0 0 360 210" role="img">
+                    <line x1="42" y1="28" x2="318" y2="28" stroke="#2C3E50" stroke-width="6" stroke-linecap="round"></line>
+                    <circle cx="126" cy="62" r="30" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <circle cx="220" cy="128" r="34" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <path d="M126 28 V62 H220 V128 H302 V70" fill="none" stroke="#2C3E50" stroke-width="6" stroke-linecap="round"></path>
+                    <path d="M302 72 q18 18 0 36" fill="none" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
+                    <line x1="220" y1="162" x2="220" y2="178" stroke="#2C3E50" stroke-width="5"></line>
+                    <rect x="188" y="178" width="64" height="24" rx="5" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="4"></rect>
+                    <path d="M302 72 v44" stroke="#FF5E5E" stroke-width="5" marker-end="url(#qPullDown)"></path>
+                    <defs><marker id="qPullDown" markerWidth="8" markerHeight="8" refX="3" refY="6" orient="auto"><path d="M0,0 L6,0 L3,7 z" fill="#FF5E5E"/></marker></defs>
+                </svg>
+            </div>`;
+        }
+        if (q.includes("槓桿工具圖") || q.includes("繞著轉動的位置")) {
+            return `<div class="question-figure" aria-label="槓桿三點題目圖">
+                <svg viewBox="0 0 360 170" role="img">
+                    <rect x="56" y="78" width="246" height="16" rx="8" fill="#F5A623"></rect>
+                    <polygon points="176,94 150,145 202,145" fill="#4A90E2"></polygon>
+                    <circle cx="82" cy="68" r="18" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="4"></circle>
+                    <path d="M284 36 v42" stroke="#7ED321" stroke-width="8" stroke-linecap="round"></path>
+                    <circle cx="82" cy="68" r="14" fill="#fff" stroke="#FF5E5E" stroke-width="3"></circle>
+                    <circle cx="284" cy="36" r="14" fill="#fff" stroke="#7ED321" stroke-width="3"></circle>
+                    <circle cx="176" cy="94" r="14" fill="#fff" stroke="#4A90E2" stroke-width="3"></circle>
+                    <text x="76" y="73" font-size="15" fill="#2C3E50">A</text>
+                    <text x="278" y="41" font-size="15" fill="#2C3E50">B</text>
+                    <text x="170" y="99" font-size="15" fill="#2C3E50">C</text>
+                    <text x="96" y="26" font-size="15" fill="#2C3E50">先找工具繞著轉的固定位置</text>
+                </svg>
+            </div>`;
+        }
+        if (q.includes("腳踏車力") || q.includes("傳送順序")) {
+            return `<div class="question-figure" aria-label="腳踏車鏈條傳動題目圖">
+                <svg viewBox="0 0 360 190" role="img">
+                    <circle cx="90" cy="118" r="42" fill="none" stroke="#4A90E2" stroke-width="6"></circle>
+                    <circle cx="265" cy="118" r="42" fill="none" stroke="#4A90E2" stroke-width="6"></circle>
+                    <path d="M90 118 L158 62 H222 L265 118 M158 62 L138 118 M222 62 L202 118" fill="none" stroke="#2C3E50" stroke-width="5" stroke-linecap="round"></path>
+                    <circle cx="158" cy="118" r="22" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <circle cx="235" cy="118" r="16" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <path d="M158 96 H235 M158 140 H235" stroke="#2C3E50" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 7"></path>
+                    <path d="M158 118 L135 93 M158 118 L180 143" stroke="#F5A623" stroke-width="5" stroke-linecap="round"></path>
+                    <text x="22" y="30" font-size="15" fill="#2C3E50">腳踏板、前齒輪、鏈條、後齒輪、後輪</text>
+                    <text x="118" y="174" font-size="15" fill="#2C3E50">想一想：力從哪裡開始傳？</text>
+                </svg>
+            </div>`;
+        }
+        if (q.includes("20齒") || q.includes("10齒")) {
+            return `<div class="question-figure" aria-label="大小齒輪鏈條題目圖">
+                <svg viewBox="0 0 360 180" role="img">
+                    <path d="M104 38 H250 A42 42 0 0 1 250 122 H104 A42 42 0 0 1 104 38" fill="none" stroke="#2C3E50" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"></path>
+                    <circle cx="104" cy="80" r="46" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <circle cx="250" cy="80" r="26" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <circle cx="104" cy="80" r="8" fill="#4A90E2"></circle>
+                    <circle cx="250" cy="80" r="6" fill="#F5A623"></circle>
+                    <text x="73" y="148" font-size="16" fill="#2C3E50">大齒輪 20齒</text>
+                    <text x="214" y="148" font-size="16" fill="#2C3E50">小齒輪 10齒</text>
+                    <text x="64" y="24" font-size="15" fill="#2C3E50">鏈條每前進一格，兩邊都會前進一齒</text>
+                </svg>
+            </div>`;
+        }
+        return "";
+    }
+
     function mistakeConceptIntro(bank) {
         const unique = [];
         const seen = new Set();
@@ -1483,7 +1551,11 @@
         currentQuestionData = qData;
         correctAnswer = qData.a;
         currentHints = makeHints(qData);
-        qEl.innerText = qData.reviewKind ? `${qData.reviewKind}：${qData.q}` : qData.q;
+        const figure = questionFigure(qData);
+        qEl.innerHTML = `
+            ${figure}
+            <div>${qData.reviewKind ? `${qData.reviewKind}：${qData.q}` : qData.q}</div>
+        `;
 
         const shuffledOptions = shuffleItems(qData.o);
         shuffledOptions.forEach(opt => {
