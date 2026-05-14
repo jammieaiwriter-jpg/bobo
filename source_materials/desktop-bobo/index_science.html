@@ -1163,6 +1163,31 @@
                 </svg>
             </div>`;
         }
+        if (q.includes("齒輪組") || q.includes("齒輪甲") || q.includes("轉動方向") || q.includes("相鄰齒輪")) {
+            return `<div class="question-figure" aria-label="齒輪轉動方向題目圖">
+                <svg viewBox="0 0 360 180" role="img">
+                    <circle cx="84" cy="86" r="38" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <circle cx="158" cy="86" r="30" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <circle cx="224" cy="86" r="30" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <circle cx="292" cy="86" r="34" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <path d="M84 50 v13 M84 109 v13 M48 86 h13 M107 86 h13 M158 58 v11 M158 103 v11 M130 86 h11 M175 86 h11 M224 58 v11 M224 103 v11 M196 86 h11 M241 86 h11 M292 54 v12 M292 106 v12 M260 86 h12 M312 86 h12" stroke="#2C3E50" stroke-width="4" stroke-linecap="round"></path>
+                    <path d="M84 42 A44 44 0 0 1 126 74" fill="none" stroke="#FF5E5E" stroke-width="5" marker-end="url(#gearClockwise)"></path>
+                    <path d="M158 130 A38 38 0 0 1 124 102" fill="none" stroke="#4A90E2" stroke-width="5" marker-end="url(#gearCounter)"></path>
+                    <path d="M224 42 A38 38 0 0 1 258 72" fill="none" stroke="#FF5E5E" stroke-width="5" marker-end="url(#gearClockwise)"></path>
+                    <path d="M292 130 A42 42 0 0 1 254 102" fill="none" stroke="#4A90E2" stroke-width="5" marker-end="url(#gearCounter)"></path>
+                    <defs>
+                        <marker id="gearClockwise" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#FF5E5E"/></marker>
+                        <marker id="gearCounter" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4A90E2"/></marker>
+                    </defs>
+                    <text x="77" y="91" font-size="16" fill="#2C3E50">甲</text>
+                    <text x="151" y="91" font-size="16" fill="#2C3E50">1</text>
+                    <text x="217" y="91" font-size="16" fill="#2C3E50">2</text>
+                    <text x="285" y="91" font-size="16" fill="#2C3E50">丙</text>
+                    <text x="36" y="28" font-size="15" fill="#2C3E50">每多一個相鄰齒輪，方向就反一次</text>
+                    <text x="58" y="160" font-size="15" fill="#2C3E50">反、再反，最後會和原本方向相同</text>
+                </svg>
+            </div>`;
+        }
         return "";
     }
 
