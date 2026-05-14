@@ -610,13 +610,13 @@
                 conceptTotal: groups.length,
                 originalQuestions
             };
-            const original = {
-                ...representative,
-                originalQuestion: representative.q,
+            const originals = group.items.map((item, index) => ({
+                ...item,
+                originalQuestion: item.q,
                 originalQuestions,
                 conceptKey: group.key,
-                reviewKind: "原錯題"
-            };
+                reviewKind: group.items.length > 1 ? `原錯題 ${index + 1}` : "原錯題"
+            }));
             const variations = (representative.source ? assessmentVariationQuestions(representative) : variationQuestions(representative)).map((variation, index) => ({
                 ...variation,
                 originalQuestion: representative.q,
@@ -625,7 +625,7 @@
                 reviewKind: `變化題 ${index + 1}`,
                 reviewUnitTitle: representative.reviewUnitTitle || "錯題"
             }));
-            return [conceptCard, original, ...variations];
+            return [conceptCard, ...originals, ...variations];
         });
     }
 
