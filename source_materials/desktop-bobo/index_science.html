@@ -551,7 +551,7 @@
         const templates = {
             gear: [
                 { q: "兩個齒輪互相咬合轉動時，轉動方向通常會怎樣？", a: "方向相反", o: ["方向相反", "方向相同", "都不會動", "一定變省力"] },
-                { q: "大齒輪帶動小齒輪時，小齒輪通常會轉得如何？", a: "比較快", o: ["比較快", "比較慢", "完全不動", "變成滑輪"] }
+                { q: "腳踏車踩踏後，動力最合理的傳送順序是哪一個？", a: "腳踏板→前齒輪→鏈條→後齒輪→後輪", o: ["腳踏板→前齒輪→鏈條→後齒輪→後輪", "後輪→鏈條→前齒輪→腳踏板", "鏈條→腳踏板→後輪→前齒輪", "前齒輪→後輪→鏈條→腳踏板"] }
             ],
             wheel: [
                 { q: "方向盤帶動中間轉軸時，方向盤本身屬於輪軸中的哪一部分？", a: "輪", o: ["輪", "軸", "支點", "抗力點"] },
@@ -559,7 +559,7 @@
             ],
             pulley: [
                 { q: "固定在高處、不跟著重物移動的滑輪叫什麼？", a: "定滑輪", o: ["定滑輪", "動滑輪", "齒輪", "輪軸"] },
-                { q: "會跟著重物一起移動、通常可以省力的滑輪叫什麼？", a: "動滑輪", o: ["動滑輪", "定滑輪", "槓桿", "斜面"] }
+                { q: "動滑輪和定滑輪搭配使用，通常有什麼好處？", a: "可以省力又方便改變方向", o: ["可以省力又方便改變方向", "一定會更費力", "只能讓聲音變大", "會改變物體重量"] }
             ],
             lever: [
                 { q: "工具轉動時繞著不動的點，稱為什麼？", a: "支點", o: ["支點", "輪", "軸", "齒輪"] },
@@ -941,15 +941,28 @@
                 <text x="86" y="126" font-size="18" fill="#2C3E50">輪：手握的大部分</text>
                 <text x="180" y="52" font-size="18" fill="#2C3E50">軸：中間細細轉</text>
             </svg>`,
-            gear: `<svg viewBox="0 0 320 140" role="img" aria-label="齒輪圖解">
-                <circle cx="100" cy="70" r="38" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
-                <circle cx="190" cy="70" r="24" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
-                <circle cx="100" cy="70" r="8" fill="#4A90E2"></circle>
-                <circle cx="190" cy="70" r="7" fill="#F5A623"></circle>
-                <path d="M82 37 L72 24 M118 37 L128 24 M82 103 L72 116 M118 103 L128 116 M166 51 L154 42 M214 51 L226 42 M166 89 L154 98 M214 89 L226 98" stroke="#2C3E50" stroke-width="4" stroke-linecap="round"></path>
-                <text x="54" y="126" font-size="17" fill="#2C3E50">大齒輪慢</text>
-                <text x="166" y="126" font-size="17" fill="#2C3E50">小齒輪快</text>
-                <text x="96" y="24" font-size="17" fill="#2C3E50">相鄰方向相反</text>
+            gear: `<svg viewBox="0 0 360 160" role="img" aria-label="齒輪鏈條傳動圖解">
+                <style>
+                    .gear-spin-a { transform-origin: 88px 76px; animation: gearA 4s linear infinite; }
+                    .gear-spin-b { transform-origin: 238px 76px; animation: gearB 2s linear infinite; }
+                    @keyframes gearA { to { transform: rotate(360deg); } }
+                    @keyframes gearB { to { transform: rotate(360deg); } }
+                </style>
+                <path d="M88 31 H238 A45 45 0 0 1 238 121 H88 A45 45 0 0 1 88 31" fill="none" stroke="#2C3E50" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 8"></path>
+                <g class="gear-spin-a">
+                    <circle cx="88" cy="76" r="42" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <path d="M88 25 v18 M88 109 v18 M37 76 h18 M121 76 h18 M52 40 l13 13 M124 112 l13 13 M124 40 l-13 13 M52 112 l13-13" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
+                    <circle cx="88" cy="76" r="8" fill="#4A90E2"></circle>
+                </g>
+                <g class="gear-spin-b">
+                    <circle cx="238" cy="76" r="25" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                    <path d="M238 40 v14 M238 98 v14 M202 76 h14 M260 76 h14 M214 52 l10 10 M252 100 l10 10 M262 52 l-10 10 M214 100 l10-10" stroke="#F5A623" stroke-width="4" stroke-linecap="round"></path>
+                    <circle cx="238" cy="76" r="6" fill="#F5A623"></circle>
+                </g>
+                <path d="M36 132 H316" stroke="#4A90E2" stroke-width="4" marker-end="url(#gearArrow)"></path>
+                <defs><marker id="gearArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4A90E2"/></marker></defs>
+                <text x="22" y="23" font-size="15" fill="#2C3E50">腳踏板→前齒輪→鏈條→後齒輪→後輪</text>
+                <text x="43" y="153" font-size="15" fill="#2C3E50">大齒輪一圈，較小齒輪會轉更多圈</text>
             </svg>`,
             bird: `<svg viewBox="0 0 320 140" role="img" aria-label="鳥類特徵圖解">
                 <ellipse cx="145" cy="74" rx="52" ry="34" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></ellipse>
@@ -962,22 +975,32 @@
                 <text x="224" y="84" font-size="17" fill="#2C3E50">喙</text>
                 <text x="96" y="132" font-size="17" fill="#2C3E50">卵生、兩足</text>
             </svg>`,
-            pulley: `<svg viewBox="0 0 320 140" role="img" aria-label="滑輪圖解">
-                <line x1="70" y1="20" x2="70" y2="120" stroke="#4A90E2" stroke-width="6"></line>
-                <circle cx="70" cy="48" r="28" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
-                <line x1="70" y1="20" x2="170" y2="120" stroke="#F5A623" stroke-width="6"></line>
-                <rect x="145" y="104" width="50" height="28" rx="6" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="3"></rect>
-                <text x="112" y="34" font-size="17" fill="#2C3E50">定滑輪：改變方向</text>
-                <text x="110" y="92" font-size="17" fill="#2C3E50">動滑輪：比較省力</text>
+            pulley: `<svg viewBox="0 0 360 160" role="img" aria-label="定滑輪與動滑輪圖解">
+                <line x1="22" y1="24" x2="338" y2="24" stroke="#2C3E50" stroke-width="5" stroke-linecap="round"></line>
+                <circle cx="84" cy="58" r="28" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                <path d="M84 24 V58 H126 V130" fill="none" stroke="#F5A623" stroke-width="6" stroke-linecap="round"></path>
+                <path d="M126 126 v-28" stroke="#FF5E5E" stroke-width="5" marker-end="url(#pullDown)"></path>
+                <circle cx="242" cy="94" r="30" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle>
+                <path d="M242 24 V94 H302 V38" fill="none" stroke="#4A90E2" stroke-width="6" stroke-linecap="round"></path>
+                <rect x="221" y="124" width="42" height="24" rx="5" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="3"></rect>
+                <line x1="242" y1="124" x2="242" y2="108" stroke="#2C3E50" stroke-width="4"></line>
+                <defs><marker id="pullDown" markerWidth="8" markerHeight="8" refX="3" refY="6" orient="auto"><path d="M0,0 L6,0 L3,7 z" fill="#FF5E5E"/></marker></defs>
+                <text x="36" y="150" font-size="15" fill="#2C3E50">定滑輪：改變施力方向</text>
+                <text x="188" y="150" font-size="15" fill="#2C3E50">動滑輪：跟重物一起動，較省力</text>
             </svg>`,
-            lever: `<svg viewBox="0 0 320 140" role="img" aria-label="槓桿圖解">
-                <rect x="50" y="62" width="220" height="16" rx="8" fill="#F5A623"></rect>
-                <polygon points="155,80 135,122 175,122" fill="#4A90E2"></polygon>
-                <circle cx="72" cy="54" r="18" fill="#FFB6B6"></circle>
-                <path d="M246 28 v42" stroke="#7ED321" stroke-width="8" stroke-linecap="round"></path>
-                <text x="128" y="136" font-size="17" fill="#2C3E50">支點</text>
-                <text x="32" y="36" font-size="17" fill="#2C3E50">抗力</text>
-                <text x="224" y="24" font-size="17" fill="#2C3E50">施力</text>
+            lever: `<svg viewBox="0 0 360 160" role="img" aria-label="槓桿三點圖解">
+                <rect x="58" y="74" width="242" height="16" rx="8" fill="#F5A623"></rect>
+                <polygon points="178,90 154,136 202,136" fill="#4A90E2"></polygon>
+                <circle cx="82" cy="66" r="18" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="4"></circle>
+                <path d="M282 34 v42" stroke="#7ED321" stroke-width="8" stroke-linecap="round"></path>
+                <circle cx="282" cy="34" r="13" fill="#DFF8EC" stroke="#7ED321" stroke-width="4"></circle>
+                <circle cx="178" cy="90" r="13" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></circle>
+                <text x="75" y="70" font-size="14" fill="#2C3E50">A</text>
+                <text x="276" y="39" font-size="14" fill="#2C3E50">B</text>
+                <text x="172" y="95" font-size="14" fill="#2C3E50">C</text>
+                <text x="30" y="24" font-size="15" fill="#2C3E50">A 抗力點：物體阻擋的位置</text>
+                <text x="30" y="45" font-size="15" fill="#2C3E50">B 施力點：手出力的位置</text>
+                <text x="30" y="150" font-size="15" fill="#2C3E50">C 支點：工具繞著轉的位置</text>
             </svg>`,
             circuit: `<svg viewBox="0 0 320 140" role="img" aria-label="電路圖解">
                 <path d="M70 40 H250 V105 H70 Z" fill="none" stroke="#4A90E2" stroke-width="6"></path>
@@ -1044,10 +1067,13 @@
                 <text x="132" y="124" font-size="16" fill="#2C3E50">沉積</text>
                 <text x="238" y="124" font-size="16" fill="#2C3E50">變質</text>
             </svg>`,
-            sound: `<svg viewBox="0 0 320 140" role="img" aria-label="聲音振動圖解">
-                <circle cx="82" cy="70" r="34" fill="#FFF7D6" stroke="#F5A623" stroke-width="5"></circle>
-                <path d="M140 52 q22 18 0 36 M176 42 q34 28 0 56 M220 32 q46 38 0 76" fill="none" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
-                <text x="38" y="122" font-size="17" fill="#2C3E50">振動產生聲音，傳播需要介質</text>
+            sound: `<svg viewBox="0 0 360 160" role="img" aria-label="聲音響度與噪音圖解">
+                <circle cx="72" cy="66" r="30" fill="#FFF7D6" stroke="#F5A623" stroke-width="5"></circle>
+                <path d="M126 54 q20 12 0 24 M158 43 q34 23 0 46 M202 32 q48 34 0 68" fill="none" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
+                <rect x="252" y="42" width="58" height="70" rx="8" fill="#DFF8EC" stroke="#50E3C2" stroke-width="5"></rect>
+                <path d="M238 54 q-20 16 0 32 M226 68 h84" fill="none" stroke="#FF5E5E" stroke-width="5" stroke-linecap="round"></path>
+                <text x="24" y="128" font-size="15" fill="#2C3E50">響度：振動幅度越大，通常越大聲</text>
+                <text x="202" y="148" font-size="15" fill="#2C3E50">降噪：吸收或阻隔聲音</text>
             </svg>`,
             light: `<svg viewBox="0 0 320 140" role="img" aria-label="光反射折射圖解">
                 <line x1="28" y1="62" x2="292" y2="62" stroke="#4A90E2" stroke-width="4"></line>
@@ -1886,6 +1912,16 @@
             },
             {
                 source: "六下期中考照片",
+                sourceImage: "截圖 2026-05-14 晚上9.28.54.png",
+                question: "在槓桿工具圖中，工具繞著轉動的位置稱為什麼？",
+                wrong: "施力點",
+                correct: "支點",
+                options: ["施力點", "抗力點", "支點", "輪"],
+                concept: "槓桿",
+                teach: "判斷槓桿三點時，先找工具不斷繞著轉的固定位置，那就是支點；手出力的位置是施力點，物體抵抗的位置是抗力點。"
+            },
+            {
+                source: "六下期中考照片",
                 sourceImage: "S__23658519.jpg",
                 question: "承上題，哪一個工具利用輪軸原理？",
                 wrong: "拉開彩虹劇場的舞台布幕",
@@ -1913,6 +1949,16 @@
                 options: ["輪軸", "齒輪和鏈條", "滑輪", "斜面"],
                 concept: "齒輪傳動",
                 teach: "電扶梯需要持續傳送動力讓階梯移動，常用齒輪和鏈條帶動。"
+            },
+            {
+                source: "六下期中考照片",
+                sourceImage: "截圖 2026-05-14 晚上9.38.33.png",
+                question: "關於腳踏車力的傳送順序，何者正確？",
+                wrong: "後齒輪→後輪→鏈條→前齒輪",
+                correct: "腳踏板→前齒輪→鏈條→後齒輪→後輪",
+                options: ["前齒輪→鏈條→後齒輪→後輪", "後齒輪→後輪→鏈條→前齒輪", "後輪→鏈條→前齒輪→後齒輪", "腳踏板→前齒輪→鏈條→後齒輪→後輪"],
+                concept: "齒輪傳動",
+                teach: "腳踏車是人先踩腳踏板，帶動前齒輪，再由鏈條把動力傳到後齒輪，最後帶動後輪前進。"
             },
             {
                 source: "六下期中考照片",
@@ -1976,6 +2022,16 @@
             },
             {
                 source: "六下期中考照片",
+                sourceImage: "截圖 2026-05-14 晚上9.42.28.png",
+                question: "將大齒輪（20齒）及小齒輪（10齒）以鏈條相連接，哪一項敘述正確？",
+                wrong: "大齒輪轉 1 齒，小齒輪會轉 2 齒",
+                correct: "大、小齒輪的組合可以改變動力傳輸的速度",
+                options: ["大齒輪轉 1 齒，小齒輪會轉 2 齒", "小齒輪轉一圈，大齒輪會轉動多於一圈", "大、小齒輪的組合可以改變動力傳輸的速度", "鏈條長度會影響轉動的圈數"],
+                concept: "齒輪傳動",
+                teach: "鏈條每前進一格，兩個齒輪都會跟著前進一齒；真正改變的是整圈轉動的速度。20齒帶10齒時，小齒輪一樣接收鏈條動力，但會轉得比較快。"
+            },
+            {
+                source: "六下期中考照片",
                 sourceImage: "S__23658520.jpg",
                 question: "固定在高處、不跟著重物移動的滑輪稱為什麼？",
                 wrong: "動滑輪",
@@ -1996,6 +2052,16 @@
             },
             {
                 source: "六下期中考照片",
+                sourceImage: "截圖 2026-05-14 晚上9.42.28.png",
+                question: "承上題，若小齒輪轉動 2 圈帶動大齒輪，哪一項敘述錯誤？",
+                wrong: "大、小齒輪轉動方向會一樣",
+                correct: "大齒輪會轉動 1 齒",
+                options: ["小齒輪轉動圈數是大齒輪的 2 倍", "大齒輪會轉動 1 齒", "大、小齒輪轉動方向會一樣", "變速腳踏車爬坡為了省力也會用大小齒輪搭配"],
+                concept: "齒輪傳動",
+                teach: "10齒小齒輪轉2圈，鏈條會走過20齒，剛好帶動20齒大齒輪轉1圈，不是只轉1齒。鏈條連接的兩個齒輪轉動方向通常相同。"
+            },
+            {
+                source: "六下期中考照片",
                 sourceImage: "S__23658521.jpg",
                 question: "使用動滑輪吊起重物時，主要效果是什麼？",
                 wrong: "只改變施力方向",
@@ -2003,6 +2069,16 @@
                 options: ["省力", "只改變施力方向", "讓物體變輕", "讓繩子消失"],
                 concept: "滑輪",
                 teach: "動滑輪會跟著重物一起移動，能分擔重量，所以主要效果是省力。"
+            },
+            {
+                source: "六下期中考照片",
+                sourceImage: "截圖 2026-05-14 晚上9.42.28.png",
+                question: "關於右圖的滑輪組，哪一項敘述正確？",
+                wrong: "施力方向和物體移動方向相反",
+                correct: "和定滑輪搭配，既省力又方便工作",
+                options: ["施力方向和物體移動方向相反", "和定滑輪搭配，既省力又方便工作", "支點在滑輪中心", "施力在輪所以會省力"],
+                concept: "滑輪",
+                teach: "圖中有會跟著重物一起移動的動滑輪，也搭配上方定滑輪。動滑輪負責省力，定滑輪讓拉繩方向更方便。"
             },
             {
                 source: "六下期中考照片",
