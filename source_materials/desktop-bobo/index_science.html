@@ -50,6 +50,9 @@
         .concept-card { border: 2px solid #E3F1FF; background: #F8FCFF; border-radius: 16px; padding: 12px; margin: 12px 0; }
         .concept-card svg { width: 100%; max-width: 320px; height: 140px; display: block; margin: 0 auto 8px; }
         .concept-text { font-size: 1rem; line-height: 1.55; }
+        .unit-overview-card { width: 100%; box-sizing: border-box; border: 2px solid #DCEEFF; background: linear-gradient(180deg, #F8FCFF 0%, #FFFFFF 100%); border-radius: 18px; padding: 12px; margin-bottom: 14px; }
+        .unit-overview-card svg { width: 100%; height: auto; display: block; }
+        .unit-overview-text { font-size: 1rem; line-height: 1.55; color: var(--text); margin-top: 8px; }
         .question-figure { width: 100%; max-width: 360px; margin: 0 auto 12px; padding: 8px; border-radius: 14px; background: #F8FCFF; box-sizing: border-box; }
         .question-figure svg { width: 100%; height: auto; display: block; }
         .import-panel { display: none; background: #fff8ef; border: 2px solid var(--accent); border-radius: 16px; padding: 12px; margin-top: 12px; text-align: left; }
@@ -1500,6 +1503,115 @@
         if (config.chatid) document.getElementById('tg-chatid').value = config.chatid;
     }
 
+    function unitOverviewCard(unitId) {
+        const cards = {
+            tools: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="巧妙的工具單元總圖卡">
+                    <style>
+                        .unit-gear-large { transform-origin: 82px 75px; animation: unitSpinSlow 6s linear infinite; }
+                        .unit-gear-small { transform-origin: 154px 75px; animation: unitSpinFast 3s linear infinite reverse; }
+                        .unit-pull { animation: unitPull 2.8s ease-in-out infinite; }
+                        @keyframes unitSpinSlow { to { transform: rotate(360deg); } }
+                        @keyframes unitSpinFast { to { transform: rotate(360deg); } }
+                        @keyframes unitPull { 0%,100% { transform: translateY(0); } 50% { transform: translateY(16px); } }
+                    </style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="26" y="42" font-size="20" fill="#2C3E50" font-weight="700">工具先看：轉動點、拉力方向、輪和軸</text>
+                    <g class="unit-gear-large"><circle cx="82" cy="75" r="28" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle><path d="M82 40 v14 M82 96 v14 M47 75 h14 M103 75 h14" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path></g>
+                    <g class="unit-gear-small"><circle cx="154" cy="75" r="19" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></circle><path d="M154 50 v10 M154 90 v10 M129 75 h10 M169 75 h10" stroke="#F5A623" stroke-width="4" stroke-linecap="round"></path></g>
+                    <text x="42" y="126" font-size="15" fill="#2C3E50">齒輪：傳送動力</text>
+                    <line x1="218" y1="54" x2="218" y2="132" stroke="#4A90E2" stroke-width="5"></line>
+                    <circle cx="218" cy="76" r="24" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></circle>
+                    <path class="unit-pull" d="M218 54 V76 H274 V138" fill="none" stroke="#F5A623" stroke-width="5" stroke-linecap="round"></path>
+                    <text x="196" y="166" font-size="15" fill="#2C3E50">滑輪：改變方向或省力</text>
+                    <rect x="70" y="164" width="174" height="14" rx="7" fill="#F5A623"></rect>
+                    <polygon points="152,178 132,216 172,216" fill="#4A90E2"></polygon>
+                    <circle cx="88" cy="156" r="14" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="3"></circle>
+                    <path d="M226 130 v42" stroke="#7ED321" stroke-width="7" stroke-linecap="round"></path>
+                    <text x="258" y="207" font-size="15" fill="#2C3E50">槓桿：支點、施力點、抗力點</text>
+                </svg>`,
+                text: "看到工具題，先問它是繞哪裡轉、力往哪裡拉、輪和軸是不是一起動。齒輪看傳動，滑輪看方向和省力，槓桿看三個點。"
+            },
+            micro: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="微小的世界單元總圖卡">
+                    <style>
+                        .unit-microbe { animation: unitFloat 3s ease-in-out infinite; }
+                        .unit-microbe-b { animation: unitFloat 3.4s ease-in-out infinite reverse; }
+                        @keyframes unitFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+                    </style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="28" y="42" font-size="20" fill="#2C3E50" font-weight="700">微生物喜歡：溫暖、水分、養分</text>
+                    <g class="unit-microbe"><circle cx="88" cy="96" r="28" fill="#DFF8EC" stroke="#50E3C2" stroke-width="5"></circle><circle cx="78" cy="88" r="4" fill="#2C3E50"></circle><circle cx="98" cy="88" r="4" fill="#2C3E50"></circle><path d="M76 104 q12 9 24 0" fill="none" stroke="#2C3E50" stroke-width="3"></path></g>
+                    <g class="unit-microbe-b"><ellipse cx="160" cy="92" rx="26" ry="20" fill="#FFF4D9" stroke="#F5A623" stroke-width="5"></ellipse><circle cx="150" cy="88" r="4" fill="#2C3E50"></circle><circle cx="168" cy="88" r="4" fill="#2C3E50"></circle></g>
+                    <path d="M226 68 h108 v74 h-108 z" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></path>
+                    <text x="247" y="112" font-size="22" fill="#2C3E50">低溫</text>
+                    <path d="M56 170 H360" stroke="#4A90E2" stroke-width="5" marker-end="url(#microArrow)"></path>
+                    <defs><marker id="microArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4A90E2"/></marker></defs>
+                    <text x="60" y="204" font-size="16" fill="#2C3E50">保存食物：低溫、乾燥、加鹽糖、殺菌，讓微生物變慢或不易生長</text>
+                </svg>`,
+                text: "食物會壞，常是微生物在生長。保存方法的共同目標，是讓微生物缺少適合生長的條件。"
+            },
+            change: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="物質變化單元總圖卡">
+                    <style>.unit-flame { animation: unitFlame 1.4s ease-in-out infinite; transform-origin: 304px 116px; } @keyframes unitFlame { 0%,100% { transform: scale(1); opacity:.85; } 50% { transform: scale(1.12); opacity:1; } }</style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="28" y="42" font-size="20" fill="#2C3E50" font-weight="700">分辨變化：有沒有產生新物質？</text>
+                    <rect x="54" y="74" width="112" height="66" rx="10" fill="#E8F5FF" stroke="#4A90E2" stroke-width="5"></rect>
+                    <text x="76" y="111" font-size="20" fill="#2C3E50">外形/狀態</text>
+                    <path d="M184 106 H236" stroke="#2C3E50" stroke-width="5" marker-end="url(#changeArrow)"></path>
+                    <g class="unit-flame"><path d="M302 146 C270 122 296 98 306 70 C328 98 348 122 318 146 Z" fill="#FFB6B6" stroke="#FF5E5E" stroke-width="5"></path><path d="M309 138 C296 126 310 112 314 98 C326 116 326 130 309 138 Z" fill="#F5A623"></path></g>
+                    <defs><marker id="changeArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#2C3E50"/></marker></defs>
+                    <text x="54" y="178" font-size="16" fill="#2C3E50">物理變化：冰融化、紙撕碎，物質本身沒變</text>
+                    <text x="54" y="204" font-size="16" fill="#2C3E50">化學變化：燃燒、生鏽、腐爛，產生新物質</text>
+                </svg>`,
+                text: "判斷物理或化學變化，不要只看外表變了沒。真正關鍵是：有沒有出現新的物質。"
+            },
+            ecology: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="生態系單元總圖卡">
+                    <style>.unit-energy { animation: unitEnergy 3s linear infinite; } @keyframes unitEnergy { 0%,100% { stroke-dashoffset: 30; } 50% { stroke-dashoffset: 0; } }</style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="28" y="42" font-size="20" fill="#2C3E50" font-weight="700">生態系：能量沿食物鏈流動</text>
+                    <text x="54" y="110" font-size="42">🌿</text><text x="132" y="110" font-size="42">🐛</text><text x="214" y="110" font-size="42">🐸</text><text x="298" y="110" font-size="42">🐍</text>
+                    <path class="unit-energy" d="M92 96 H126 M174 96 H208 M258 96 H292" stroke="#4A90E2" stroke-width="5" stroke-dasharray="10 6" marker-end="url(#ecoArrow)"></path>
+                    <defs><marker id="ecoArrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#4A90E2"/></marker></defs>
+                    <text x="38" y="154" font-size="16" fill="#2C3E50">生產者 → 初級消費者 → 更高級消費者</text>
+                    <text x="38" y="184" font-size="16" fill="#2C3E50">保護棲地，才能維持食物鏈和生物多樣性</text>
+                </svg>`,
+                text: "生態題先找生產者，再看誰吃誰。保育題常回到棲地、食物、繁殖與人為干擾。"
+            },
+            space: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="地球與宇宙單元總圖卡">
+                    <style>.unit-orbit { transform-origin: 210px 118px; animation: unitOrbit 7s linear infinite; } .unit-earth { animation: unitPulse 3s ease-in-out infinite; } @keyframes unitOrbit { to { transform: rotate(360deg); } } @keyframes unitPulse { 0%,100% { opacity:.9; } 50% { opacity:1; } }</style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="28" y="42" font-size="20" fill="#2C3E50" font-weight="700">地球會自轉，月球會繞地球公轉</text>
+                    <circle cx="210" cy="118" r="42" fill="#4A90E2" class="unit-earth"></circle>
+                    <path d="M210 76 A42 42 0 0 1 246 139" fill="none" stroke="#DFF8EC" stroke-width="5"></path>
+                    <ellipse cx="210" cy="118" rx="130" ry="70" fill="none" stroke="#F5A623" stroke-width="4" stroke-dasharray="8 8"></ellipse>
+                    <g class="unit-orbit"><circle cx="340" cy="118" r="16" fill="#DDD" stroke="#999" stroke-width="4"></circle></g>
+                    <text x="52" y="190" font-size="16" fill="#2C3E50">自轉：白天黑夜　公轉：一年與四季　月相：看到的受光面不同</text>
+                </svg>`,
+                text: "宇宙題要先分清楚：地球自轉造成晝夜，地球公轉造成季節，月相是月球繞地球時受光面看起來不同。"
+            },
+            nature: {
+                svg: `<svg viewBox="0 0 420 240" role="img" aria-label="自然現象單元總圖卡">
+                    <style>.unit-rain { animation: unitRain 1.6s linear infinite; } .unit-wave { animation: unitWave 2s ease-in-out infinite; } @keyframes unitRain { 0% { transform: translateY(-8px); opacity:.2; } 100% { transform: translateY(12px); opacity:1; } } @keyframes unitWave { 0%,100% { opacity:.45; } 50% { opacity:1; } }</style>
+                    <rect x="14" y="14" width="392" height="212" rx="18" fill="#F8FCFF" stroke="#DCEEFF" stroke-width="3"></rect>
+                    <text x="28" y="42" font-size="20" fill="#2C3E50" font-weight="700">水、光、聲音都在傳播與改變</text>
+                    <path d="M72 108 C56 78 96 64 116 78 C126 50 174 58 178 86 C208 84 220 116 194 124 H78 C60 124 56 112 72 108" fill="#E8F5FF" stroke="#4A90E2" stroke-width="4"></path>
+                    <g class="unit-rain"><path d="M92 132 v22 M132 132 v22 M172 132 v22" stroke="#4A90E2" stroke-width="4" stroke-linecap="round"></path></g>
+                    <path d="M244 76 L314 116 L360 84" fill="none" stroke="#F5A623" stroke-width="5"></path>
+                    <path d="M314 116 L350 152" fill="none" stroke="#FF5E5E" stroke-width="5"></path>
+                    <circle cx="250" cy="166" r="19" fill="#FFF4D9" stroke="#F5A623" stroke-width="4"></circle>
+                    <path class="unit-wave" d="M284 150 q22 16 0 32 M316 138 q36 28 0 56" fill="none" stroke="#4A90E2" stroke-width="5" stroke-linecap="round"></path>
+                    <text x="36" y="210" font-size="16" fill="#2C3E50">水循環看蒸發凝結降水；光看反射折射；聲音看振動與介質</text>
+                </svg>`,
+                text: "自然現象題不要背單字，要看過程：水怎麼循環、光怎麼改變方向、聲音怎麼靠振動和介質傳出去。"
+            }
+        };
+        const card = cards[unitId] || cards.nature;
+        return `<div class="unit-overview-card">${card.svg}<div class="unit-overview-text">${card.text}</div></div>`;
+    }
+
     function renderMissions() {
         const list = document.getElementById('mission-list');
         const mistakeCount = mistakePracticeBank().length;
@@ -1568,7 +1680,7 @@
         document.getElementById('teaching-screen').classList.add('active');
         document.getElementById('teaching-title').innerHTML = currentUnit.title;
         const randomTeaching = currentUnit.teaching[Math.floor(Math.random() * currentUnit.teaching.length)];
-        document.getElementById('teaching-body').innerText = randomTeaching;
+        document.getElementById('teaching-body').innerHTML = `${unitOverviewCard(unitId)}<div>${randomTeaching}</div>`;
         const startBtn = document.getElementById('start-challenge-btn');
         startBtn.innerText = "開始挑戰";
         pendingStartMode = "unit";
