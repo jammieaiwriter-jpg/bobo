@@ -914,6 +914,7 @@
     let currentMode = "idle";
     let answered = false;
     let currentWrongRecorded = false;
+    let currentHintUsed = false;
 
     const unitList = document.getElementById("unitList");
     const questionArea = document.getElementById("questionArea");
@@ -1068,6 +1069,7 @@
       feedbackEl.innerHTML = "";
       answered = false;
       currentWrongRecorded = false;
+      currentHintUsed = false;
 
       if (mode === "unit") {
         currentQueue = [unitOverviewCard(unitId), ...shuffle(byUnit(unitId))];
@@ -1114,6 +1116,7 @@
       currentQuestion = currentQueue[currentIndex];
       answered = false;
       currentWrongRecorded = false;
+      currentHintUsed = false;
       renderQuestion(currentQuestion);
       queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
       hintBtn.disabled = currentQuestion.type === "concept";
@@ -1214,12 +1217,24 @@
       state.attempts[q.id].tries += 1;
       if (ok) {
         answered = true;
-        state.attempts[q.id].correct += 1;
-        state.completed[q.id] = true;
-        if (currentMode === "wrong" && !currentWrongRecorded && !q.originalId) delete state.wrong[q.id];
-        if (currentMode === "wrong" && !currentWrongRecorded && q.sourceOriginal) {
-          const original = QUESTION_BANK.find(item => item.id === q.sourceOriginal);
-          if (original) delete state.wrong[original.id];
+        if (!currentHintUsed) {
+          state.attempts[q.id].correct += 1;
+          state.completed[q.id] = true;
+          if (currentMode === "wrong" && !currentWrongRecorded && !q.originalId) delete state.wrong[q.id];
+          if (currentMode === "wrong" && !currentWrongRecorded && q.sourceOriginal) {
+            const original = QUESTION_BANK.find(item => item.id === q.sourceOriginal);
+            if (original) delete state.wrong[original.id];
+          }
+        } else if (!q.originalId) {
+          state.wrong[q.id] = true;
+          state.history[q.id] = {
+            id: q.id,
+            unit: q.unit,
+            title: q.title,
+            correct: q.options[q.answer],
+            missedAt: new Date().toISOString(),
+            status: "hint_used"
+          };
         }
         [...optionsEl.children].forEach((optionEl, optionIndex) => {
           optionEl.disabled = true;
@@ -1227,7 +1242,8 @@
         });
         feedbackEl.className = "feedback show ok";
         feedbackEl.innerHTML = `
-          <p class="explain-title">答對了</p>
+          <p class="explain-title">${currentHintUsed ? "提示後答對，先留在待加強" : "答對了"}</p>
+          ${currentHintUsed ? "<div>這題有看提示，所以不算精熟；之後錯題加強會再練一次。</div>" : ""}
           <div>答案：${q.options[q.answer]}</div>
           <ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol>
         `;
@@ -1262,6 +1278,7 @@
 
     function showHint() {
       if (!currentQuestion || answered || currentQuestion.type === "concept") return;
+      currentHintUsed = true;
       feedbackEl.className = "feedback show";
       feedbackEl.innerHTML = `<p class="explain-title">提示</p><div>${currentQuestion.hint}</div>`;
     }
