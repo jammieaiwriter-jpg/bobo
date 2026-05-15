@@ -1034,7 +1034,7 @@
           cardKind: "錯題觀念"
         };
         const originals = group.items.map(item => ({ ...item, reviewKind: "原錯題" }));
-        const variations = group.items.flatMap(item => variationQuestions(item).map((v, index) => ({
+        const variations = group.items.flatMap(item => generatedVariationQuestions(item).map((v, index) => ({
           ...v,
           reviewKind: `變化題 ${index + 1}`,
           sourceOriginal: item.id
@@ -1043,11 +1043,204 @@
       });
     }
 
-    function variationQuestions(item) {
+    function generatedVariationQuestions(item) {
+      const generators = {
+        sumdiff: generateSumdiffVariations,
+        age: generateAgeVariations,
+        chicken: generateChickenVariations,
+        combination: generateCombinationVariations,
+        percentPie: generatePercentPieVariations,
+        pieChart: generatePieChartVariations,
+        pieApply: generatePieApplyVariations,
+        probability: generateProbabilityVariations
+      };
+      const generated = (generators[item.unit] || generateFallbackVariations)(item);
+      return generated.slice(0, 2).map((q, index) => ({
+        ...q,
+        id: `${item.id}-gen-${index + 1}-${Date.now()}`,
+        unit: item.unit,
+        level: "換數字",
+        originalId: item.id
+      }));
+    }
+
+    function mcOptions(answer, offsets = [-12, 8, 16]) {
+      const values = [answer, ...offsets.map(offset => answer + offset).filter(value => value > 0)];
+      return [...new Set(values)].slice(0, 4).map(String);
+    }
+
+    function generateSumdiffVariations() {
+      return [
+        {
+          title: "甲、乙兩數的和是 156，甲比乙多 28。乙是多少？",
+          work: "和差問題換數字：小數 = (和 - 差) ÷ 2。",
+          options: mcOptions(64, [-14, 14, 28]),
+          answer: 0,
+          hint: "先把多出來的 28 拿掉，再平分。",
+          steps: ["156 - 28 = 128", "128 ÷ 2 = 64", "乙是 64。"]
+        },
+        {
+          title: "兩條彩帶共長 93 公分，紅彩帶比藍彩帶少 17 公分。藍彩帶長多少公分？",
+          work: "要求比較長的藍彩帶，用（和 + 差）÷ 2。",
+          options: mcOptions(55, [-17, 10, 19]),
+          answer: 0,
+          hint: "藍彩帶是大數。",
+          steps: ["93 + 17 = 110", "110 ÷ 2 = 55", "藍彩帶長 55 公分。"]
+        }
+      ];
+    }
+
+    function generateAgeVariations() {
+      return [
+        {
+          title: "爸爸今年 44 歲，小宇今年 11 歲。幾年後爸爸年齡是小宇的 2 倍？",
+          work: "年齡差固定，爸爸比小宇大 33 歲。",
+          options: ["11 年後", "22 年後", "33 年後", "44 年後"],
+          answer: 1,
+          hint: "2 倍時，兩人的年齡差剛好等於小宇那時的年齡。",
+          steps: ["44 - 11 = 33", "那時小宇 33 歲", "33 - 11 = 22", "22 年後。"]
+        },
+        {
+          title: "姐姐今年 17 歲，妹妹今年 9 歲。幾年後兩人的年齡和是 42 歲？",
+          work: "兩人每過 1 年，年齡和增加 2。",
+          options: ["6 年後", "8 年後", "10 年後", "16 年後"],
+          answer: 1,
+          hint: "現在年齡和是 26，還差 16。",
+          steps: ["17 + 9 = 26", "42 - 26 = 16", "16 ÷ 2 = 8", "8 年後。"]
+        }
+      ];
+    }
+
+    function generateChickenVariations() {
+      return [
+        {
+          title: "雞和兔共有 22 隻，腳共有 64 隻。兔有幾隻？",
+          work: "全部先當雞，每隻 2 腳；多出的腳每 2 隻代表 1 隻兔。",
+          options: ["8 隻", "10 隻", "12 隻", "14 隻"],
+          answer: 1,
+          hint: "22 隻都當雞會有 44 隻腳。",
+          steps: ["22 × 2 = 44", "64 - 44 = 20", "20 ÷ 2 = 10", "兔有 10 隻。"]
+        },
+        {
+          title: "腳踏車和汽車共有 24 輛，輪子共有 70 個。汽車有幾輛？",
+          work: "全部先當腳踏車，每輛 2 輪；汽車每輛多 2 輪。",
+          options: ["9 輛", "11 輛", "13 輛", "15 輛"],
+          answer: 1,
+          hint: "24 輛都當腳踏車會有 48 個輪子。",
+          steps: ["24 × 2 = 48", "70 - 48 = 22", "22 ÷ 2 = 11", "汽車有 11 輛。"]
+        }
+      ];
+    }
+
+    function generateCombinationVariations() {
+      return [
+        {
+          title: "有 4 種主餐、3 種飲料和 2 種甜點，各選一種，共有幾種搭配？",
+          work: "分階段組合，每一階段都要選一種時用乘法。",
+          options: ["9 種", "12 種", "24 種", "36 種"],
+          answer: 2,
+          hint: "4 × 3 × 2。",
+          steps: ["4 × 3 × 2 = 24", "共有 24 種搭配。"]
+        },
+        {
+          title: "從 A、B、C、D、E 五人中選 2 人，不分先後，共有幾種選法？",
+          work: "不分先後，AB 和 BA 只算一種。",
+          options: ["8 種", "10 種", "15 種", "20 種"],
+          answer: 1,
+          hint: "可以列：AB、AC、AD、AE、BC、BD、BE、CD、CE、DE。",
+          steps: ["第一人可配 4 種", "第二個起依序是 3、2、1 種", "4 + 3 + 2 + 1 = 10。"]
+        }
+      ];
+    }
+
+    function generatePercentPieVariations() {
+      return [
+        {
+          title: "六年級共有 160 人，參加合唱團的占 35%。參加合唱團的有幾人？",
+          work: "全部 × 百分率 = 部分。",
+          options: ["48 人", "56 人", "64 人", "72 人"],
+          answer: 1,
+          hint: "160 × 35%。",
+          steps: ["160 × 35% = 160 × 0.35", "等於 56", "有 56 人。"]
+        },
+        {
+          title: "圓形百分圖中，某項目占 15%。它的圓心角是多少度？",
+          work: "圓形圖全部是 360 度。",
+          options: ["45 度", "54 度", "72 度", "90 度"],
+          answer: 1,
+          hint: "360 × 15%。",
+          steps: ["360 × 15% = 360 × 0.15", "等於 54 度。"]
+        }
+      ];
+    }
+
+    function generatePieChartVariations() {
+      return [
+        {
+          title: "圓形圖中，某區塊圓心角是 90 度。這個區塊占全部的百分之幾？",
+          work: "比例 = 圓心角 ÷ 360。",
+          options: ["20%", "25%", "30%", "40%"],
+          answer: 1,
+          hint: "90 ÷ 360 = 1/4。",
+          steps: ["90 ÷ 360 = 1/4", "1/4 = 25%。"]
+        },
+        {
+          title: "一個圓形圖表示 120 人的活動選擇，閱讀區塊是 60 度。選閱讀的有幾人？",
+          work: "先把角度換成比例，再乘總人數。",
+          options: ["15 人", "20 人", "24 人", "30 人"],
+          answer: 1,
+          hint: "60 ÷ 360 = 1/6。",
+          steps: ["60 ÷ 360 = 1/6", "120 × 1/6 = 20", "選閱讀的有 20 人。"]
+        }
+      ];
+    }
+
+    function generatePieApplyVariations() {
+      return [
+        {
+          title: "全校 240 人投票：戶外教學占 45%，校內活動占 30%。戶外教學比校內活動多幾人？",
+          work: "先比較百分率差，再乘總人數。",
+          options: ["24 人", "30 人", "36 人", "45 人"],
+          answer: 2,
+          hint: "45% - 30% = 15%。",
+          steps: ["45% - 30% = 15%", "240 × 15% = 36", "多 36 人。"]
+        },
+        {
+          title: "圓形百分圖中，甲占 22%、乙占 33%，丙占其餘。若丙有 90 人，全部共有幾人？",
+          work: "先求丙占幾%，再用部分 ÷ 百分率。",
+          options: ["180 人", "200 人", "220 人", "240 人"],
+          answer: 1,
+          hint: "丙 = 100% - 22% - 33%。",
+          steps: ["100% - 22% - 33% = 45%", "90 ÷ 45% = 200", "全部 200 人。"]
+        }
+      ];
+    }
+
+    function generateProbabilityVariations() {
+      return [
+        {
+          title: "袋中有 4 顆紅球、3 顆藍球、5 顆白球。隨機抽 1 顆，抽到紅球的可能性是多少？",
+          work: "可能性 = 符合條件的數量 ÷ 全部數量。",
+          options: ["1/4", "1/3", "5/12", "2/3"],
+          answer: 1,
+          hint: "全部有 12 顆，紅球 4 顆。",
+          steps: ["4 + 3 + 5 = 12", "紅球 4 顆", "4/12 = 1/3。"]
+        },
+        {
+          title: "轉盤分成 10 等分，其中 6 格是黃色。轉到黃色的可能性是多少？",
+          work: "等分轉盤直接看格數。",
+          options: ["3/5", "2/5", "1/6", "6/4"],
+          answer: 0,
+          hint: "6/10 可以約分。",
+          steps: ["黃色 6 格，全部 10 格", "6/10 = 3/5", "可能性是 3/5。"]
+        }
+      ];
+    }
+
+    function generateFallbackVariations(item) {
       return byUnit(item.unit)
         .filter(q => q.id !== item.id)
-        .slice(0, 2)
-        .map(q => ({ ...q, id: `${item.id}-var-${q.id}`, originalId: item.id }));
+        .slice(0, 2);
     }
 
     function renderUnits(activeId = "") {
