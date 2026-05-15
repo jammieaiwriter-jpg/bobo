@@ -72,6 +72,7 @@
         <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
             <button onclick="startMistakeReview()" id="mistake-review-btn" class="review-btn">🎯 錯題加強</button>
             <button onclick="startAssessmentReview()" id="assessment-review-btn" class="review-btn">📝 評量錯題</button>
+            <button onclick="startHistoryReview()" id="history-review-btn" class="review-btn">📚 歷史錯題</button>
             <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 學習報表</button>
             <button onclick="exportGameMistakes()" style="border:1px solid #FF5E5E; background:white; color:#FF5E5E; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出錯題</button>
             <button onclick="toggleMistakeImport()" id="mistake-import-toggle" style="border:1px solid #F5A623; background:white; color:#C07800; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 匯入錯題</button>
@@ -324,6 +325,7 @@
     let pendingStartMode = "unit";
     let isTaskLinkMode = false;
     let reviewSource = "curriculum";
+    let reviewOriginalRecords = new Map();
     let assessmentState;
     try {
         assessmentState = JSON.parse(localStorage.getItem('bobo_science_assessment')) || null;
@@ -332,6 +334,14 @@
     }
     if (!assessmentState) assessmentState = { mistakes: [] };
     if (!Array.isArray(assessmentState.mistakes)) assessmentState.mistakes = [];
+    let historyState;
+    try {
+        historyState = JSON.parse(localStorage.getItem('bobo_science_mistake_history')) || null;
+    } catch (e) {
+        historyState = null;
+    }
+    if (!historyState) historyState = { mistakes: [] };
+    if (!Array.isArray(historyState.mistakes)) historyState.mistakes = [];
 
     function safeSaveState() {
         try {
@@ -346,6 +356,14 @@
             localStorage.setItem('bobo_science_assessment', JSON.stringify(assessmentState));
         } catch (e) {
             console.warn("Could not save assessment state:", e);
+        }
+    }
+
+    function safeSaveHistoryState() {
+        try {
+            localStorage.setItem('bobo_science_mistake_history', JSON.stringify(historyState));
+        } catch (e) {
+            console.warn("Could not save mistake history:", e);
         }
     }
 
@@ -391,6 +409,92 @@
             items.push(externalQuestionFromRecord(mistake));
             return items;
         }, []);
+    }
+
+    function historyPracticeBank() {
+        const seen = new Set();
+        return [...historyState.mistakes].reverse().reduce((items, mistake) => {
+            if (!mistake.question || !mistake.correct || seen.has(mistake.question)) return items;
+            seen.add(mistake.question);
+            const original = findQuestionByText(mistake.question);
+            if (original && mistake.kind === "curriculum") {
+                items.push({
+                    ...original,
+                    source: "歷史錯題",
+                    reviewUnitTitle: mistake.unitTitle || "歷史錯題",
+                    conceptKey: conceptKey(original),
+                    conceptLabel: mistake.concept || "課綱錯題",
+                    teach: mistake.teach || conceptExplanation(original)
+                });
+            } else {
+                items.push(externalQuestionFromRecord({ ...mistake, source: mistake.source || "歷史錯題" }));
+            }
+            return items;
+        }, []);
+    }
+
+    function historyKey(questionText) {
+        return String(questionText || "").trim();
+    }
+
+    function upsertMistakeHistory(record, updates = {}) {
+        if (!record) return false;
+        const question = historyKey(record.question || record.q);
+        const correct = String(record.correct || record.a || "").trim();
+        if (!question || !correct) return false;
+        const inferred = inferAssessmentConcept({ ...record, question, correct });
+        const now = new Date().toLocaleString();
+        let item = historyState.mistakes.find(entry => historyKey(entry.question) === question);
+        if (!item) {
+            item = {
+                kind: record.kind || (findQuestionByText(question) ? "curriculum" : "assessment"),
+                source: record.source || record.unitTitle || record.reviewUnitTitle || "錯題歷史",
+                unit: record.unit || "",
+                unitTitle: record.unitTitle || record.reviewUnitTitle || "",
+                question,
+                wrong: record.wrong || "未記錄",
+                correct,
+                options: record.options || record.o || [],
+                concept: record.concept || record.conceptLabel || inferred.label,
+                conceptKey: record.conceptKey || inferred.key,
+                teach: record.teach || record.explanation || "",
+                variations: record.variations || [],
+                firstSeenAt: record.time || now,
+                lastSeenAt: now,
+                lastPracticedAt: "",
+                status: "active",
+                attempts: 0,
+                correctRounds: 0,
+                wrongRounds: 0
+            };
+            historyState.mistakes.push(item);
+        } else {
+            item.source = record.source || item.source;
+            item.unit = record.unit || item.unit;
+            item.unitTitle = record.unitTitle || record.reviewUnitTitle || item.unitTitle;
+            item.wrong = record.wrong || item.wrong;
+            item.correct = correct || item.correct;
+            item.options = (record.options || record.o || item.options || []);
+            item.concept = record.concept || record.conceptLabel || item.concept || inferred.label;
+            item.conceptKey = record.conceptKey || item.conceptKey || inferred.key;
+            item.teach = record.teach || record.explanation || item.teach || "";
+            item.variations = record.variations || item.variations || [];
+            item.lastSeenAt = now;
+        }
+        if (updates.status) item.status = updates.status;
+        if (updates.practiced) {
+            item.attempts = (item.attempts || 0) + 1;
+            item.lastPracticedAt = now;
+            if (updates.status === "learned") {
+                item.correctRounds = (item.correctRounds || 0) + 1;
+                item.masteredAt = now;
+            }
+            if (updates.status === "needs_review") {
+                item.wrongRounds = (item.wrongRounds || 0) + 1;
+            }
+        }
+        safeSaveHistoryState();
+        return true;
     }
 
     function variationQuestions(qData) {
@@ -650,6 +754,14 @@
             correct: record.correct || original.a,
             time: record.time || new Date().toLocaleString()
         });
+        upsertMistakeHistory({
+            ...record,
+            kind: "curriculum",
+            unit: record.unit || "imported",
+            unitTitle: record.unitTitle || "匯入錯題",
+            question: original.q,
+            correct: record.correct || original.a
+        }, { status: "active" });
         safeSaveState();
         return true;
     }
@@ -672,6 +784,15 @@
             variations: record.variations || [],
             time: record.time || new Date().toLocaleString()
         });
+        upsertMistakeHistory({
+            ...record,
+            kind: "assessment",
+            source: record.source || record.unitTitle || "外來評量",
+            question,
+            correct: String(record.correct).trim(),
+            concept: record.concept || inferred.label,
+            conceptKey: record.conceptKey || inferred.key
+        }, { status: "active" });
         safeSaveAssessmentState();
         return true;
     }
@@ -1343,7 +1464,7 @@
         ];
     }
 
-    function initPage() {
+    async function initPage() {
         const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
         if (!config.token) {
             const defaultConfig = {
@@ -1354,7 +1475,10 @@
         }
         renderMissions();
         loadTgConfig();
-        loadTaskFromUrl();
+        await loadTaskFromUrl();
+        if (!isTaskLinkMode) {
+            showPendingMistakeReview("剛剛有答錯後還沒完成補強的觀念，先把這些補起來，再繼續新的單元。");
+        }
     }
 
     function toggleTgConfig() {
@@ -1380,8 +1504,10 @@
         const list = document.getElementById('mission-list');
         const mistakeCount = mistakePracticeBank().length;
         const assessmentCount = assessmentPracticeBank().length;
+        const historyCount = historyPracticeBank().length;
         const reviewBtn = document.getElementById('mistake-review-btn');
         const assessmentBtn = document.getElementById('assessment-review-btn');
+        const historyBtn = document.getElementById('history-review-btn');
         const masteryInfo = document.getElementById('mastery-info');
         if (reviewBtn) {
             reviewBtn.disabled = mistakeCount === 0;
@@ -1391,10 +1517,15 @@
             assessmentBtn.disabled = assessmentCount === 0;
             assessmentBtn.innerText = assessmentCount ? `📝 評量錯題（${assessmentCount}）` : "📝 目前沒有評量錯題";
         }
+        if (historyBtn) {
+            historyBtn.disabled = historyCount === 0;
+            historyBtn.innerText = historyCount ? `📚 歷史錯題（${historyCount}）` : "📚 尚無歷史錯題";
+        }
         if (masteryInfo) {
             const parts = [];
             if (mistakeCount) parts.push(`課綱錯題 ${mistakeCount} 題`);
             if (assessmentCount) parts.push(`評量錯題 ${assessmentCount} 題`);
+            if (historyCount) parts.push(`歷史錯題 ${historyCount} 題`);
             masteryInfo.innerText = parts.length ? `目前有${parts.join("、")}，先補洞再往下推進。` : "目前沒有待加強錯題。";
         }
         list.innerHTML = ALL_UNITS.map(u => {
@@ -1412,7 +1543,25 @@
         }).join('');
     }
 
+    function showPendingMistakeReview(message) {
+        const bank = mistakePracticeBank();
+        if (!bank.length) return false;
+        pendingMistakeBank = bank;
+        isMistakeMode = false;
+        document.getElementById('reward-screen').classList.remove('active');
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerText = "先補強卡住的觀念";
+        document.getElementById('teaching-body').innerText = `${message}\n\n目前還有 ${bank.length} 題待復習。每一組會先看觀念圖卡，再做原錯題和 2 題變化題。`;
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "開始補強";
+        pendingStartMode = "mistake";
+        return true;
+    }
+
     function startUnit(unitId) {
+        if (showPendingMistakeReview("還有待復習錯題沒有補強，先完成這段，新的單元才會解鎖。")) return;
         isMistakeMode = false;
         currentUnit = ALL_UNITS.find(u => u.id === unitId);
         document.getElementById('menu').classList.remove('active');
@@ -1430,6 +1579,8 @@
             beginMistakeReview();
         } else if (pendingStartMode === "assessment") {
             beginAssessmentReview();
+        } else if (pendingStartMode === "history") {
+            beginHistoryReview();
         } else {
             startChallenge();
         }
@@ -1483,13 +1634,34 @@
         pendingStartMode = "assessment";
     }
 
+    function startHistoryReview() {
+        const bank = historyPracticeBank();
+        if (!bank.length) {
+            alert("目前還沒有歷史錯題。");
+            return;
+        }
+        pendingMistakeBank = bank;
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerText = "📚 歷史錯題複習";
+        document.getElementById('teaching-body').innerText = `這裡會撈出 Bobo 曾經錯過的題目，不管當時是單元練習、Telegram、學校評量或照片匯入。\n\n答對不會刪掉歷史紀錄，只會把狀態更新成已學會；考前還可以再依觀念拿出來複習。`;
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "開始歷史錯題";
+        pendingStartMode = "history";
+    }
+
     function beginMistakeReview() {
         const bank = pendingMistakeBank.length ? pendingMistakeBank : mistakePracticeBank();
+        if (!bank.length) {
+            alert("目前沒有課綱錯題可以加強。");
+            return;
+        }
         isMistakeMode = true;
         reviewSource = "curriculum";
         currentUnit = { id: "mistakes", title: "🎯 錯題加強", text: "把今天錯過的題目補起來" };
         currentStep = 0;
         const reviewQueue = buildMistakeReviewQueue(bank);
+        reviewOriginalRecords = new Map(bank.map(item => [item.q, item]));
         reviewOriginalQuestions = new Set(bank.map(item => item.q));
         reviewFailedOriginals = new Set();
         reviewTotalOriginals = reviewOriginalQuestions.size;
@@ -1508,11 +1680,16 @@
 
     function beginAssessmentReview() {
         const bank = pendingMistakeBank.length ? pendingMistakeBank : assessmentPracticeBank();
+        if (!bank.length) {
+            alert("目前沒有評量錯題可以加強。");
+            return;
+        }
         isMistakeMode = true;
         reviewSource = "assessment";
         currentUnit = { id: "assessment", title: "📝 評量錯題加強", text: "把考卷錯題變成會的觀念" };
         currentStep = 0;
         const reviewQueue = buildMistakeReviewQueue(bank);
+        reviewOriginalRecords = new Map(bank.map(item => [item.q, item]));
         reviewOriginalQuestions = new Set(bank.map(item => item.q));
         reviewFailedOriginals = new Set();
         reviewTotalOriginals = reviewOriginalQuestions.size;
@@ -1527,6 +1704,46 @@
         document.getElementById('mode-title').innerText = currentUnit.title;
         updateStars();
         generateQuestion();
+    }
+
+    function beginHistoryReview() {
+        const bank = pendingMistakeBank.length ? pendingMistakeBank : historyPracticeBank();
+        if (!bank.length) {
+            alert("目前還沒有歷史錯題。");
+            return;
+        }
+        isMistakeMode = true;
+        reviewSource = "history";
+        currentUnit = { id: "history", title: "📚 歷史錯題複習", text: "把曾經錯過的觀念再撈出來" };
+        currentStep = 0;
+        const reviewQueue = buildMistakeReviewQueue(bank);
+        reviewOriginalRecords = new Map(bank.map(item => [item.q, item]));
+        reviewOriginalQuestions = new Set(bank.map(item => item.q));
+        reviewFailedOriginals = new Set();
+        reviewTotalOriginals = reviewOriginalQuestions.size;
+        targetQuestionCount = reviewQueue.filter(item => item.type !== "concept").length;
+        sessionMistakes = [];
+        questionQueue = reviewQueue;
+        lastQuestionText = "";
+        challengeStartTime = new Date();
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerText = currentUnit.title;
+        updateStars();
+        generateQuestion();
+    }
+
+    function finalizeMistakeReviewHistory() {
+        if (!isMistakeMode) return;
+        reviewOriginalQuestions.forEach(questionText => {
+            const record = reviewOriginalRecords.get(questionText) || { q: questionText, a: "" };
+            const learned = !reviewFailedOriginals.has(questionText);
+            upsertMistakeHistory(record, {
+                status: learned ? "learned" : "needs_review",
+                practiced: true
+            });
+        });
     }
 
     function generateQuestion() {
@@ -1621,15 +1838,13 @@
                 const duration = Math.floor((new Date() - challengeStartTime) / 1000);
                 const phoneTime = Math.floor(duration / 30) + 5; 
                 
-                if (!isMistakeMode && !roundState.completedUnits.includes(currentUnit.id)) {
-                    roundState.completedUnits.push(currentUnit.id);
-                }
                 if (isMistakeMode) {
+                    finalizeMistakeReviewHistory();
                     reviewOriginalQuestions.forEach(questionText => {
                         if (!reviewFailedOriginals.has(questionText)) {
                             if (reviewSource === "assessment") {
                                 removeAssessmentMistakeQuestion(questionText);
-                            } else {
+                            } else if (reviewSource === "curriculum") {
                                 removeMistakeQuestion(questionText);
                             }
                         }
@@ -1637,11 +1852,31 @@
                 }
                 safeSaveState();
 
+                const pendingUnitMistakeCount = !isMistakeMode ? mistakePracticeBank().length : 0;
+                if (!isMistakeMode && pendingUnitMistakeCount) {
+                    document.getElementById('reward-title').innerText = "先補強再領獎";
+                    document.getElementById('reward-text').innerText = `這輪有 ${pendingUnitMistakeCount} 題需要整理觀念。`;
+                    document.getElementById('time-reward').innerText = "完成錯題補強後，才算真正學會。";
+                    setTimeout(() => {
+                        showPendingMistakeReview("這輪有答錯的題目，先補強觀念，再回來挑戰下一關。");
+                    }, 1000);
+                    return;
+                }
+                if (!isMistakeMode && !roundState.completedUnits.includes(currentUnit.id)) {
+                    roundState.completedUnits.push(currentUnit.id);
+                    safeSaveState();
+                }
+
                 const learnedCount = isMistakeMode ? reviewTotalOriginals - reviewFailedOriginals.size : 0;
-                const remainingCount = isMistakeMode ? (reviewSource === "assessment" ? assessmentPracticeBank().length : mistakePracticeBank().length) : 0;
-                document.getElementById('reward-title').innerText = isMistakeMode ? (reviewSource === "assessment" ? "評量錯題完成！" : "錯題加強完成！") : "大成功！";
+                const remainingCount = isMistakeMode
+                    ? (reviewSource === "assessment" ? assessmentPracticeBank().length : (reviewSource === "history" ? historyPracticeBank().length : mistakePracticeBank().length))
+                    : 0;
+                const rewardTitle = reviewSource === "assessment" ? "評量錯題完成！" : (reviewSource === "history" ? "歷史錯題完成！" : "錯題加強完成！");
+                document.getElementById('reward-title').innerText = isMistakeMode ? rewardTitle : "大成功！";
                 document.getElementById('reward-text').innerText = isMistakeMode ? `原本 ${reviewTotalOriginals} 題，這輪學會 ${learnedCount} 題。` : "Bobo 真是個科學小天才！";
-                document.getElementById('time-reward').innerText = isMistakeMode ? `剩餘錯題：${remainingCount} 題，可以回首頁再挑戰一次。` : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
+                document.getElementById('time-reward').innerText = isMistakeMode
+                    ? (reviewSource === "history" ? `歷史庫已更新；共有 ${remainingCount} 題可供考前複習。` : `剩餘待補強錯題：${remainingCount} 題，可以回首頁再挑戰一次。`)
+                    : `🎁 獲得 ${phoneTime} 分鐘玩手機時間！`;
                 sendTgNotification(cleanTitle(currentUnit.title), duration, phoneTime);
                 setTimeout(showReward, 1000);
             } else { 
@@ -1666,7 +1901,8 @@
                     const originals = currentQuestionData.originalQuestions || [currentQuestionData.originalQuestion || currentQuestionText];
                     originals.forEach(questionText => reviewFailedOriginals.add(questionText));
                 } else {
-                    roundState.mistakes.push(mistake);
+                    const alreadyRecorded = roundState.mistakes.some(item => item.question === mistake.question);
+                    if (!alreadyRecorded) roundState.mistakes.push(mistake);
                     roundState.streaks[currentUnit.id] = 0;
                     updateRecentResults(false);
                     safeSaveState();
@@ -1696,11 +1932,11 @@
         }
 
         const message = isMistakeMode
-            ? `${reviewSource === "assessment" ? "📝 Bobo 自然評量錯題完成！" : "🎯 Bobo 自然錯題加強完成！"}\n\n` +
+            ? `${reviewSource === "assessment" ? "📝 Bobo 自然評量錯題完成！" : (reviewSource === "history" ? "📚 Bobo 自然歷史錯題完成！" : "🎯 Bobo 自然錯題加強完成！")}\n\n` +
               `⏱️ 耗時：${duration} 秒\n` +
               `🧩 本次練習：${targetQuestionCount} 題\n` +
               `✅ 這輪學會：${reviewTotalOriginals - reviewFailedOriginals.size} / ${reviewTotalOriginals} 題\n` +
-              `📌 剩餘錯題：${reviewSource === "assessment" ? assessmentPracticeBank().length : mistakePracticeBank().length} 題` +
+              `📌 剩餘錯題：${reviewSource === "assessment" ? assessmentPracticeBank().length : (reviewSource === "history" ? historyPracticeBank().length : mistakePracticeBank().length)} 題` +
               mistakeText +
               `\n錯題有補起來，這次很紮實！🔬`
             : `🌟 Bobo 自然挑戰成功！\n\n` +
