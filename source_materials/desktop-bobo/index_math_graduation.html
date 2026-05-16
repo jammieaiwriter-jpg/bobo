@@ -34,6 +34,7 @@
     }
 
     button, input, select { font: inherit; }
+    textarea { font: inherit; }
 
     .app-shell {
       width: min(1040px, 100%);
@@ -268,6 +269,68 @@
     .option.correct { border-color: var(--green); background: #edf7e9; }
     .option.wrong { border-color: var(--rose); background: var(--soft-rose); }
 
+    .answer-panel {
+      display: grid;
+      grid-column: 1 / -1;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: white;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 12px;
+    }
+
+    .answer-field {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .answer-field strong { color: var(--ink); }
+
+    .answer-input,
+    .photo-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .photo-preview {
+      display: none;
+      max-height: 260px;
+      width: 100%;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7faf9;
+    }
+
+    .photo-preview.show { display: block; }
+
+    .answer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .review-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: .94rem;
+      line-height: 1.55;
+    }
+
     .feedback {
       display: none;
       border-radius: 8px;
@@ -336,6 +399,7 @@
       .layout { grid-template-columns: 1fr; }
       .side { position: static; }
       .options { grid-template-columns: 1fr; }
+      .answer-grid { grid-template-columns: 1fr; }
       .status-row { align-items: flex-start; flex-direction: column; }
     }
   </style>
@@ -360,8 +424,9 @@
       <div style="display:grid; gap:8px; margin-top:8px;">
         <label>Bot Token <input id="tgToken" type="password" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
         <label>Chat ID <input id="tgChatId" type="text" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <label>AI 批改網址 <input id="aiEndpoint" type="url" placeholder="https://你的-worker.example.workers.dev" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
         <button class="btn primary" id="saveTgBtn" type="button">儲存通知設定</button>
-        <span class="subtitle">完成單元、看提示、答錯、錯題加強完成都會自動回報。</span>
+        <span class="subtitle">完成單元、看提示、答錯、照片算式、錯題加強完成都會自動回報。AI 網址留空時，照片會先傳給媽媽人工確認，不會算精熟。</span>
       </div>
     </section>
 
@@ -977,10 +1042,10 @@
 
     function initTgConfig() {
       const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
-      if (config.token && config.chatid) return;
       localStorage.setItem("bobo_tg_config", JSON.stringify({
-        token: "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
-        chatid: "-5062576908"
+        token: config.token || "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
+        chatid: config.chatid || "-5062576908",
+        aiEndpoint: config.aiEndpoint || ""
       }));
     }
 
@@ -992,7 +1057,8 @@
     function saveTgConfig() {
       const config = {
         token: document.getElementById("tgToken").value.trim(),
-        chatid: document.getElementById("tgChatId").value.trim()
+        chatid: document.getElementById("tgChatId").value.trim(),
+        aiEndpoint: document.getElementById("aiEndpoint").value.trim()
       };
       localStorage.setItem("bobo_tg_config", JSON.stringify(config));
       sendTgMessage("Bobo 數學通知設定已更新。");
@@ -1003,6 +1069,7 @@
       const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
       if (config.token) document.getElementById("tgToken").value = config.token;
       if (config.chatid) document.getElementById("tgChatId").value = config.chatid;
+      if (config.aiEndpoint) document.getElementById("aiEndpoint").value = config.aiEndpoint;
     }
 
     async function sendTgMessage(text) {
@@ -1016,6 +1083,24 @@
         });
       } catch (error) {
         console.warn("Telegram notification failed", error);
+      }
+    }
+
+    async function sendTgPhoto(dataUrl, caption) {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (!config.token || !config.chatid || !dataUrl) return;
+      try {
+        const blob = await fetch(dataUrl).then(response => response.blob());
+        const form = new FormData();
+        form.append("chat_id", config.chatid);
+        form.append("caption", caption.slice(0, 1000));
+        form.append("photo", blob, "bobo-math-work.jpg");
+        await fetch(`https://api.telegram.org/bot${config.token}/sendPhoto`, {
+          method: "POST",
+          body: form
+        });
+      } catch (error) {
+        console.warn("Telegram photo notification failed", error);
       }
     }
 
@@ -1449,17 +1534,42 @@
         ${renderVisual(q.visual)}
       `;
 
-      optionsEl.innerHTML = "";
-      q.options.forEach((option, index) => {
-        const btn = document.createElement("button");
-        btn.className = "option";
-        btn.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
-        btn.addEventListener("click", () => chooseAnswer(index, btn));
-        optionsEl.appendChild(btn);
-      });
+      optionsEl.innerHTML = `
+        <div class="answer-panel">
+          <div class="answer-grid">
+            <label class="answer-field">
+              <strong>答案</strong>
+              <input class="answer-input" id="studentAnswer" type="text" inputmode="decimal" autocomplete="off" placeholder="只填最後答案，例如 12 種">
+            </label>
+            <label class="answer-field">
+              <strong>算式照片</strong>
+              <input class="photo-input" id="workPhotoInput" type="file" accept="image/*" capture="environment">
+            </label>
+          </div>
+          <img class="photo-preview" id="workPhotoPreview" alt="算式照片預覽">
+          <div class="answer-actions">
+            <p class="review-note">請先在紙上寫算式或圖表，再拍照送出。看提示後答對仍會保留待加強。</p>
+            <button class="btn primary" id="submitWorkBtn" type="button">送出照片批改</button>
+          </div>
+        </div>
+      `;
+      document.getElementById("workPhotoInput").addEventListener("change", previewWorkPhoto);
+      document.getElementById("submitWorkBtn").addEventListener("click", submitWrittenWork);
 
       feedbackEl.className = "feedback";
       feedbackEl.innerHTML = "";
+    }
+
+    function previewWorkPhoto(event) {
+      const file = event.target.files && event.target.files[0];
+      const preview = document.getElementById("workPhotoPreview");
+      if (!file || !preview) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.src = reader.result;
+        preview.classList.add("show");
+      };
+      reader.readAsDataURL(file);
     }
 
     function renderVisual(type) {
@@ -1565,7 +1675,7 @@
         feedbackEl.className = "feedback show bad";
         feedbackEl.innerHTML = `
           <p class="explain-title">先記成待加強，這題再試一次</p>
-          <div>${q.hint}</div>
+          <div>${safeHint(q)}</div>
         `;
         hintBtn.disabled = false;
         nextBtn.disabled = true;
@@ -1573,6 +1683,203 @@
       saveState();
       updateProgress();
       if (ok && currentIndex >= currentQueue.length - 1) notifySessionComplete();
+    }
+
+    function expectedAnswer(q) {
+      return q && q.options ? q.options[q.answer] : "";
+    }
+
+    function normalizeAnswerText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/百分之/g, "")
+        .replace(/[，,。．\s]/g, "")
+        .replace(/(大卡|公分|公斤|分鐘|小時|人|元|度|頁|位|種|隻|輛|艘|顆|本|張|格|層|球|個|cc|c\.c\.)/g, "")
+        .replace(/％/g, "%");
+    }
+
+    function answerNumber(value) {
+      const text = normalizeAnswerText(value);
+      const fraction = text.match(/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)/);
+      if (fraction && Number(fraction[2]) !== 0) return Number(fraction[1]) / Number(fraction[2]);
+      const percent = text.match(/(-?\d+(?:\.\d+)?)%/);
+      if (percent) return Number(percent[1]);
+      const number = text.match(/-?\d+(?:\.\d+)?/);
+      return number ? Number(number[0]) : NaN;
+    }
+
+    function typedAnswerMatches(q, value) {
+      const expected = expectedAnswer(q);
+      const normalizedExpected = normalizeAnswerText(expected);
+      const normalizedValue = normalizeAnswerText(value);
+      if (normalizedExpected && normalizedExpected === normalizedValue) return true;
+      const expectedNumber = answerNumber(expected);
+      const answerValue = answerNumber(value);
+      if (!Number.isFinite(expectedNumber) || !Number.isFinite(answerValue)) return false;
+      return Math.abs(expectedNumber - answerValue) < 0.001;
+    }
+
+    function safeHint(q) {
+      const map = {
+        sumdiff: "先把「和」與「差」標出來，畫兩條線段比較長短；不要先猜答案。",
+        age: "先找兩人的年齡差，年齡差不會隨時間改變；再看題目問的是現在、幾年前或幾年後。",
+        chicken: "先假設全部都是同一種，再用每一隻腳數或輪數的差去調整。",
+        combination: "先分清楚是「每階段各選一個」還是「兩兩配對」；可以畫空格、表格或樹狀圖。",
+        percentPie: "先確認全部是多少，再把百分率換成分數或小數來算部分量。",
+        pieChart: "圓形圖一整圈是 360 度；先找每個扇形占整體的幾分之幾。",
+        pieApply: "先把圓形圖中的百分率或角度補齊，再比較題目問的兩個部分。",
+        probability: "先數全部可能有幾個，再數符合條件的有幾個，用「符合 / 全部」來想。"
+      };
+      return map[q.unit] || "先畫圖或列式，把已知條件整理好，再一步一步算。";
+    }
+
+    function readWorkPhoto() {
+      const input = document.getElementById("workPhotoInput");
+      const file = input && input.files && input.files[0];
+      if (!file) return Promise.resolve("");
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function gradeWithAi(q, studentAnswer, imageDataUrl) {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (!config.aiEndpoint) return null;
+      const response = await fetch(config.aiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: q.id,
+          unit: unitInfo(q.unit).label,
+          title: q.title,
+          prompt: q.work,
+          expectedAnswer: expectedAnswer(q),
+          expectedSteps: q.steps,
+          studentAnswer,
+          imageDataUrl
+        })
+      });
+      if (!response.ok) throw new Error(`AI 批改失敗：${response.status}`);
+      return response.json();
+    }
+
+    function markQuestionNeedsReview(q, status, extraLine = "") {
+      if (currentWrongRecorded || q.originalId) return;
+      sessionStats.firstWrong += 1;
+      state.wrong[q.id] = true;
+      state.history[q.id] = {
+        id: q.id,
+        unit: q.unit,
+        title: q.title,
+        correct: expectedAnswer(q),
+        missedAt: new Date().toISOString(),
+        status
+      };
+      const line = `${unitInfo(q.unit).label}：${q.title}\n${extraLine || `正解：${expectedAnswer(q)}`}`;
+      sessionStats.mistakeLines.push(line);
+      currentWrongRecorded = true;
+    }
+
+    async function submitWrittenWork() {
+      if (answered || !currentQuestion || currentQuestion.type === "concept") return;
+      const q = currentQuestion;
+      const answerInput = document.getElementById("studentAnswer");
+      const submitBtn = document.getElementById("submitWorkBtn");
+      const studentAnswer = answerInput ? answerInput.value.trim() : "";
+      if (!studentAnswer) {
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `<p class="explain-title">還少最後答案</p><div>請把答案填上，再拍照送出。</div>`;
+        return;
+      }
+
+      const imageDataUrl = await readWorkPhoto();
+      if (!imageDataUrl) {
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `<p class="explain-title">要先上傳算式照片</p><div>這頁會看最後答案，也會看紙上的計算過程。</div>`;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      feedbackEl.className = "feedback show";
+      feedbackEl.innerHTML = `<p class="explain-title">正在批改照片</p><div>正在檢查答案和算式，請等一下。</div>`;
+
+      let aiResult = null;
+      let aiError = "";
+      try {
+        aiResult = await gradeWithAi(q, studentAnswer, imageDataUrl);
+      } catch (error) {
+        aiError = error.message || "AI 批改暫時失敗";
+      }
+
+      const typedOk = typedAnswerMatches(q, studentAnswer);
+      const hasAi = Boolean(aiResult);
+      const workOk = hasAi ? Boolean(aiResult.workOk) : false;
+      const answerOk = hasAi ? Boolean(aiResult.correct) : typedOk;
+      const canMaster = hasAi && answerOk && workOk && !currentHintUsed;
+      const caption = [
+        "Bobo 數學算式照片",
+        `單元：${unitInfo(q.unit).label}`,
+        `題目：${q.title}`,
+        `Bobo答案：${studentAnswer}`,
+        `正解：${expectedAnswer(q)}`,
+        hasAi ? `AI判斷：${answerOk && workOk ? "通過" : "需重練"}` : "AI判斷：未設定，待媽媽確認",
+        aiResult && aiResult.feedback ? `回饋：${aiResult.feedback}` : "",
+        currentHintUsed ? "注意：本題看過提示，不算精熟。" : "",
+        aiError ? `AI錯誤：${aiError}` : ""
+      ].filter(Boolean).join("\n");
+      await sendTgPhoto(imageDataUrl, caption);
+
+      state.attempts[q.id] = state.attempts[q.id] || { tries: 0, correct: 0, unit: q.unit };
+      state.attempts[q.id].tries += 1;
+
+      if (canMaster) {
+        answered = true;
+        sessionStats.answered += 1;
+        sessionStats.cleanCorrect += 1;
+        state.attempts[q.id].correct += 1;
+        state.completed[q.id] = true;
+        if (currentMode === "wrong" && !currentWrongRecorded && !q.originalId) delete state.wrong[q.id];
+        if (currentMode === "wrong" && !currentWrongRecorded && q.sourceOriginal) {
+          const original = QUESTION_BANK.find(item => item.id === q.sourceOriginal);
+          if (original) delete state.wrong[original.id];
+        }
+        feedbackEl.className = "feedback show ok";
+        feedbackEl.innerHTML = `
+          <p class="explain-title">AI 批改通過</p>
+          <div>答案：${expectedAnswer(q)}</div>
+          ${aiResult.feedback ? `<div>${aiResult.feedback}</div>` : ""}
+          <ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+        `;
+        hintBtn.disabled = true;
+        nextBtn.disabled = false;
+      } else {
+        answered = !hasAi;
+        if (currentHintUsed && answerOk && workOk) {
+          sessionStats.answered += 1;
+          sessionStats.hintedCorrect += 1;
+          markQuestionNeedsReview(q, "hint_used", `Bobo看提示後答對；正解：${expectedAnswer(q)}`);
+          notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
+        } else {
+          markQuestionNeedsReview(q, hasAi ? "active" : "parent_review", `Bobo答：${studentAnswer}；正解：${expectedAnswer(q)}`);
+          notifyMathEvent("wrong", q, hasAi ? `Bobo答：${studentAnswer}\nAI回饋：${(aiResult && aiResult.feedback) || "需要再檢查算式。"}\n已立刻加入待加強。` : `Bobo答：${studentAnswer}\nAI 批改網址尚未設定，照片已送出待媽媽確認。`);
+        }
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `
+          <p class="explain-title">${hasAi ? "AI 判斷需要再練" : "已送出給媽媽確認"}</p>
+          <div>${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "目前還沒設定 AI 批改網址，所以這題先不算精熟，照片已自動傳到 Telegram。"}</div>
+          <div>${safeHint(q)}</div>
+        `;
+        hintBtn.disabled = false;
+        nextBtn.disabled = !answered;
+      }
+
+      submitBtn.disabled = false;
+      saveState();
+      updateProgress();
+      if (answered && currentIndex >= currentQueue.length - 1) notifySessionComplete();
     }
 
     function showHint() {
@@ -1583,7 +1890,7 @@
         currentHintNotified = true;
       }
       feedbackEl.className = "feedback show";
-      feedbackEl.innerHTML = `<p class="explain-title">提示</p><div>${currentQuestion.hint}</div>`;
+      feedbackEl.innerHTML = `<p class="explain-title">提示</p><div>${safeHint(currentQuestion)}</div>`;
     }
 
     function notifySessionComplete() {
