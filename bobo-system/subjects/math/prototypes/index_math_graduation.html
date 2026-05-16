@@ -350,9 +350,20 @@
       <div class="actions">
         <button class="btn primary" id="startMixedBtn">開始混合練習</button>
         <button class="btn" id="wrongBtn">錯題加強</button>
+        <button class="btn" id="tgConfigBtn">通知設定</button>
         <button class="btn warn" id="resetBtn">清除本機紀錄</button>
       </div>
     </header>
+
+    <section class="panel" id="tgConfigPanel" style="display:none; margin-top:12px;">
+      <strong>Telegram 自動回報</strong>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <label>Bot Token <input id="tgToken" type="password" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <label>Chat ID <input id="tgChatId" type="text" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <button class="btn primary" id="saveTgBtn" type="button">儲存通知設定</button>
+        <span class="subtitle">完成單元、看提示、答錯、錯題加強完成都會自動回報。</span>
+      </div>
+    </section>
 
     <section class="layout">
       <aside class="panel side">
@@ -915,6 +926,10 @@
     let answered = false;
     let currentWrongRecorded = false;
     let currentHintUsed = false;
+    let currentHintNotified = false;
+    let activeUnitId = "";
+    let sessionCompleteNotified = false;
+    let sessionStats = freshSessionStats();
 
     const unitList = document.getElementById("unitList");
     const questionArea = document.getElementById("questionArea");
@@ -928,6 +943,8 @@
 
     document.getElementById("startMixedBtn").addEventListener("click", () => startMode("mixed"));
     document.getElementById("wrongBtn").addEventListener("click", () => startMode("wrong"));
+    document.getElementById("tgConfigBtn").addEventListener("click", toggleTgConfig);
+    document.getElementById("saveTgBtn").addEventListener("click", saveTgConfig);
     document.getElementById("resetBtn").addEventListener("click", resetProgress);
     document.getElementById("nextBtn").addEventListener("click", nextQuestion);
     document.getElementById("hintBtn").addEventListener("click", showHint);
@@ -941,8 +958,80 @@
       }
     });
 
+    initTgConfig();
+    loadTgConfig();
     renderUnits();
     updateProgress();
+
+    function freshSessionStats() {
+      return {
+        startedAt: Date.now(),
+        answered: 0,
+        cleanCorrect: 0,
+        hintedCorrect: 0,
+        firstWrong: 0,
+        reviewed: 0,
+        mistakeLines: []
+      };
+    }
+
+    function initTgConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (config.token && config.chatid) return;
+      localStorage.setItem("bobo_tg_config", JSON.stringify({
+        token: "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
+        chatid: "-5062576908"
+      }));
+    }
+
+    function toggleTgConfig() {
+      const panel = document.getElementById("tgConfigPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    function saveTgConfig() {
+      const config = {
+        token: document.getElementById("tgToken").value.trim(),
+        chatid: document.getElementById("tgChatId").value.trim()
+      };
+      localStorage.setItem("bobo_tg_config", JSON.stringify(config));
+      sendTgMessage("Bobo 數學通知設定已更新。");
+      alert("已儲存 Telegram 通知設定。");
+    }
+
+    function loadTgConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (config.token) document.getElementById("tgToken").value = config.token;
+      if (config.chatid) document.getElementById("tgChatId").value = config.chatid;
+    }
+
+    async function sendTgMessage(text) {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (!config.token || !config.chatid) return;
+      try {
+        await fetch(`https://api.telegram.org/bot${config.token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: config.chatid, text })
+        });
+      } catch (error) {
+        console.warn("Telegram notification failed", error);
+      }
+    }
+
+    function notifyMathEvent(kind, q, detail = "") {
+      const unit = q ? unitInfo(q.unit) : unitInfo(activeUnitId);
+      const label = unit.label || modeLabel.textContent;
+      const prefix = {
+        hint: "提示使用",
+        wrong: "答錯紀錄",
+        hintedCorrect: "提示後答對",
+        complete: "練習完成"
+      }[kind] || "數學紀錄";
+      const title = q ? `\n題目：${q.title}` : "";
+      const answer = q && q.options ? `\n正解：${q.options[q.answer]}` : "";
+      sendTgMessage(`Bobo 數學${prefix}\n單元：${label}${title}${answer}${detail ? `\n${detail}` : ""}`);
+    }
 
     function loadState() {
       try {
@@ -1257,23 +1346,29 @@
 
     function startMode(mode, unitId = "") {
       currentMode = mode;
+      activeUnitId = unitId;
+      sessionStats = freshSessionStats();
+      sessionCompleteNotified = false;
       reportBox.classList.remove("show");
       feedbackEl.className = "feedback";
       feedbackEl.innerHTML = "";
       answered = false;
       currentWrongRecorded = false;
       currentHintUsed = false;
+      currentHintNotified = false;
 
       if (mode === "unit") {
         currentQueue = [unitOverviewCard(unitId), ...shuffle(byUnit(unitId))];
         modeLabel.textContent = unitInfo(unitId).label;
         renderUnits(unitId);
       } else if (mode === "wrong") {
+        activeUnitId = "wrong";
         const wrongIds = Object.keys(state.wrong).filter(id => state.wrong[id]);
         currentQueue = buildMistakeReviewQueue(QUESTION_BANK.filter(q => wrongIds.includes(q.id)));
         modeLabel.textContent = "錯題加強";
         renderUnits();
       } else {
+        activeUnitId = "mixed";
         currentQueue = UNITS.flatMap(unit => [unitOverviewCard(unit.id), ...shuffle(byUnit(unit.id))]);
         modeLabel.textContent = "畢業考混合練習";
         renderUnits();
@@ -1303,6 +1398,7 @@
         nextBtn.disabled = true;
         queueLabel.textContent = `完成 ${currentQueue.length} 題`;
         updateProgress();
+        notifySessionComplete();
         return;
       }
 
@@ -1310,6 +1406,7 @@
       answered = false;
       currentWrongRecorded = false;
       currentHintUsed = false;
+      currentHintNotified = false;
       renderQuestion(currentQuestion);
       queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
       hintBtn.disabled = currentQuestion.type === "concept";
@@ -1410,7 +1507,9 @@
       state.attempts[q.id].tries += 1;
       if (ok) {
         answered = true;
+        sessionStats.answered += 1;
         if (!currentHintUsed) {
+          sessionStats.cleanCorrect += 1;
           state.attempts[q.id].correct += 1;
           state.completed[q.id] = true;
           if (currentMode === "wrong" && !currentWrongRecorded && !q.originalId) delete state.wrong[q.id];
@@ -1419,6 +1518,7 @@
             if (original) delete state.wrong[original.id];
           }
         } else if (!q.originalId) {
+          sessionStats.hintedCorrect += 1;
           state.wrong[q.id] = true;
           state.history[q.id] = {
             id: q.id,
@@ -1428,6 +1528,7 @@
             missedAt: new Date().toISOString(),
             status: "hint_used"
           };
+          notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
         }
         [...optionsEl.children].forEach((optionEl, optionIndex) => {
           optionEl.disabled = true;
@@ -1444,6 +1545,7 @@
         nextBtn.disabled = false;
       } else {
         if (!currentWrongRecorded && !q.originalId) {
+          sessionStats.firstWrong += 1;
           state.wrong[q.id] = true;
           state.history[q.id] = {
             id: q.id,
@@ -1453,6 +1555,9 @@
             missedAt: new Date().toISOString(),
             status: "active"
           };
+          const line = `${unitInfo(q.unit).label}：${q.title}\nBobo答：${q.options[index]}；正解：${q.options[q.answer]}`;
+          sessionStats.mistakeLines.push(line);
+          notifyMathEvent("wrong", q, `Bobo答：${q.options[index]}\n已立刻加入待加強。`);
           currentWrongRecorded = true;
         }
         btn.classList.add("wrong");
@@ -1467,13 +1572,43 @@
       }
       saveState();
       updateProgress();
+      if (ok && currentIndex >= currentQueue.length - 1) notifySessionComplete();
     }
 
     function showHint() {
       if (!currentQuestion || answered || currentQuestion.type === "concept") return;
       currentHintUsed = true;
+      if (!currentHintNotified) {
+        notifyMathEvent("hint", currentQuestion, "Bobo 按了提示，這題即使答對也不算精熟。");
+        currentHintNotified = true;
+      }
       feedbackEl.className = "feedback show";
       feedbackEl.innerHTML = `<p class="explain-title">提示</p><div>${currentQuestion.hint}</div>`;
+    }
+
+    function notifySessionComplete() {
+      if (sessionCompleteNotified) return;
+      sessionCompleteNotified = true;
+      const totalPractice = currentQueue.filter(item => item.type !== "concept").length;
+      const duration = Math.round((Date.now() - sessionStats.startedAt) / 1000);
+      const wrongCount = Object.keys(state.wrong).filter(id => state.wrong[id]).length;
+      const mistakeText = sessionStats.mistakeLines.length
+        ? `\n\n待加強紀錄：\n${sessionStats.mistakeLines.map((line, index) => `${index + 1}. ${line}`).join("\n")}`
+        : "";
+      const label = currentMode === "unit"
+        ? unitInfo(activeUnitId).label
+        : (currentMode === "wrong" ? "錯題加強" : "畢業考混合練習");
+      sendTgMessage(
+        `Bobo 數學練習完成\n` +
+        `範圍：${label}\n` +
+        `耗時：${duration} 秒\n` +
+        `本輪題數：${totalPractice}\n` +
+        `未提示答對：${sessionStats.cleanCorrect}\n` +
+        `提示後答對：${sessionStats.hintedCorrect}\n` +
+        `首次答錯：${sessionStats.firstWrong}\n` +
+        `目前待加強：${wrongCount} 題` +
+        mistakeText
+      );
     }
 
     function updateProgress() {
