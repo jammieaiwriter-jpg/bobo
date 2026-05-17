@@ -452,6 +452,7 @@
       <div>
         <h1>Bobo 數學畢業考練習</h1>
         <p class="subtitle">康軒六下範圍：第 5 單元怎樣解題、第 6 單元圓形圖。先練畢業考常考的解題模型、圓形百分圖、圓形圖應用和可能性。</p>
+        <p class="subtitle"><strong id="versionBadge">最新版載入中</strong></p>
       </div>
       <div class="actions">
         <button class="btn primary" id="startMixedBtn">開始混合練習</button>
@@ -513,7 +514,9 @@
   <script>
     const STORAGE_KEY = "bobo_math_graduation_20260515";
     const SESSION_KEY = "bobo_math_graduation_active_session_v1";
+    const APP_VERSION = "20260517-fixed-url-fresh-review";
     const DEFAULT_AI_ENDPOINT = "https://bobo-math-grader.bobo-math-grader.workers.dev";
+    const CANONICAL_URL = "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_math_graduation.html";
 
     const UNITS = [
       { id: "sumdiff", label: "5-1 和差問題", group: "怎樣解題" },
@@ -1052,6 +1055,7 @@
     const nextBtn = document.getElementById("nextBtn");
     const reportBox = document.getElementById("reportBox");
 
+    document.getElementById("versionBadge").textContent = `最新版 ${APP_VERSION}｜固定網址`;
     document.getElementById("startMixedBtn").addEventListener("click", () => startMode("mixed"));
     document.getElementById("wrongBtn").addEventListener("click", () => startMode("wrong"));
     document.getElementById("tgConfigBtn").addEventListener("click", toggleTgConfig);
@@ -1158,7 +1162,7 @@
       }[kind] || "數學紀錄";
       const title = q ? `\n題目：${q.title}` : "";
       const answer = q && q.options ? `\n正解：${q.options[q.answer]}` : "";
-      sendTgMessage(`Bobo 數學${prefix}\n單元：${label}${title}${answer}${detail ? `\n${detail}` : ""}`);
+      sendTgMessage(`Bobo 數學${prefix}\n版本：${APP_VERSION}\n單元：${label}${title}${answer}${detail ? `\n${detail}` : ""}`);
     }
 
     function loadState() {
@@ -1650,9 +1654,10 @@
       unitList.innerHTML = "";
       UNITS.forEach(unit => {
         const count = byUnit(unit.id).length;
+        const roundCount = practiceBankForUnit(unit.id).length;
         const btn = document.createElement("button");
         btn.className = "unit-btn" + (activeId === unit.id ? " active" : "");
-        btn.innerHTML = `<span class="dot"></span><span>${unit.label}<br><small>${unit.group}</small></span><span class="unit-count">${count} 題</span>`;
+        btn.innerHTML = `<span class="dot"></span><span>${unit.label}<br><small>${unit.group}</small></span><span class="unit-count">${roundCount} 題/輪</span>`;
         btn.addEventListener("click", () => startMode("unit", unit.id));
         unitList.appendChild(btn);
       });
@@ -1747,6 +1752,7 @@
           updateProgress();
           sendTgMessage(
             `Bobo 數學錯題加強未完成\n` +
+            `版本：${APP_VERSION}\n` +
             `仍待加強：${remainingReviewIds.length} 題\n` +
             `本輪未提示答對：${sessionStats.cleanCorrect}\n` +
             `本輪首次答錯：${sessionStats.firstWrong}\n` +
@@ -1773,7 +1779,7 @@
           nextBtn.disabled = true;
           queueLabel.textContent = `待加強 ${pendingUnitWrongIds.length} 題`;
           updateProgress();
-          sendTgMessage(`Bobo 數學單元待加強\n單元：${unitInfo(activeUnitId).label}\n待加強：${pendingUnitWrongIds.length} 題\n已提示先做錯題加強，完成後才算結束。`);
+          sendTgMessage(`Bobo 數學單元待加強\n版本：${APP_VERSION}\n單元：${unitInfo(activeUnitId).label}\n待加強：${pendingUnitWrongIds.length} 題\n已提示先做錯題加強，完成後才算結束。`);
           return;
         }
         questionArea.className = "empty";
@@ -2249,6 +2255,7 @@
         : (currentMode === "wrong" ? "錯題加強" : "畢業考混合練習");
       sendTgMessage(
         `Bobo 數學練習完成\n` +
+        `版本：${APP_VERSION}\n` +
         `範圍：${label}\n` +
         `耗時：${duration} 秒\n` +
         `本輪題數：${totalPractice}\n` +
@@ -2289,6 +2296,8 @@
 
       reportBox.textContent = [
         "Bobo 數學畢業考練習回報",
+        `版本：${APP_VERSION}`,
+        `固定網址：${CANONICAL_URL}`,
         `時間：${new Date().toLocaleString("zh-TW")}`,
         "",
         "範圍：康軒六下第 5 單元怎樣解題、第 6 單元圓形圖",
