@@ -512,6 +512,7 @@
 
   <script>
     const STORAGE_KEY = "bobo_math_graduation_20260515";
+    const SESSION_KEY = "bobo_math_graduation_active_session_v1";
     const DEFAULT_AI_ENDPOINT = "https://bobo-math-grader.bobo-math-grader.workers.dev";
 
     const UNITS = [
@@ -1072,6 +1073,7 @@
     loadTgConfig();
     renderUnits();
     updateProgress();
+    restoreActiveSession();
 
     function freshSessionStats() {
       return {
@@ -1179,6 +1181,95 @@
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function reviewPassesForStorage() {
+      return Object.fromEntries(Object.entries(reviewPasses).map(([id, progress]) => [
+        id,
+        {
+          original: Boolean(progress.original),
+          variations: [...progress.variations]
+        }
+      ]));
+    }
+
+    function reviewPassesFromStorage(saved = {}) {
+      return Object.fromEntries(Object.entries(saved).map(([id, progress]) => [
+        id,
+        {
+          original: Boolean(progress.original),
+          variations: new Set(progress.variations || [])
+        }
+      ]));
+    }
+
+    function saveActiveSession() {
+      if (currentMode === "idle" || currentIndex < 0 || currentIndex >= currentQueue.length) return;
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        mode: currentMode,
+        activeUnitId,
+        currentIndex,
+        currentQueue,
+        answered,
+        currentWrongRecorded,
+        currentHintUsed,
+        currentHintNotified,
+        sessionCompleteNotified,
+        sessionStats,
+        currentReviewOriginalIds,
+        reviewPasses: reviewPassesForStorage()
+      }));
+    }
+
+    function clearActiveSession() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function restoreActiveSession() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+      } catch {
+        clearActiveSession();
+        return false;
+      }
+      if (!saved || !Array.isArray(saved.currentQueue) || saved.currentQueue.length === 0) return false;
+      if (saved.currentIndex < 0 || saved.currentIndex >= saved.currentQueue.length) {
+        clearActiveSession();
+        return false;
+      }
+
+      currentMode = saved.mode || "mixed";
+      activeUnitId = saved.activeUnitId || "";
+      currentQueue = saved.currentQueue;
+      currentIndex = saved.currentIndex;
+      answered = Boolean(saved.answered);
+      currentWrongRecorded = Boolean(saved.currentWrongRecorded);
+      currentHintUsed = Boolean(saved.currentHintUsed);
+      currentHintNotified = Boolean(saved.currentHintNotified);
+      sessionCompleteNotified = Boolean(saved.sessionCompleteNotified);
+      sessionStats = saved.sessionStats || freshSessionStats();
+      currentReviewOriginalIds = saved.currentReviewOriginalIds || [];
+      reviewPasses = reviewPassesFromStorage(saved.reviewPasses || {});
+      currentQuestion = currentQueue[currentIndex];
+
+      modeLabel.textContent = currentMode === "unit"
+        ? unitInfo(activeUnitId).label
+        : (currentMode === "wrong" ? "錯題加強" : "畢業考混合練習");
+      renderUnits(currentMode === "unit" ? activeUnitId : "");
+      renderQuestion(currentQuestion);
+      queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
+      hintBtn.disabled = answered || currentQuestion.type === "concept";
+      nextBtn.disabled = currentQuestion.type === "concept" ? false : !answered;
+      feedbackEl.className = "feedback show";
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach">已回到上次未完成的進度。</div>
+          <div class="bubble coach">${answered ? "上一題已通過，可以按下一題繼續。" : "從這一題繼續，不用重新抽題。"}</div>
+        </div>
+      `;
+      return true;
     }
 
     function byUnit(unitId) {
@@ -1475,6 +1566,7 @@
     }
 
     function startMode(mode, unitId = "") {
+      clearActiveSession();
       const pendingWrongIds = Object.keys(state.wrong).filter(id => state.wrong[id]);
       const forcedWrongReview = mode !== "wrong" && pendingWrongIds.length > 0;
       if (forcedWrongReview) {
@@ -1540,6 +1632,7 @@
       currentIndex += 1;
       if (currentIndex >= currentQueue.length) {
         finalizeMistakeReview();
+        clearActiveSession();
         questionArea.className = "empty";
         questionArea.innerHTML = "這一輪完成了。可以產生回報，或再換一輪順序。";
         optionsEl.innerHTML = "";
@@ -1561,6 +1654,7 @@
       queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
       hintBtn.disabled = currentQuestion.type === "concept";
       nextBtn.disabled = currentQuestion.type !== "concept";
+      saveActiveSession();
     }
 
     function renderQuestion(q) {
@@ -1745,6 +1839,7 @@
         nextBtn.disabled = true;
       }
       saveState();
+      saveActiveSession();
       updateProgress();
       if (ok && currentIndex >= currentQueue.length - 1) notifySessionComplete();
     }
@@ -1975,6 +2070,7 @@
 
       submitBtn.disabled = false;
       saveState();
+      saveActiveSession();
       updateProgress();
       if (answered && currentIndex >= currentQueue.length - 1) notifySessionComplete();
     }
@@ -1993,6 +2089,7 @@
           <div class="bubble coach">提示：${safeHint(currentQuestion)}</div>
         </div>
       `;
+      saveActiveSession();
     }
 
     function notifySessionComplete() {
@@ -2065,6 +2162,7 @@
       const ok = confirm("確定要清除這台裝置上的畢業考練習紀錄嗎？");
       if (!ok) return;
       localStorage.removeItem(STORAGE_KEY);
+      clearActiveSession();
       location.reload();
     }
 
