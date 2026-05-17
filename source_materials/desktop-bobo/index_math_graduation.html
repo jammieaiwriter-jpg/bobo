@@ -1726,6 +1726,34 @@
       if (currentIndex >= currentQueue.length) {
         finalizeMistakeReview();
         clearActiveSession();
+        const remainingReviewIds = currentMode === "wrong"
+          ? currentReviewOriginalIds.filter(id => state.wrong[id])
+          : [];
+        if (remainingReviewIds.length > 0) {
+          questionArea.className = "empty";
+          questionArea.innerHTML = `
+            <div class="coach-thread">
+              <div class="bubble coach alert">錯題加強還沒通過，不能算完成。</div>
+              <div class="bubble coach">還有 ${remainingReviewIds.length} 題待加強。原錯題和兩題變化題都通過，才會清掉。</div>
+            </div>
+          `;
+          optionsEl.innerHTML = `<button class="btn primary" id="retryWrongBtn" type="button">再練一次錯題加強</button>`;
+          document.getElementById("retryWrongBtn").addEventListener("click", () => startMode("wrong"));
+          feedbackEl.className = "feedback show";
+          feedbackEl.innerHTML = "這一輪有題目沒有真正學會，請再練一次。";
+          hintBtn.disabled = true;
+          nextBtn.disabled = true;
+          queueLabel.textContent = `仍待加強 ${remainingReviewIds.length} 題`;
+          updateProgress();
+          sendTgMessage(
+            `Bobo 數學錯題加強未完成\n` +
+            `仍待加強：${remainingReviewIds.length} 題\n` +
+            `本輪未提示答對：${sessionStats.cleanCorrect}\n` +
+            `本輪首次答錯：${sessionStats.firstWrong}\n` +
+            `需要再練一次，不能算完成。`
+          );
+          return;
+        }
         const pendingUnitWrongIds = currentMode === "unit"
           ? Object.keys(state.wrong).filter(id => state.wrong[id] && (QUESTION_BANK.find(q => q.id === id) || {}).unit === activeUnitId)
           : [];
