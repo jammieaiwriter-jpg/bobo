@@ -220,6 +220,43 @@
       line-height: 1.55;
     }
 
+    .coach-thread {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bubble {
+      width: fit-content;
+      max-width: min(92%, 680px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      line-height: 1.65;
+      background: white;
+    }
+
+    .bubble.coach {
+      border-color: #bcd9dc;
+      background: var(--soft-teal);
+    }
+
+    .bubble.student {
+      justify-self: end;
+      border-color: #c8d8e6;
+      background: var(--soft-blue);
+    }
+
+    .bubble.alert {
+      border-color: #efb4bd;
+      background: var(--soft-rose);
+    }
+
+    .bubble.ok {
+      border-color: #a8d49b;
+      background: #f1faee;
+    }
+
     .visual {
       margin-top: 12px;
       padding: 10px;
@@ -277,6 +314,11 @@
       border-radius: 8px;
       padding: 14px;
       background: white;
+    }
+
+    .answer-panel.reply-mode {
+      border-color: #bcd9dc;
+      background: #fbfefd;
     }
 
     .answer-grid {
@@ -1523,6 +1565,9 @@
       const unit = unitInfo(q.unit);
       questionArea.className = "question";
       questionArea.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach">Bobo，這題先不要猜。你在紙上列式或畫圖，填最後答案，再拍照給我看。</div>
+        </div>
         <div class="question-meta">
           <span class="pill">${unit.label}</span>
           <span class="pill">${q.level}</span>
@@ -1535,21 +1580,21 @@
       `;
 
       optionsEl.innerHTML = `
-        <div class="answer-panel">
+        <div class="answer-panel reply-mode">
           <div class="answer-grid">
             <label class="answer-field">
-              <strong>答案</strong>
+              <strong>回覆答案</strong>
               <input class="answer-input" id="studentAnswer" type="text" inputmode="decimal" autocomplete="off" placeholder="只填最後答案，例如 12 種">
             </label>
             <label class="answer-field">
-              <strong>算式照片</strong>
+              <strong>拍算式給我看</strong>
               <input class="photo-input" id="workPhotoInput" type="file" accept="image/*" capture="environment">
             </label>
           </div>
           <img class="photo-preview" id="workPhotoPreview" alt="算式照片預覽">
           <div class="answer-actions">
-            <p class="review-note">請先在紙上寫算式或圖表，再拍照送出。看提示後答對仍會保留待加強。</p>
-            <button class="btn primary" id="submitWorkBtn" type="button">送出照片批改</button>
+            <p class="review-note">我會看最後答案，也會看照片裡的算式。看提示後答對仍會保留待加強。</p>
+            <button class="btn primary" id="submitWorkBtn" type="button">送出給 AI 批改</button>
           </div>
         </div>
       `;
@@ -1791,20 +1836,25 @@
       const studentAnswer = answerInput ? answerInput.value.trim() : "";
       if (!studentAnswer) {
         feedbackEl.className = "feedback show bad";
-        feedbackEl.innerHTML = `<p class="explain-title">還少最後答案</p><div>請把答案填上，再拍照送出。</div>`;
+        feedbackEl.innerHTML = `<div class="coach-thread"><div class="bubble alert">你還沒填最後答案。先把答案寫上，再拍照送出。</div></div>`;
         return;
       }
 
       const imageDataUrl = await readWorkPhoto();
       if (!imageDataUrl) {
         feedbackEl.className = "feedback show bad";
-        feedbackEl.innerHTML = `<p class="explain-title">要先上傳算式照片</p><div>這頁會看最後答案，也會看紙上的計算過程。</div>`;
+        feedbackEl.innerHTML = `<div class="coach-thread"><div class="bubble alert">要先拍算式照片。只填答案不算通過，我要看你怎麼想。</div></div>`;
         return;
       }
 
       submitBtn.disabled = true;
       feedbackEl.className = "feedback show";
-      feedbackEl.innerHTML = `<p class="explain-title">正在批改照片</p><div>正在檢查答案和算式，請等一下。</div>`;
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble student">我的答案：${studentAnswer}<br>已上傳算式照片。</div>
+          <div class="bubble coach">收到，我正在看答案和算式。</div>
+        </div>
+      `;
 
       let aiResult = null;
       let aiError = "";
@@ -1848,10 +1898,11 @@
         }
         feedbackEl.className = "feedback show ok";
         feedbackEl.innerHTML = `
-          <p class="explain-title">AI 批改通過</p>
-          <div>答案：${expectedAnswer(q)}</div>
-          ${aiResult.feedback ? `<div>${aiResult.feedback}</div>` : ""}
-          <ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+          <div class="coach-thread">
+            <div class="bubble student">我的答案：${studentAnswer}</div>
+            <div class="bubble coach ok">通過。答案是 ${expectedAnswer(q)}。${aiResult.feedback ? `<br>${aiResult.feedback}` : ""}</div>
+            <div class="bubble coach">這題的標準整理：<ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol></div>
+          </div>
         `;
         hintBtn.disabled = true;
         nextBtn.disabled = false;
@@ -1868,9 +1919,12 @@
         }
         feedbackEl.className = "feedback show bad";
         feedbackEl.innerHTML = `
-          <p class="explain-title">${hasAi ? "AI 判斷需要再練" : "已送出給媽媽確認"}</p>
-          <div>${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "目前還沒設定 AI 批改網址，所以這題先不算精熟，照片已自動傳到 Telegram。"}</div>
-          <div>${safeHint(q)}</div>
+          <div class="coach-thread">
+            <div class="bubble student">我的答案：${studentAnswer}</div>
+            <div class="bubble coach alert">${hasAi ? "這題先不通過，請修正後再拍一次。" : "照片已送給媽媽確認；目前沒有 AI 批改網址，所以這題先不算精熟。"}</div>
+            <div class="bubble coach">${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "等 AI 批改後，這裡就會像聊天一樣直接告訴你哪裡要修。"}</div>
+            <div class="bubble coach">小提示：${safeHint(q)}</div>
+          </div>
         `;
         hintBtn.disabled = false;
         nextBtn.disabled = !answered;
@@ -1890,7 +1944,12 @@
         currentHintNotified = true;
       }
       feedbackEl.className = "feedback show";
-      feedbackEl.innerHTML = `<p class="explain-title">提示</p><div>${safeHint(currentQuestion)}</div>`;
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach alert">你按了提示，這題就算後來答對，也會留在待加強。</div>
+          <div class="bubble coach">提示：${safeHint(currentQuestion)}</div>
+        </div>
+      `;
     }
 
     function notifySessionComplete() {
