@@ -466,7 +466,7 @@
       <div style="display:grid; gap:8px; margin-top:8px;">
         <label>Bot Token <input id="tgToken" type="password" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
         <label>Chat ID <input id="tgChatId" type="text" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
-        <label>AI 批改網址 <input id="aiEndpoint" type="url" placeholder="https://你的-worker.example.workers.dev" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <label>AI 批改網址 <input id="aiEndpoint" type="url" placeholder="https://bobo-math-grader.bobo-math-grader.workers.dev" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
         <button class="btn primary" id="saveTgBtn" type="button">儲存通知設定</button>
         <span class="subtitle">完成單元、看提示、答錯、照片算式、錯題加強完成都會自動回報。AI 網址留空時，照片會先傳給媽媽人工確認，不會算精熟。</span>
       </div>
@@ -512,6 +512,7 @@
 
   <script>
     const STORAGE_KEY = "bobo_math_graduation_20260515";
+    const DEFAULT_AI_ENDPOINT = "https://bobo-math-grader.bobo-math-grader.workers.dev";
 
     const UNITS = [
       { id: "sumdiff", label: "5-1 和差問題", group: "怎樣解題" },
@@ -1087,7 +1088,7 @@
       localStorage.setItem("bobo_tg_config", JSON.stringify({
         token: config.token || "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
         chatid: config.chatid || "-5062576908",
-        aiEndpoint: config.aiEndpoint || ""
+        aiEndpoint: config.aiEndpoint || DEFAULT_AI_ENDPOINT
       }));
     }
 
