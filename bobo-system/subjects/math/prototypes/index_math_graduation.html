@@ -501,7 +501,7 @@
             <button class="btn" id="reportBtn">產生回報</button>
           </div>
           <div class="mini-actions">
-            <button class="btn" id="shuffleBtn">換一輪順序</button>
+            <button class="btn" id="shuffleBtn">換一輪新題</button>
           </div>
         </div>
 
@@ -1062,11 +1062,7 @@
     document.getElementById("reportBtn").addEventListener("click", showReport);
     document.getElementById("shuffleBtn").addEventListener("click", () => {
       if (currentMode === "idle") startMode("mixed");
-      else {
-        currentQueue = shuffle([...currentQueue]);
-        currentIndex = -1;
-        nextQuestion();
-      }
+      else startMode(currentMode === "unit" ? "unit" : currentMode, activeUnitId);
     });
 
     initTgConfig();
@@ -1379,6 +1375,103 @@
       return [...new Set(values)].slice(0, 4).map(String);
     }
 
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function makeOptions(correct, unitText = "", distractors = []) {
+      const base = [correct, ...distractors.filter(value => value !== correct && value > 0)];
+      while (base.length < 4) {
+        const offset = randInt(-9, 12);
+        const value = correct + offset;
+        if (value > 0 && !base.includes(value)) base.push(value);
+      }
+      const options = shuffle(base.slice(0, 4)).map(value => `${value}${unitText}`);
+      return { options, answer: options.indexOf(`${correct}${unitText}`) };
+    }
+
+    function makeFractionOptions(num, den) {
+      const gcd = (a, b) => b ? gcd(b, a % b) : a;
+      const divisor = gcd(num, den);
+      const correct = `${num / divisor}/${den / divisor}`;
+      const candidates = [correct, `${num}/${den}`, `${Math.max(1, num - 1)}/${den}`, `${num}/${den + 1}`];
+      const options = shuffle([...new Set(candidates)]).slice(0, 4);
+      while (options.length < 4) options.push(`${randInt(1, den - 1)}/${den}`);
+      return { options, answer: options.indexOf(correct) };
+    }
+
+    function generatedPracticeQuestion(unitId, serial) {
+      const id = `${unitId}-fresh-${Date.now()}-${serial}-${randInt(1000, 9999)}`;
+      if (unitId === "sumdiff") {
+        const small = randInt(18, 78);
+        const diff = randInt(8, 36);
+        const big = small + diff;
+        const sum = small + big;
+        const askBig = Math.random() > 0.5;
+        const correct = askBig ? big : small;
+        const opts = makeOptions(correct);
+        return { id, unit: unitId, level: "新題", title: `兩個數的和是 ${sum}，差是 ${diff}。${askBig ? "較大的數" : "較小的數"}是多少？`, work: "和差問題：先判斷要求大數或小數。", ...opts, hint: "", steps: [askBig ? `${sum} + ${diff} = ${sum + diff}` : `${sum} - ${diff} = ${sum - diff}`, `${askBig ? sum + diff : sum - diff} ÷ 2 = ${correct}`, `答案是 ${correct}。`] };
+      }
+      if (unitId === "age") {
+        const child = randInt(8, 15);
+        const gap = randInt(20, 34);
+        const adult = child + gap;
+        const targetChild = gap;
+        const years = targetChild - child;
+        const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 5]);
+        return { id, unit: unitId, level: "新題", title: `爸爸今年 ${adult} 歲，小安今年 ${child} 歲。幾年後爸爸年齡是小安的 2 倍？`, work: "年齡差固定，2 倍時差等於小孩那時的年齡。", ...opts, hint: "", steps: [`${adult} - ${child} = ${gap}`, `2 倍時小安是 ${gap} 歲`, `${gap} - ${child} = ${years}`, `${years} 年後。`] };
+      }
+      if (unitId === "chicken") {
+        const rabbits = randInt(5, 16);
+        const chickens = randInt(8, 24);
+        const total = rabbits + chickens;
+        const feet = rabbits * 4 + chickens * 2;
+        const opts = makeOptions(rabbits, " 隻", [rabbits - 2, rabbits + 2, chickens]);
+        return { id, unit: unitId, level: "新題", title: `雞和兔共有 ${total} 隻，腳共有 ${feet} 隻。兔有幾隻？`, work: "全部先當雞，再看多出的腳。", ...opts, hint: "", steps: [`${total} × 2 = ${total * 2}`, `${feet} - ${total * 2} = ${feet - total * 2}`, `${feet - total * 2} ÷ 2 = ${rabbits}`, `兔有 ${rabbits} 隻。`] };
+      }
+      if (unitId === "combination") {
+        const a = randInt(2, 5), b = randInt(2, 5), c = randInt(2, 4);
+        const correct = a * b * c;
+        const opts = makeOptions(correct, " 種", [a + b + c, a * b, correct + a]);
+        return { id, unit: unitId, level: "新題", title: `有 ${a} 種主餐、${b} 種飲料和 ${c} 種甜點，各選一種，共有幾種搭配？`, work: "每一階段都選一個，用乘法原理。", ...opts, hint: "", steps: [`${a} × ${b} × ${c} = ${correct}`, `共有 ${correct} 種搭配。`] };
+      }
+      if (unitId === "percentPie") {
+        const total = randInt(8, 18) * 20;
+        const percent = [15, 20, 25, 30, 35, 40, 45][randInt(0, 6)];
+        const correct = total * percent / 100;
+        const opts = makeOptions(correct, " 人", [correct + 8, correct - 8, Math.round(total / 2)]);
+        return { id, unit: unitId, level: "新題", title: `六年級共有 ${total} 人，參加某活動的占 ${percent}%。參加的有幾人？`, work: "全部 × 百分率 = 部分。", ...opts, hint: "", steps: [`${total} × ${percent}% = ${total} × ${percent / 100}`, `= ${correct}`, `有 ${correct} 人。`] };
+      }
+      if (unitId === "pieChart") {
+        const angles = [45, 60, 72, 90, 120, 135, 144, 180];
+        const angle = angles[randInt(0, angles.length - 1)];
+        const percent = angle / 360 * 100;
+        const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(percent * 2)]);
+        return { id, unit: unitId, level: "新題", title: `圓形圖中，某區塊圓心角是 ${angle} 度。這個區塊占全部的百分之幾？`, work: "比例 = 角度 ÷ 360，再換成百分率。", ...opts, hint: "", steps: [`${angle} ÷ 360 = ${percent / 100}`, `= ${percent}%。`] };
+      }
+      if (unitId === "pieApply") {
+        const total = randInt(8, 16) * 30;
+        const p1 = [35, 40, 45, 50][randInt(0, 3)];
+        const p2 = [15, 20, 25, 30][randInt(0, 3)];
+        const diff = p1 - p2;
+        const correct = total * diff / 100;
+        const opts = makeOptions(correct, " 人", [correct + 12, correct - 12, total * p2 / 100]);
+        return { id, unit: unitId, level: "新題", title: `全校 ${total} 人投票，甲活動占 ${p1}%，乙活動占 ${p2}%。甲比乙多幾人？`, work: "先比較百分率差，再乘總人數。", ...opts, hint: "", steps: [`${p1}% - ${p2}% = ${diff}%`, `${total} × ${diff}% = ${correct}`, `多 ${correct} 人。`] };
+      }
+      const total = randInt(8, 16);
+      const target = randInt(2, total - 2);
+      const frac = makeFractionOptions(target, total);
+      return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，其中紅球 ${target} 顆。隨機抽 1 顆，抽到紅球的可能性是多少？`, work: "可能性 = 符合條件的數量 ÷ 全部數量。", ...frac, hint: "", steps: [`紅球 ${target} 顆，全部 ${total} 顆`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+    }
+
+    function generatedPracticeQuestions(unitId, count = 8) {
+      return Array.from({ length: count }, (_, index) => generatedPracticeQuestion(unitId, index + 1));
+    }
+
+    function practiceBankForUnit(unitId) {
+      return [...byUnit(unitId), ...generatedPracticeQuestions(unitId, 8)];
+    }
+
     function generateSumdiffVariations() {
       return [
         {
@@ -1588,7 +1681,7 @@
       currentHintNotified = false;
 
       if (mode === "unit") {
-        currentQueue = [unitOverviewCard(unitId), ...shuffle(byUnit(unitId))];
+        currentQueue = [unitOverviewCard(unitId), ...shuffle(practiceBankForUnit(unitId))];
         modeLabel.textContent = unitInfo(unitId).label;
         renderUnits(unitId);
       } else if (mode === "wrong") {
@@ -1601,7 +1694,7 @@
         renderUnits();
       } else {
         activeUnitId = "mixed";
-        currentQueue = UNITS.flatMap(unit => [unitOverviewCard(unit.id), ...shuffle(byUnit(unit.id))]);
+        currentQueue = UNITS.flatMap(unit => [unitOverviewCard(unit.id), ...shuffle(practiceBankForUnit(unit.id))]);
         modeLabel.textContent = "畢業考混合練習";
         renderUnits();
       }
