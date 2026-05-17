@@ -7,7 +7,7 @@
 - `QUESTION_BANK_數學.md`：原有數學題庫複本。
 - `prototypes/index_math_apple_prototype.html`：Apple 風格數學原型參考。
 - `prototypes/index_math_graduation.html`：Bobo 康軒六下畢業考練習，範圍為第 5 單元「怎樣解題」與第 6 單元「圓形圖」。
-- `ai-grader-worker.js`：AI 照片批改後端範本。部署到 Cloudflare Worker 後，把 `OPENAI_API_KEY` 設成 secret，再把 Worker URL 填到網頁的「AI 批改網址」。API key 不可放在 GitHub Pages 前端。
+- `ai-grader-worker.js`：AI 照片批改後端範本。部署到 Cloudflare Worker 後，把 `GEMINI_API_KEY` 設成 secret，或改用 `OPENAI_API_KEY`，再把 Worker URL 填到網頁的「AI 批改網址」。API key 不可放在 GitHub Pages 前端。
 
 數學科建議題型：
 
