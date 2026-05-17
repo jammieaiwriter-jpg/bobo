@@ -55,6 +55,9 @@
         .unit-overview-text { font-size: 1rem; line-height: 1.55; color: var(--text); margin-top: 8px; }
         .question-figure { width: 100%; max-width: 360px; margin: 0 auto 12px; padding: 8px; border-radius: 14px; background: #F8FCFF; box-sizing: border-box; }
         .question-figure svg { width: 100%; height: auto; display: block; }
+        .version-badge { display: inline-flex; align-items: center; justify-content: center; max-width: 100%; box-sizing: border-box; border: 1px solid #DCEEFF; background: #F8FCFF; color: #2B6CB0; border-radius: 999px; padding: 5px 12px; margin: 6px auto 8px; font-size: 0.78rem; line-height: 1.4; font-weight: 700; }
+        .version-badge.task { border-color: #FFD28A; background: #FFF8EF; color: #B36B00; }
+        .version-badge.local { border-color: #DDD; background: #FAFAFA; color: #666; }
         .import-panel { display: none; background: #fff8ef; border: 2px solid var(--accent); border-radius: 16px; padding: 12px; margin-top: 12px; text-align: left; }
         .import-panel textarea { width: 100%; min-height: 130px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 10px; padding: 8px; font-size: 0.9rem; font-family: inherit; }
         .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #6DB31D; margin-top: 20px; }
@@ -70,6 +73,7 @@
     <div id="menu" class="game-screen active">
         <h1 id="title-area">🔬 Bobo 自然大冒險</h1>
         <p id="sub-area">探索科學的奧秘</p>
+        <div id="app-version-badge" class="version-badge">每日練習版載入中</div>
         <div id="mastery-info" style="font-size: 0.9rem; color: #666;"></div>
         <div class="mission-panel" id="mission-list"></div>
         <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
@@ -142,6 +146,9 @@
 </div>
 
 <script>
+    const APP_VERSION = "daily-mastery-2026-05-17";
+    const CANONICAL_PAGE_URL = "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_science.html";
+
     function zy(zi, py) {
         return zi;
     }
@@ -900,7 +907,40 @@
         if (location.protocol === "http:" || location.protocol === "https:") {
             return `${location.origin}${location.pathname}`;
         }
-        return "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_science.html";
+        return CANONICAL_PAGE_URL;
+    }
+
+    function currentModeLabel() {
+        if (isMistakeMode) {
+            if (reviewSource === "assessment") return "評量錯題任務";
+            if (reviewSource === "history") return "歷史錯題複習";
+            return "錯題加強";
+        }
+        return isTaskLinkMode ? "錯題任務模式" : "每日練習版";
+    }
+
+    function updateAppVersionBadge(mode = "daily") {
+        const badge = document.getElementById('app-version-badge');
+        if (!badge) return;
+        badge.className = "version-badge";
+        const isLocal = location.protocol === "file:";
+        if (mode === "task") {
+            badge.classList.add("task");
+            badge.innerText = `錯題任務模式｜不是每日練習｜版本 ${APP_VERSION}`;
+            return;
+        }
+        if (isLocal) badge.classList.add("local");
+        badge.innerText = `${isLocal ? "本機測試版" : "每日練習固定入口"}｜康軒第三單元 40 題｜每日 12 題｜版本 ${APP_VERSION}`;
+    }
+
+    function canonicalizeDailyPracticeUrl() {
+        if (!(location.protocol === "http:" || location.protocol === "https:")) return;
+        const params = new URLSearchParams(location.search);
+        const hasTask = params.has("task") || params.has("taskData");
+        if (hasTask) return;
+        if (location.search && history.replaceState) {
+            history.replaceState(null, "", location.pathname);
+        }
     }
 
     function shortenUrl(longUrl) {
@@ -967,6 +1007,7 @@
             }
         });
         isTaskLinkMode = true;
+        updateAppVersionBadge("task");
         const importToggle = document.getElementById('mistake-import-toggle');
         const resetBtn = document.getElementById('reset-data-btn');
         if (importToggle) importToggle.style.display = 'none';
@@ -980,7 +1021,7 @@
         const masteryInfo = document.getElementById('mastery-info');
         if (masteryInfo) {
             masteryInfo.innerText = imported || assessmentImported
-                ? `任務連結已載入 ${imported + assessmentImported} 題錯題，請完成錯題加強。`
+                ? `這是錯題任務模式，已載入 ${imported + assessmentImported} 題錯題。每日練習請用固定首頁網址。`
                 : "這份錯題任務已經練過，或題目資料不完整。";
         }
     }
@@ -991,6 +1032,7 @@
         const taskVersion = params.get("v") || Date.now().toString();
         const taskData = params.get("taskData");
         if (!taskId && !taskData) return;
+        updateAppVersionBadge("task");
         let records = [];
         if (taskId) {
             try {
@@ -1001,7 +1043,7 @@
             } catch (e) {
                 console.warn("Could not load task file:", e);
                 const masteryInfo = document.getElementById('mastery-info');
-                if (masteryInfo) masteryInfo.innerText = "找不到這份錯題任務，請確認任務 JSON 已經放到 tasks 資料夾。";
+                if (masteryInfo) masteryInfo.innerText = "這是錯題任務連結，但找不到任務資料。請改用每日練習固定首頁，或重新建立任務連結。";
                 return;
             }
         }
@@ -1550,6 +1592,8 @@
     }
 
     async function initPage() {
+        canonicalizeDailyPracticeUrl();
+        updateAppVersionBadge("daily");
         const config = JSON.parse(localStorage.getItem('bobo_tg_config') || '{}');
         if (!config.token) {
             const defaultConfig = {
@@ -2152,12 +2196,14 @@
             });
         }
 
+        const modeText = `\n🧭 模式：${currentModeLabel()}\n🧾 版本：${APP_VERSION}`;
         const message = isMistakeMode
             ? `${reviewSource === "assessment" ? "📝 Bobo 自然評量錯題完成！" : (reviewSource === "history" ? "📚 Bobo 自然歷史錯題完成！" : "🎯 Bobo 自然錯題加強完成！")}\n\n` +
               `⏱️ 耗時：${duration} 秒\n` +
               `🧩 本次練習：${targetQuestionCount} 題\n` +
               `✅ 這輪學會：${reviewTotalOriginals - reviewFailedOriginals.size} / ${reviewTotalOriginals} 題\n` +
               `📌 剩餘錯題：${reviewSource === "assessment" ? assessmentPracticeBank().length : (reviewSource === "history" ? historyPracticeBank().length : mistakePracticeBank().length)} 題` +
+              modeText +
               mistakeText +
               `\n錯題有補起來，這次很紮實！🔬`
             : `🌟 Bobo 自然挑戰成功！\n\n` +
@@ -2165,6 +2211,7 @@
               `⏱️ 耗時：${duration} 秒\n` +
               `🎯 單元練習：完成 ${targetQuestionCount} 題\n` +
               `📱 獎勵手機時間：${phoneTime} 分鐘` +
+              modeText +
               mistakeText + 
               `\nBobo 表現優異，繼續加油！🔬`;
 
