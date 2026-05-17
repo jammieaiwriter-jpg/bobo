@@ -340,6 +340,7 @@
     if (!Array.isArray(roundState.mistakes)) roundState.mistakes = [];
     if (!roundState.streaks) roundState.streaks = {};
     if (!roundState.recentResults) roundState.recentResults = {};
+    if (!roundState.dailyPractice) roundState.dailyPractice = {};
 
     let currentUnit = null, currentStep = 0, targetQuestionCount = 0, correctAnswer = null, isProcessingAnswer = false;
     let challengeStartTime = null;
@@ -1372,13 +1373,64 @@
         return arr;
     }
 
+    function todayKey() {
+        const taipei = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Taipei" }));
+        const pad = n => String(n).padStart(2, "0");
+        return `${taipei.getFullYear()}-${pad(taipei.getMonth() + 1)}-${pad(taipei.getDate())}`;
+    }
+
+    function questionDifficulty(qData) {
+        const q = qData.q || "";
+        if (q.includes("最可能") || q.includes("可能造成") || q.includes("評估") || q.includes("比較") || q.includes("說明什麼") || q.includes("優養化") || q.includes("外來種") || q.includes("過度捕撈") || q.includes("源頭") || q.includes("較脆弱")) return "challenge";
+        return "basic";
+    }
+
+    function dailyQuestionCount(unitId) {
+        return unitId === "ecology" ? 12 : 10;
+    }
+
+    function dailyUnitLevel(unitId) {
+        const streak = roundState.streaks[unitId] || 0;
+        if (streak >= 24) return "challenge";
+        if (streak >= 12) return "mixed";
+        return "basic";
+    }
+
+    function selectDailyQuestions(unitId) {
+        const bank = QUESTION_BANK[unitId] || [];
+        const count = Math.min(dailyQuestionCount(unitId), bank.length);
+        const key = todayKey();
+        const state = roundState.dailyPractice[unitId] || { date: "", seen: [], level: "basic" };
+        if (state.date !== key) {
+            state.date = key;
+            state.seen = [];
+            state.level = dailyUnitLevel(unitId);
+        }
+        const seen = new Set(state.seen || []);
+        const level = state.level || dailyUnitLevel(unitId);
+        const preferred = bank.filter(item => level === "challenge" ? questionDifficulty(item) === "challenge" : (level === "mixed" ? true : questionDifficulty(item) !== "challenge"));
+        const fallback = bank.filter(item => !preferred.includes(item));
+        let pool = [...preferred.filter(item => !seen.has(item.q)), ...fallback.filter(item => !seen.has(item.q))];
+        if (pool.length < count) {
+            state.seen = [];
+            seen.clear();
+            pool = [...preferred, ...fallback];
+        }
+        const selected = shuffleItems(pool).slice(0, count);
+        state.seen = [...new Set([...(state.seen || []), ...selected.map(item => item.q)])].slice(-bank.length);
+        state.level = level;
+        roundState.dailyPractice[unitId] = state;
+        safeSaveState();
+        return selected;
+    }
+
     function refillQuestionQueue() {
         if (!currentUnit) return;
         if (isMistakeMode) {
             questionQueue = [];
             return;
         }
-        const bank = QUESTION_BANK[currentUnit.id] || [];
+        const bank = selectDailyQuestions(currentUnit.id);
         questionQueue = shuffleItems(bank);
         if (questionQueue.length > 1 && questionQueue[0].q === lastQuestionText) {
             const swapIndex = questionQueue.findIndex(item => item.q !== lastQuestionText);
@@ -1706,6 +1758,23 @@
         return true;
     }
 
+    function continueActiveMistakeReview(source, count) {
+        const bank = source === "assessment" ? assessmentPracticeBank() : mistakePracticeBank();
+        if (!bank.length) return false;
+        pendingMistakeBank = bank;
+        isMistakeMode = false;
+        document.getElementById('reward-screen').classList.remove('active');
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        document.getElementById('teaching-title').innerText = source === "assessment" ? "評量錯題還沒補完" : "錯題還沒補完";
+        document.getElementById('teaching-body').innerText = `還有 ${count} 題剛剛沒有真正學會。\n\n這一輪不算完成，先看觀念卡，再把剩下的錯題補起來。全部補會，才會結束今天的練習。`;
+        const startBtn = document.getElementById('start-challenge-btn');
+        startBtn.innerText = "繼續補強";
+        pendingStartMode = source === "assessment" ? "assessment" : "mistake";
+        return true;
+    }
+
     function startUnit(unitId) {
         if (showPendingMistakeReview("還有待復習錯題沒有補強，先完成這段，新的單元才會解鎖。")) return;
         isMistakeMode = false;
@@ -1735,7 +1804,7 @@
     function startChallenge() {
         isMistakeMode = false;
         currentStep = 0;
-        targetQuestionCount = Math.max(10, (QUESTION_BANK[currentUnit.id] || []).length);
+        targetQuestionCount = Math.min(dailyQuestionCount(currentUnit.id), (QUESTION_BANK[currentUnit.id] || []).length);
         sessionMistakes = [];
         questionQueue = [];
         lastQuestionText = "";
@@ -2017,6 +2086,12 @@
                 const remainingCount = isMistakeMode
                     ? (reviewSource === "assessment" ? assessmentPracticeBank().length : (reviewSource === "history" ? historyPracticeBank().length : mistakePracticeBank().length))
                     : 0;
+                if (isMistakeMode && reviewSource !== "history" && remainingCount > 0) {
+                    setTimeout(() => {
+                        continueActiveMistakeReview(reviewSource, remainingCount);
+                    }, 1000);
+                    return;
+                }
                 const rewardTitle = reviewSource === "assessment" ? "評量錯題完成！" : (reviewSource === "history" ? "歷史錯題完成！" : "錯題加強完成！");
                 document.getElementById('reward-title').innerText = isMistakeMode ? rewardTitle : "大成功！";
                 document.getElementById('reward-text').innerText = isMistakeMode ? `原本 ${reviewTotalOriginals} 題，這輪學會 ${learnedCount} 題。` : "Bobo 真是個科學小天才！";
