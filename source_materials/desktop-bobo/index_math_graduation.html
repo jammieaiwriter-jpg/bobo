@@ -1726,6 +1726,28 @@
       if (currentIndex >= currentQueue.length) {
         finalizeMistakeReview();
         clearActiveSession();
+        const pendingUnitWrongIds = currentMode === "unit"
+          ? Object.keys(state.wrong).filter(id => state.wrong[id] && (QUESTION_BANK.find(q => q.id === id) || {}).unit === activeUnitId)
+          : [];
+        if (pendingUnitWrongIds.length > 0) {
+          questionArea.className = "empty";
+          questionArea.innerHTML = `
+            <div class="coach-thread">
+              <div class="bubble coach alert">這個小單元還不能結束，先把錯題學會。</div>
+              <div class="bubble coach">${unitInfo(activeUnitId).label} 有 ${pendingUnitWrongIds.length} 題待加強。接下來會先看觀念卡，再練原錯題和兩題變化題。</div>
+            </div>
+          `;
+          optionsEl.innerHTML = `<button class="btn primary" id="startUnitWrongBtn" type="button">開始錯題加強</button>`;
+          document.getElementById("startUnitWrongBtn").addEventListener("click", () => startMode("wrong"));
+          feedbackEl.className = "feedback show";
+          feedbackEl.innerHTML = "完成錯題加強後，這個單元才會算真正結束。";
+          hintBtn.disabled = true;
+          nextBtn.disabled = true;
+          queueLabel.textContent = `待加強 ${pendingUnitWrongIds.length} 題`;
+          updateProgress();
+          sendTgMessage(`Bobo 數學單元待加強\n單元：${unitInfo(activeUnitId).label}\n待加強：${pendingUnitWrongIds.length} 題\n已提示先做錯題加強，完成後才算結束。`);
+          return;
+        }
         questionArea.className = "empty";
         questionArea.innerHTML = "這一輪完成了。可以產生回報，或再換一輪順序。";
         optionsEl.innerHTML = "";
