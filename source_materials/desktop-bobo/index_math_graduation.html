@@ -514,14 +514,14 @@
   <script>
     const STORAGE_KEY = "bobo_math_graduation_20260515";
     const SESSION_KEY = "bobo_math_graduation_active_session_v1";
-    const APP_VERSION = "20260517-fixed-url-fresh-review";
+    const APP_VERSION = "20260518-varied-all-units";
     const DEFAULT_AI_ENDPOINT = "https://bobo-math-grader.bobo-math-grader.workers.dev";
     const CANONICAL_URL = "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_math_graduation.html";
 
     const UNITS = [
       { id: "sumdiff", label: "5-1 和差問題", group: "怎樣解題" },
       { id: "age", label: "5-2 年齡問題", group: "怎樣解題" },
-      { id: "chicken", label: "5-3 雞兔問題", group: "怎樣解題" },
+      { id: "chicken", label: "5-3 假設法問題", group: "怎樣解題" },
       { id: "combination", label: "5-4 組合問題", group: "怎樣解題" },
       { id: "percentPie", label: "6-1 圓形百分圖", group: "圓形圖" },
       { id: "pieChart", label: "6-2 圓形圖", group: "圓形圖" },
@@ -1089,11 +1089,13 @@
 
     function initTgConfig() {
       const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
-      localStorage.setItem("bobo_tg_config", JSON.stringify({
+      const fixedConfig = {
         token: config.token || "8737495847:AAF0UODT6S4MLFnPUpx5lnZCaM0iDK5Sefc",
         chatid: config.chatid || "-5062576908",
         aiEndpoint: config.aiEndpoint || DEFAULT_AI_ENDPOINT
-      }));
+      };
+      localStorage.setItem("bobo_tg_config", JSON.stringify(fixedConfig));
+      document.getElementById("aiEndpoint").value = fixedConfig.aiEndpoint;
     }
 
     function toggleTgConfig() {
@@ -1116,7 +1118,17 @@
       const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
       if (config.token) document.getElementById("tgToken").value = config.token;
       if (config.chatid) document.getElementById("tgChatId").value = config.chatid;
-      if (config.aiEndpoint) document.getElementById("aiEndpoint").value = config.aiEndpoint;
+      document.getElementById("aiEndpoint").value = config.aiEndpoint || DEFAULT_AI_ENDPOINT;
+    }
+
+    function aiEndpointConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      const endpoint = (config.aiEndpoint || DEFAULT_AI_ENDPOINT).trim();
+      if (!config.aiEndpoint) {
+        config.aiEndpoint = endpoint;
+        localStorage.setItem("bobo_tg_config", JSON.stringify(config));
+      }
+      return endpoint;
     }
 
     async function sendTgMessage(text) {
@@ -1157,6 +1169,7 @@
       const prefix = {
         hint: "提示使用",
         wrong: "答錯紀錄",
+        needsReview: "待加強紀錄",
         hintedCorrect: "提示後答對",
         complete: "練習完成"
       }[kind] || "數學紀錄";
@@ -1276,6 +1289,34 @@
       return QUESTION_BANK.filter(q => q.unit === unitId);
     }
 
+    function questionSnapshot(q) {
+      if (!q) return null;
+      return {
+        id: q.id,
+        unit: q.unit,
+        level: q.level,
+        title: q.title,
+        work: q.work,
+        visual: q.visual,
+        options: q.options,
+        answer: q.answer,
+        hint: q.hint,
+        steps: q.steps
+      };
+    }
+
+    function questionById(id) {
+      const fixed = QUESTION_BANK.find(q => q.id === id);
+      if (fixed) return fixed;
+      const saved = state.history[id] && state.history[id].question;
+      return saved || null;
+    }
+
+    function unitForQuestionId(id) {
+      const q = questionById(id);
+      return (q && q.unit) || (state.history[id] && state.history[id].unit) || "";
+    }
+
     function unitInfo(unitId) {
       return UNITS.find(u => u.id === unitId) || { label: "數學觀念", group: "畢業考" };
     }
@@ -1284,7 +1325,7 @@
       const map = {
         sumdiff: "看到「和、差」時，先判斷問大數或小數。大數用（和＋差）÷2，小數用（和－差）÷2。不要直接把差除以 2 就停住。",
         age: "年齡問題的核心是「年齡差不變」。幾年後兩個人都一起加，幾年前兩個人都一起減，可以用代入或差量關係檢查。",
-        chicken: "雞兔問題先全部假設成腳比較少的那一種，再看多出幾隻腳。每多 2 隻腳，就代表有 1 隻兔或汽車或大船。",
+        chicken: "假設法問題先全部假設成每份數量比較少的那一種，再看總量多出多少。多出的量除以兩種物件的差，就能找出比較大的那一種有幾個。",
         combination: "組合問題先看「順序算不算不同」。每一階段都要選一個時用乘法；不分先後選兩個人時，要避免 AB、BA 重複算。",
         percentPie: "圓形百分圖把全部看成 100%。求部分就用全部 × 百分率；求圓心角就用 360 度 × 百分率。",
         pieChart: "圓形圖把一整個圓看成 360 度。角度 ÷ 360 可以換成比例，再乘總量就能求人數或數量。",
@@ -1298,7 +1339,7 @@
       const diagrams = {
         sumdiff: `<svg viewBox="0 0 320 130" role="img" aria-label="和差問題圖解"><rect x="28" y="28" width="210" height="28" rx="6" fill="#0f8b8d"/><rect x="28" y="78" width="146" height="28" rx="6" fill="#d99b25"/><line x1="174" y1="92" x2="238" y2="42" stroke="#c84f5f" stroke-width="3"/><text x="246" y="47" font-size="15">差</text><text x="118" y="22" font-size="15">大數</text><text x="92" y="122" font-size="15">小數</text></svg>`,
         age: `<svg viewBox="0 0 320 130" role="img" aria-label="年齡差固定"><line x1="40" y1="45" x2="280" y2="45" stroke="#0f8b8d" stroke-width="8" stroke-linecap="round"/><line x1="80" y1="86" x2="280" y2="86" stroke="#d99b25" stroke-width="8" stroke-linecap="round"/><line x1="80" y1="20" x2="80" y2="106" stroke="#c84f5f" stroke-width="3"/><line x1="280" y1="20" x2="280" y2="106" stroke="#c84f5f" stroke-width="3"/><text x="120" y="28" font-size="15">幾年前/後一起移動</text><text x="132" y="120" font-size="15">年齡差不變</text></svg>`,
-        chicken: `<svg viewBox="0 0 320 130" role="img" aria-label="雞兔問題假設法"><text x="28" y="34" font-size="16">全部先當 2 隻腳</text><circle cx="70" cy="70" r="18" fill="#d99b25"/><circle cx="130" cy="70" r="18" fill="#d99b25"/><circle cx="190" cy="70" r="18" fill="#d99b25"/><path d="M230 70h48" stroke="#c84f5f" stroke-width="4"/><text x="230" y="102" font-size="15">多 2 腳 = 1 隻兔</text></svg>`,
+        chicken: `<svg viewBox="0 0 320 130" role="img" aria-label="假設法差額模型"><text x="28" y="34" font-size="16">全部先當小份量</text><circle cx="70" cy="70" r="18" fill="#d99b25"/><circle cx="130" cy="70" r="18" fill="#d99b25"/><circle cx="190" cy="70" r="18" fill="#d99b25"/><path d="M230 70h48" stroke="#c84f5f" stroke-width="4"/><text x="220" y="102" font-size="15">多出的量 ÷ 差額</text></svg>`,
         combination: `<svg viewBox="0 0 320 130" role="img" aria-label="組合樹狀圖"><circle cx="55" cy="65" r="16" fill="#0f8b8d"/><circle cx="155" cy="35" r="16" fill="#d99b25"/><circle cx="155" cy="95" r="16" fill="#d99b25"/><circle cx="255" cy="20" r="14" fill="#2e6f9e"/><circle cx="255" cy="50" r="14" fill="#2e6f9e"/><circle cx="255" cy="80" r="14" fill="#2e6f9e"/><circle cx="255" cy="110" r="14" fill="#2e6f9e"/><path d="M70 60L140 38M70 70L140 92M170 35L242 20M170 35L242 50M170 95L242 80M170 95L242 110" stroke="#7d8b93" stroke-width="2"/><text x="24" y="118" font-size="15">分階段選，用乘法</text></svg>`,
         percentPie: `<svg viewBox="0 0 320 130" role="img" aria-label="百分圖"><circle cx="82" cy="66" r="46" fill="#d8e1e6"/><path d="M82 66 L82 20 A46 46 0 0 1 128 66 Z" fill="#0f8b8d"/><text x="160" y="55" font-size="16">100% = 全部</text><text x="160" y="82" font-size="16">部分 = 全部 × 百分率</text></svg>`,
         pieChart: `<svg viewBox="0 0 320 130" role="img" aria-label="圓形圖角度"><circle cx="82" cy="66" r="46" fill="#d8e1e6"/><path d="M82 66 L82 20 A46 46 0 0 1 128 66 Z" fill="#d99b25"/><text x="58" y="72" font-size="14">360度</text><text x="154" y="58" font-size="16">比例 = 角度 ÷ 360</text><text x="154" y="86" font-size="16">數量 = 全部 × 比例</text></svg>`,
@@ -1414,58 +1455,299 @@
         const askBig = Math.random() > 0.5;
         const correct = askBig ? big : small;
         const opts = makeOptions(correct);
-        return { id, unit: unitId, level: "新題", title: `兩個數的和是 ${sum}，差是 ${diff}。${askBig ? "較大的數" : "較小的數"}是多少？`, work: "和差問題：先判斷要求大數或小數。", ...opts, hint: "", steps: [askBig ? `${sum} + ${diff} = ${sum + diff}` : `${sum} - ${diff} = ${sum - diff}`, `${askBig ? sum + diff : sum - diff} ÷ 2 = ${correct}`, `答案是 ${correct}。`] };
+        const templates = [
+          {
+            title: `兩個數的和是 ${sum}，差是 ${diff}。${askBig ? "較大的數" : "較小的數"}是多少？`,
+            unitText: "",
+            smallLabel: "較小的數",
+            bigLabel: "較大的數"
+          },
+          {
+            title: `哥哥和妹妹共有 ${sum} 元，哥哥比妹妹多 ${diff} 元。${askBig ? "哥哥" : "妹妹"}有多少元？`,
+            unitText: " 元",
+            smallLabel: "妹妹",
+            bigLabel: "哥哥"
+          },
+          {
+            title: `兩條彩帶共長 ${sum} 公分，長彩帶比短彩帶多 ${diff} 公分。${askBig ? "長彩帶" : "短彩帶"}長多少公分？`,
+            unitText: " 公分",
+            smallLabel: "短彩帶",
+            bigLabel: "長彩帶"
+          },
+          {
+            title: `甲、乙兩隊共有 ${sum} 人，甲隊比乙隊少 ${diff} 人。${askBig ? "乙隊" : "甲隊"}有幾人？`,
+            unitText: " 人",
+            smallLabel: "甲隊",
+            bigLabel: "乙隊"
+          }
+        ];
+        const t = templates[randInt(0, templates.length - 1)];
+        const label = askBig ? t.bigLabel : t.smallLabel;
+        const namedOpts = makeOptions(correct, t.unitText, [correct - diff, correct + diff, Math.round(sum / 2)]);
+        return {
+          id,
+          unit: unitId,
+          level: "新題",
+          title: t.title,
+          work: "和差問題：先判斷要求大數或小數。",
+          ...namedOpts,
+          hint: `${label}是${askBig ? "大數" : "小數"}，想想要用（和 ${askBig ? "+" : "-"} 差）÷ 2。`,
+          steps: [askBig ? `${sum} + ${diff} = ${sum + diff}` : `${sum} - ${diff} = ${sum - diff}`, `${askBig ? sum + diff : sum - diff} ÷ 2 = ${correct}`, `${label}是 ${correct}${t.unitText}。`]
+        };
       }
       if (unitId === "age") {
-        const child = randInt(8, 15);
-        const gap = randInt(20, 34);
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const child = randInt(8, 15);
+          const gap = randInt(20, 34);
+          const adult = child + gap;
+          const years = gap - child;
+          const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 5]);
+          return { id, unit: unitId, level: "新題", title: `爸爸今年 ${adult} 歲，小安今年 ${child} 歲。幾年後爸爸年齡是小安的 2 倍？`, work: "年齡差固定，2 倍時差等於小孩那時的年齡。", ...opts, hint: "2 倍時，年齡差剛好等於小安那時的年齡。", steps: [`${adult} - ${child} = ${gap}`, `2 倍時小安是 ${gap} 歲`, `${gap} - ${child} = ${years}`, `${years} 年後。`] };
+        }
+        if (type === 2) {
+          const childPast = randInt(6, 10);
+          const factor = randInt(4, 5);
+          const yearsAgo = randInt(2, 5);
+          const child = childPast + yearsAgo;
+          const adult = childPast * factor + yearsAgo;
+          const opts = makeOptions(yearsAgo, " 年前", [yearsAgo + 2, yearsAgo + 4, Math.max(1, yearsAgo - 1)]);
+          return { id, unit: unitId, level: "新題", title: `叔叔今年 ${adult} 歲，小宇今年 ${child} 歲。幾年前叔叔的年齡是小宇的 ${factor} 倍？`, work: "往前推時，兩人的年齡都同時減少。", ...opts, hint: "可以代入選項檢查：兩人都往前減同樣年數。", steps: [`${yearsAgo} 年前叔叔 ${adult - yearsAgo} 歲`, `${yearsAgo} 年前小宇 ${child - yearsAgo} 歲`, `${adult - yearsAgo} ÷ ${child - yearsAgo} = ${factor}`, `${yearsAgo} 年前。`] };
+        }
+        if (type === 3) {
+          const a = randInt(16, 24);
+          const b = randInt(8, 14);
+          const years = randInt(4, 12);
+          const targetSum = a + b + years * 2;
+          const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 6]);
+          return { id, unit: unitId, level: "新題", title: `姐姐今年 ${a} 歲，弟弟今年 ${b} 歲。幾年後兩人的年齡和是 ${targetSum} 歲？`, work: "兩人每過 1 年，年齡和增加 2 歲。", ...opts, hint: "先算現在年齡和，再看還差多少。", steps: [`${a} + ${b} = ${a + b}`, `${targetSum} - ${a + b} = ${years * 2}`, `${years * 2} ÷ 2 = ${years}`, `${years} 年後。`] };
+        }
+        const child = randInt(6, 10);
+        const factor = 3;
+        const gap = randInt(18, 30);
         const adult = child + gap;
-        const targetChild = gap;
-        const years = targetChild - child;
-        const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 5]);
-        return { id, unit: unitId, level: "新題", title: `爸爸今年 ${adult} 歲，小安今年 ${child} 歲。幾年後爸爸年齡是小安的 2 倍？`, work: "年齡差固定，2 倍時差等於小孩那時的年齡。", ...opts, hint: "", steps: [`${adult} - ${child} = ${gap}`, `2 倍時小安是 ${gap} 歲`, `${gap} - ${child} = ${years}`, `${years} 年後。`] };
+        const targetChild = gap / (factor - 1);
+        const adjustedGap = targetChild % 1 === 0 ? gap : 24;
+        const fixedAdult = child + adjustedGap;
+        const years = adjustedGap / 2 - child;
+        const opts = makeOptions(years, " 年後", [years + 2, years + 4, Math.max(1, years - 2)]);
+        return { id, unit: unitId, level: "新題", title: `阿姨今年 ${fixedAdult} 歲，外甥今年 ${child} 歲。幾年後阿姨的年齡是外甥的 3 倍？`, work: "3 倍時，大的人比小的人多 2 份。", ...opts, hint: "年齡差固定，3 倍時差是小孩年齡的 2 倍。", steps: [`${fixedAdult} - ${child} = ${adjustedGap}`, `${adjustedGap} ÷ 2 = ${adjustedGap / 2}`, `${adjustedGap / 2} - ${child} = ${years}`, `${years} 年後。`] };
       }
       if (unitId === "chicken") {
-        const rabbits = randInt(5, 16);
-        const chickens = randInt(8, 24);
-        const total = rabbits + chickens;
-        const feet = rabbits * 4 + chickens * 2;
-        const opts = makeOptions(rabbits, " 隻", [rabbits - 2, rabbits + 2, chickens]);
-        return { id, unit: unitId, level: "新題", title: `雞和兔共有 ${total} 隻，腳共有 ${feet} 隻。兔有幾隻？`, work: "全部先當雞，再看多出的腳。", ...opts, hint: "", steps: [`${total} × 2 = ${total * 2}`, `${feet} - ${total * 2} = ${feet - total * 2}`, `${feet - total * 2} ÷ 2 = ${rabbits}`, `兔有 ${rabbits} 隻。`] };
+        const templates = [
+          {
+            smallName: "腳踏車",
+            bigName: "汽車",
+            itemUnit: " 輛",
+            measureName: "輪子",
+            measureUnit: " 個",
+            smallValue: 2,
+            bigValue: 4,
+            bigCount: randInt(5, 16),
+            smallCount: randInt(8, 24)
+          },
+          {
+            smallName: "小船",
+            bigName: "大船",
+            itemUnit: " 艘",
+            measureName: "座位",
+            measureUnit: " 個",
+            smallValue: 4,
+            bigValue: 6,
+            bigCount: randInt(4, 12),
+            smallCount: randInt(7, 18)
+          },
+          {
+            smallName: "兒童票",
+            bigName: "成人票",
+            itemUnit: " 張",
+            measureName: "票款",
+            measureUnit: " 元",
+            smallValue: 50,
+            bigValue: 80,
+            bigCount: randInt(5, 18),
+            smallCount: randInt(8, 22)
+          },
+          {
+            smallName: "小盒鉛筆",
+            bigName: "大盒鉛筆",
+            itemUnit: " 盒",
+            measureName: "鉛筆",
+            measureUnit: " 枝",
+            smallValue: 6,
+            bigValue: 10,
+            bigCount: randInt(4, 12),
+            smallCount: randInt(8, 20)
+          },
+          {
+            smallName: "雙人桌",
+            bigName: "四人桌",
+            itemUnit: " 張",
+            measureName: "座位",
+            measureUnit: " 個",
+            smallValue: 2,
+            bigValue: 4,
+            bigCount: randInt(5, 16),
+            smallCount: randInt(8, 22)
+          }
+        ];
+        const t = templates[randInt(0, templates.length - 1)];
+        const total = t.bigCount + t.smallCount;
+        const measureTotal = t.bigCount * t.bigValue + t.smallCount * t.smallValue;
+        const baseline = total * t.smallValue;
+        const extra = measureTotal - baseline;
+        const diff = t.bigValue - t.smallValue;
+        const opts = makeOptions(t.bigCount, t.itemUnit, [t.bigCount - 2, t.bigCount + 2, t.smallCount]);
+        return {
+          id,
+          unit: unitId,
+          level: "新題",
+          title: `${t.smallName}和${t.bigName}共有 ${total}${t.itemUnit}，${t.measureName}共有 ${measureTotal}${t.measureUnit}。${t.bigName}有幾${t.itemUnit.trim()}？`,
+          work: `全部先當${t.smallName}，每${t.itemUnit.trim()}${t.smallValue}${t.measureUnit}；${t.bigName}每${t.itemUnit.trim()}多 ${diff}${t.measureUnit}。`,
+          ...opts,
+          hint: `${total}${t.itemUnit}都當${t.smallName}會有 ${baseline}${t.measureUnit}，和 ${measureTotal}${t.measureUnit}差多少？`,
+          steps: [`${total} × ${t.smallValue} = ${baseline}`, `${measureTotal} - ${baseline} = ${extra}`, `${extra} ÷ ${diff} = ${t.bigCount}`, `${t.bigName}有 ${t.bigCount}${t.itemUnit}。`]
+        };
       }
       if (unitId === "combination") {
-        const a = randInt(2, 5), b = randInt(2, 5), c = randInt(2, 4);
-        const correct = a * b * c;
-        const opts = makeOptions(correct, " 種", [a + b + c, a * b, correct + a]);
-        return { id, unit: unitId, level: "新題", title: `有 ${a} 種主餐、${b} 種飲料和 ${c} 種甜點，各選一種，共有幾種搭配？`, work: "每一階段都選一個，用乘法原理。", ...opts, hint: "", steps: [`${a} × ${b} × ${c} = ${correct}`, `共有 ${correct} 種搭配。`] };
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const a = randInt(2, 5), b = randInt(2, 5), c = randInt(2, 4);
+          const correct = a * b * c;
+          const opts = makeOptions(correct, " 種", [a + b + c, a * b, correct + a]);
+          return { id, unit: unitId, level: "新題", title: `有 ${a} 種主餐、${b} 種飲料和 ${c} 種甜點，各選一種，共有幾種搭配？`, work: "每一階段都選一個，用乘法原理。", ...opts, hint: "每個階段都要選一個，階段數相乘。", steps: [`${a} × ${b} × ${c} = ${correct}`, `共有 ${correct} 種搭配。`] };
+        }
+        if (type === 2) {
+          const colors = randInt(3, 5), pants = randInt(2, 4), hats = randInt(2, 3);
+          const correct = colors * pants * hats;
+          const opts = makeOptions(correct, " 種", [colors + pants + hats, colors * pants, correct + hats]);
+          return { id, unit: unitId, level: "新題", title: `有 ${colors} 種上衣、${pants} 種褲子、${hats} 種帽子，各選一件，共有幾種穿搭？`, work: "穿搭是多階段選擇，用乘法原理。", ...opts, hint: "上衣選完，每一種上衣都能配每一種褲子和帽子。", steps: [`${colors} × ${pants} × ${hats} = ${correct}`, `共有 ${correct} 種穿搭。`] };
+        }
+        if (type === 3) {
+          const n = randInt(5, 8);
+          const correct = n * (n - 1) / 2;
+          const opts = makeOptions(correct, " 種", [n * 2, n * (n - 1), correct - 2]);
+          return { id, unit: unitId, level: "新題", title: `從 ${n} 位同學中選 2 人當代表，不分先後，共有幾種選法？`, work: "不分先後時，AB 和 BA 是同一種。", ...opts, hint: "可想成第一人配後面的人數：依序少 1。", steps: [`${n - 1} + ${n - 2} + ... + 1 = ${correct}`, `共有 ${correct} 種選法。`] };
+        }
+        const digits = randInt(4, 6);
+        const correct = digits * (digits - 1);
+        const opts = makeOptions(correct, " 個", [digits + digits - 1, digits * digits, correct - digits]);
+        return { id, unit: unitId, level: "新題", title: `用 ${digits} 個不同數字組成沒有重複數字的兩位數，共可組成幾個？`, work: "十位先選，個位不能重複。", ...opts, hint: "十位有幾種？個位剩幾種？", steps: [`十位：${digits} 種`, `個位：剩 ${digits - 1} 種`, `${digits} × ${digits - 1} = ${correct}`] };
       }
       if (unitId === "percentPie") {
-        const total = randInt(8, 18) * 20;
-        const percent = [15, 20, 25, 30, 35, 40, 45][randInt(0, 6)];
-        const correct = total * percent / 100;
-        const opts = makeOptions(correct, " 人", [correct + 8, correct - 8, Math.round(total / 2)]);
-        return { id, unit: unitId, level: "新題", title: `六年級共有 ${total} 人，參加某活動的占 ${percent}%。參加的有幾人？`, work: "全部 × 百分率 = 部分。", ...opts, hint: "", steps: [`${total} × ${percent}% = ${total} × ${percent / 100}`, `= ${correct}`, `有 ${correct} 人。`] };
+        const type = randInt(1, 4);
+        const percents = [15, 20, 25, 30, 35, 40, 45];
+        const percent = percents[randInt(0, percents.length - 1)];
+        if (type === 1) {
+          const total = randInt(8, 18) * 20;
+          const correct = total * percent / 100;
+          const opts = makeOptions(correct, " 人", [correct + 8, correct - 8, Math.round(total / 2)]);
+          return { id, unit: unitId, level: "新題", title: `六年級共有 ${total} 人，參加合唱團的占 ${percent}%。參加的有幾人？`, work: "全部 × 百分率 = 部分。", ...opts, hint: "把百分率換成小數或分數，再乘全部。", steps: [`${total} × ${percent}% = ${total} × ${percent / 100}`, `= ${correct}`, `有 ${correct} 人。`] };
+        }
+        if (type === 2) {
+          const total = randInt(8, 16) * 25;
+          const part = total * percent / 100;
+          const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(part / total * 10)]);
+          return { id, unit: unitId, level: "新題", title: `一本相簿共有 ${total} 張照片，其中風景照有 ${part} 張。風景照占全部的百分之幾？`, work: "部分 ÷ 全部 = 百分率。", ...opts, hint: "用風景照張數除以全部張數。", steps: [`${part} ÷ ${total} = ${percent / 100}`, `= ${percent}%。`] };
+        }
+        if (type === 3) {
+          const correct = 360 * percent / 100;
+          const opts = makeOptions(correct, " 度", [correct + 18, correct - 18, percent]);
+          return { id, unit: unitId, level: "新題", title: `圓形百分圖中，某項目占 ${percent}%。它的圓心角是多少度？`, work: "圓形圖全部是 360 度。", ...opts, hint: "用 360 度乘百分率。", steps: [`360 × ${percent}% = 360 × ${percent / 100}`, `= ${correct} 度。`] };
+        }
+        const total = randInt(6, 12) * 50;
+        const p1 = [20, 25, 30, 35][randInt(0, 3)];
+        const p2 = [15, 20, 25][randInt(0, 2)];
+        const correct = total * (p1 + p2) / 100;
+        const opts = makeOptions(correct, " 人", [total * p1 / 100, total * p2 / 100, correct + 10]);
+        return { id, unit: unitId, level: "新題", title: `社團調查共 ${total} 人，美術社占 ${p1}%，科學社占 ${p2}%。兩社合計有幾人？`, work: "先合併百分率，再乘總人數。", ...opts, hint: "先把兩個百分率相加。", steps: [`${p1}% + ${p2}% = ${p1 + p2}%`, `${total} × ${p1 + p2}% = ${correct}`, `兩社合計 ${correct} 人。`] };
       }
       if (unitId === "pieChart") {
         const angles = [45, 60, 72, 90, 120, 135, 144, 180];
+        const type = randInt(1, 4);
         const angle = angles[randInt(0, angles.length - 1)];
         const percent = angle / 360 * 100;
-        const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(percent * 2)]);
-        return { id, unit: unitId, level: "新題", title: `圓形圖中，某區塊圓心角是 ${angle} 度。這個區塊占全部的百分之幾？`, work: "比例 = 角度 ÷ 360，再換成百分率。", ...opts, hint: "", steps: [`${angle} ÷ 360 = ${percent / 100}`, `= ${percent}%。`] };
+        if (type === 1) {
+          const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(percent * 2)]);
+          return { id, unit: unitId, level: "新題", title: `圓形圖中，某區塊圓心角是 ${angle} 度。這個區塊占全部的百分之幾？`, work: "比例 = 角度 ÷ 360，再換成百分率。", ...opts, hint: "整個圓是 360 度。", steps: [`${angle} ÷ 360 = ${percent / 100}`, `= ${percent}%。`] };
+        }
+        if (type === 2) {
+          const total = randInt(6, 16) * 12;
+          const correct = Math.round(total * angle / 360);
+          const opts = makeOptions(correct, " 人", [correct + 6, correct - 6, Math.round(total / 2)]);
+          return { id, unit: unitId, level: "新題", title: `一個圓形圖表示 ${total} 人的活動選擇，閱讀區塊是 ${angle} 度。選閱讀的約有幾人？`, work: "先把角度換成比例，再乘總人數。", ...opts, hint: "角度 ÷ 360 是這一區占全部的比例。", steps: [`${angle} ÷ 360 = ${angle / 360}`, `${total} × ${angle / 360} ≈ ${correct}`, `約 ${correct} 人。`] };
+        }
+        if (type === 3) {
+          const p = [20, 25, 30, 35, 40][randInt(0, 4)];
+          const correct = 360 * p / 100;
+          const opts = makeOptions(correct, " 度", [correct + 18, correct - 18, p]);
+          return { id, unit: unitId, level: "新題", title: `圓形圖中，某項目占全部的 ${p}%。圓心角是多少度？`, work: "百分率乘 360 度。", ...opts, hint: "全部圓心角是 360 度。", steps: [`360 × ${p}% = ${correct}`, `圓心角是 ${correct} 度。`] };
+        }
+        const a = [54, 72, 90][randInt(0, 2)];
+        const b = [90, 108, 126][randInt(0, 2)];
+        const c = 360 - a - b;
+        const correct = c / 360 * 100;
+        const opts = makeOptions(correct, "%", [correct + 5, correct - 5, Math.round(c / 10)]);
+        return { id, unit: unitId, level: "新題", title: `某圓形圖中 A 占 ${a} 度，B 占 ${b} 度，C 占剩下的角度。C 占全部的百分之幾？`, work: "先求剩下的圓心角，再換成百分率。", ...opts, hint: "先用 360 減掉已知角度。", steps: [`360 - ${a} - ${b} = ${c}`, `${c} ÷ 360 = ${correct / 100}`, `C 占 ${correct}%。`] };
       }
       if (unitId === "pieApply") {
-        const total = randInt(8, 16) * 30;
-        const p1 = [35, 40, 45, 50][randInt(0, 3)];
-        const p2 = [15, 20, 25, 30][randInt(0, 3)];
-        const diff = p1 - p2;
-        const correct = total * diff / 100;
-        const opts = makeOptions(correct, " 人", [correct + 12, correct - 12, total * p2 / 100]);
-        return { id, unit: unitId, level: "新題", title: `全校 ${total} 人投票，甲活動占 ${p1}%，乙活動占 ${p2}%。甲比乙多幾人？`, work: "先比較百分率差，再乘總人數。", ...opts, hint: "", steps: [`${p1}% - ${p2}% = ${diff}%`, `${total} × ${diff}% = ${correct}`, `多 ${correct} 人。`] };
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const total = randInt(8, 16) * 30;
+          const p1 = [35, 40, 45, 50][randInt(0, 3)];
+          const p2 = [15, 20, 25, 30][randInt(0, 3)];
+          const diff = p1 - p2;
+          const correct = total * diff / 100;
+          const opts = makeOptions(correct, " 人", [correct + 12, correct - 12, total * p2 / 100]);
+          return { id, unit: unitId, level: "新題", title: `全校 ${total} 人投票，甲活動占 ${p1}%，乙活動占 ${p2}%。甲比乙多幾人？`, work: "先比較百分率差，再乘總人數。", ...opts, hint: "先比較百分率，不要先分別算兩邊也可以。", steps: [`${p1}% - ${p2}% = ${diff}%`, `${total} × ${diff}% = ${correct}`, `多 ${correct} 人。`] };
+        }
+        if (type === 2) {
+          const p1 = [22, 28, 30][randInt(0, 2)];
+          const p2 = [33, 37, 40][randInt(0, 2)];
+          const remain = 100 - p1 - p2;
+          const whole = randInt(6, 12) * 50;
+          const part = whole * remain / 100;
+          const opts = makeOptions(whole, " 人", [part, whole - part, whole + 50]);
+          return { id, unit: unitId, level: "新題", title: `圓形百分圖中，甲占 ${p1}%，乙占 ${p2}%，丙占其餘。若丙有 ${part} 人，全部共有幾人？`, work: "先求丙占幾%，再用部分 ÷ 百分率。", ...opts, hint: "丙是剩下的百分率。", steps: [`100% - ${p1}% - ${p2}% = ${remain}%`, `${part} ÷ ${remain}% = ${whole}`, `全部 ${whole} 人。`] };
+        }
+        if (type === 3) {
+          const total = randInt(8, 16) * 25;
+          const p = [20, 25, 30, 35][randInt(0, 3)];
+          const other = total * (100 - p) / 100;
+          const opts = makeOptions(other, " 人", [total * p / 100, other + 10, total]);
+          return { id, unit: unitId, level: "新題", title: `畢業旅行投票共 ${total} 人，去博物館占 ${p}%，其餘選遊樂園。選遊樂園的有幾人？`, work: "先求剩下百分率，再乘總人數。", ...opts, hint: "其餘就是 100% 減掉已知百分率。", steps: [`100% - ${p}% = ${100 - p}%`, `${total} × ${100 - p}% = ${other}`, `選遊樂園 ${other} 人。`] };
+        }
+        const servings = [2, 2.5, 4][randInt(0, 2)];
+        const each = randInt(8, 18) * 10;
+        const totalHeat = each * servings;
+        const opts = makeOptions(each, " 大卡", [Math.round(totalHeat), each + 20, Math.max(10, each - 20)]);
+        return { id, unit: unitId, level: "新題", title: `一袋點心整袋熱量 ${totalHeat} 大卡，共 ${servings} 份。每份熱量是多少大卡？`, work: "圖表應用常要從標示資料找總量和份數。", ...opts, hint: "總熱量除以份數。", steps: [`${totalHeat} ÷ ${servings} = ${each}`, `每份 ${each} 大卡。`] };
       }
-      const total = randInt(8, 16);
-      const target = randInt(2, total - 2);
-      const frac = makeFractionOptions(target, total);
-      return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，其中紅球 ${target} 顆。隨機抽 1 顆，抽到紅球的可能性是多少？`, work: "可能性 = 符合條件的數量 ÷ 全部數量。", ...frac, hint: "", steps: [`紅球 ${target} 顆，全部 ${total} 顆`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+      const type = randInt(1, 4);
+      if (type === 1) {
+        const total = randInt(8, 16);
+        const target = randInt(2, total - 2);
+        const frac = makeFractionOptions(target, total);
+        return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，其中紅球 ${target} 顆。隨機抽 1 顆，抽到紅球的可能性是多少？`, work: "可能性 = 符合條件的數量 ÷ 全部數量。", ...frac, hint: "先數全部，再數符合條件的。", steps: [`紅球 ${target} 顆，全部 ${total} 顆`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      if (type === 2) {
+        const total = [8, 10, 12][randInt(0, 2)];
+        const target = randInt(2, total - 2);
+        const frac = makeFractionOptions(target, total);
+        return { id, unit: "probability", level: "新題", title: `轉盤分成 ${total} 等分，其中 ${target} 格是黃色。轉到黃色的可能性是多少？`, work: "等分轉盤直接看格數。", ...frac, hint: "黃色格數除以全部格數。", steps: [`黃色 ${target} 格，全部 ${total} 格`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      if (type === 3) {
+        const max = randInt(6, 10);
+        const evens = Math.floor(max / 2);
+        const frac = makeFractionOptions(evens, max);
+        return { id, unit: "probability", level: "新題", title: `盒中有數字卡 1 到 ${max}。隨機抽 1 張，抽到偶數的可能性是多少？`, work: "先列出符合條件的結果。", ...frac, hint: "偶數有哪些？全部有幾張？", steps: [`偶數共有 ${evens} 張`, `全部 ${max} 張`, `可能性是 ${evens}/${max}，約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      const total = [20, 30][randInt(0, 1)];
+      const numerator = [2, 3, 4][randInt(0, 2)];
+      const denominator = [5, 10][randInt(0, 1)];
+      const target = total * numerator / denominator;
+      const opts = makeOptions(target, " 顆", [target + 2, target - 2, total - target]);
+      return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，抽到紅球的可能性是 ${numerator}/${denominator}。紅球有幾顆？`, work: "總數 × 可能性 = 符合條件的數量。", ...opts, hint: "把可能性看成紅球占全部的比例。", steps: [`${total} × ${numerator}/${denominator} = ${target}`, `紅球有 ${target} 顆。`] };
     }
 
     function generatedPracticeQuestions(unitId, count = 8) {
@@ -1521,12 +1803,12 @@
     function generateChickenVariations() {
       return [
         {
-          title: "雞和兔共有 22 隻，腳共有 64 隻。兔有幾隻？",
-          work: "全部先當雞，每隻 2 腳；多出的腳每 2 隻代表 1 隻兔。",
-          options: ["8 隻", "10 隻", "12 隻", "14 隻"],
+          title: "小船和大船共有 18 艘，小船可坐 4 人，大船可坐 6 人，全部坐滿共有 92 個座位。大船有幾艘？",
+          work: "全部先當小船，每艘 4 個座位；大船每艘多 2 個座位。",
+          options: ["8 艘", "10 艘", "12 艘", "14 艘"],
           answer: 1,
-          hint: "22 隻都當雞會有 44 隻腳。",
-          steps: ["22 × 2 = 44", "64 - 44 = 20", "20 ÷ 2 = 10", "兔有 10 隻。"]
+          hint: "18 艘都當小船會有 72 個座位。",
+          steps: ["18 × 4 = 72", "92 - 72 = 20", "20 ÷ 2 = 10", "大船有 10 艘。"]
         },
         {
           title: "腳踏車和汽車共有 24 輛，輪子共有 70 個。汽車有幾輛？",
@@ -1535,6 +1817,14 @@
           answer: 1,
           hint: "24 輛都當腳踏車會有 48 個輪子。",
           steps: ["24 × 2 = 48", "70 - 48 = 22", "22 ÷ 2 = 11", "汽車有 11 輛。"]
+        },
+        {
+          title: "兒童票和成人票共有 30 張，兒童票每張 50 元，成人票每張 80 元，總票款 1950 元。成人票有幾張？",
+          work: "全部先當兒童票，每張 50 元；成人票每張多 30 元。",
+          options: ["12 張", "15 張", "18 張", "21 張"],
+          answer: 1,
+          hint: "30 張都當兒童票會是 1500 元。",
+          steps: ["30 × 50 = 1500", "1950 - 1500 = 450", "450 ÷ 30 = 15", "成人票有 15 張。"]
         }
       ];
     }
@@ -1694,7 +1984,7 @@
         const wrongIds = Object.keys(state.wrong).filter(id => state.wrong[id]);
         currentReviewOriginalIds = wrongIds;
         reviewPasses = Object.fromEntries(wrongIds.map(id => [id, { original: false, variations: new Set() }]));
-        currentQueue = buildMistakeReviewQueue(QUESTION_BANK.filter(q => wrongIds.includes(q.id)));
+        currentQueue = buildMistakeReviewQueue(wrongIds.map(questionById).filter(Boolean));
         modeLabel.textContent = "錯題加強";
         renderUnits();
       } else {
@@ -1755,13 +2045,13 @@
             `版本：${APP_VERSION}\n` +
             `仍待加強：${remainingReviewIds.length} 題\n` +
             `本輪未提示答對：${sessionStats.cleanCorrect}\n` +
-            `本輪首次答錯：${sessionStats.firstWrong}\n` +
+            `本輪新增待加強：${sessionStats.firstWrong}\n` +
             `需要再練一次，不能算完成。`
           );
           return;
         }
         const pendingUnitWrongIds = currentMode === "unit"
-          ? Object.keys(state.wrong).filter(id => state.wrong[id] && (QUESTION_BANK.find(q => q.id === id) || {}).unit === activeUnitId)
+          ? Object.keys(state.wrong).filter(id => state.wrong[id] && unitForQuestionId(id) === activeUnitId)
           : [];
         if (pendingUnitWrongIds.length > 0) {
           questionArea.className = "empty";
@@ -1943,7 +2233,8 @@
             title: q.title,
             correct: q.options[q.answer],
             missedAt: new Date().toISOString(),
-            status: "hint_used"
+            status: "hint_used",
+            question: questionSnapshot(q)
           };
           notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
         }
@@ -1970,7 +2261,8 @@
             title: q.title,
             correct: q.options[q.answer],
             missedAt: new Date().toISOString(),
-            status: "active"
+            status: "active",
+            question: questionSnapshot(q)
           };
           const line = `${unitInfo(q.unit).label}：${q.title}\nBobo答：${q.options[index]}；正解：${q.options[q.answer]}`;
           sessionStats.mistakeLines.push(line);
@@ -2054,22 +2346,27 @@
     }
 
     async function gradeWithAi(q, studentAnswer, imageDataUrl) {
-      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
-      if (!config.aiEndpoint) return null;
-      const response = await fetch(config.aiEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          questionId: q.id,
-          unit: unitInfo(q.unit).label,
-          title: q.title,
-          prompt: q.work,
-          expectedAnswer: expectedAnswer(q),
-          expectedSteps: q.steps,
-          studentAnswer,
-          imageDataUrl
-        })
-      });
+      const endpoint = aiEndpointConfig();
+      if (!endpoint) return null;
+      let response;
+      try {
+        response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            questionId: q.id,
+            unit: unitInfo(q.unit).label,
+            title: q.title,
+            prompt: q.work,
+            expectedAnswer: expectedAnswer(q),
+            expectedSteps: q.steps,
+            studentAnswer,
+            imageDataUrl
+          })
+        });
+      } catch (error) {
+        throw new Error(`AI 批改連線失敗：${error.message || "Load failed"}`);
+      }
       if (!response.ok) throw new Error(`AI 批改失敗：${response.status}`);
       return response.json();
     }
@@ -2084,7 +2381,8 @@
         title: q.title,
         correct: expectedAnswer(q),
         missedAt: new Date().toISOString(),
-        status
+        status,
+        question: questionSnapshot(q)
       };
       const line = `${unitInfo(q.unit).label}：${q.title}\n${extraLine || `正解：${expectedAnswer(q)}`}`;
       sessionStats.mistakeLines.push(line);
@@ -2137,6 +2435,7 @@
         feedbackEl.innerHTML = `<div class="coach-thread"><div class="bubble alert">要先拍算式照片。只填答案不算通過，我要看你怎麼想。</div></div>`;
         return;
       }
+      const aiEndpointReady = Boolean(aiEndpointConfig());
 
       submitBtn.disabled = true;
       feedbackEl.className = "feedback show";
@@ -2157,8 +2456,13 @@
 
       const typedOk = typedAnswerMatches(q, studentAnswer);
       const hasAi = Boolean(aiResult);
+      const aiAnswerOk = hasAi ? Boolean(aiResult.correct) : false;
       const workOk = hasAi ? Boolean(aiResult.workOk) : false;
-      const answerOk = hasAi ? Boolean(aiResult.correct) : typedOk;
+      const answerOk = typedOk || aiAnswerOk;
+      const aiAnswerDisagreed = hasAi && typedOk && !aiAnswerOk;
+      const reviewReason = !answerOk
+        ? "最後答案不符合正解"
+        : (!workOk ? "答案正確，但算式照片未通過" : "需要再確認");
       const canMaster = hasAi && answerOk && workOk && !currentHintUsed;
       const caption = [
         "Bobo 數學算式照片",
@@ -2166,7 +2470,9 @@
         `題目：${q.title}`,
         `Bobo答案：${studentAnswer}`,
         `正解：${expectedAnswer(q)}`,
-        hasAi ? `AI判斷：${answerOk && workOk ? "通過" : "需重練"}` : "AI判斷：未設定，待媽媽確認",
+        `答案核對：${answerOk ? "最後答案正確" : "最後答案不符"}`,
+        hasAi ? `算式判斷：${workOk ? "通過" : "需補強"}` : (aiEndpointReady ? "算式判斷：AI 連線失敗，待媽媽確認" : "算式判斷：未設定，待媽媽確認"),
+        aiAnswerDisagreed ? "注意：AI 對最後答案的判讀和輸入答案不一致，已以欄位輸入答案為準。" : "",
         aiResult && aiResult.feedback ? `回饋：${aiResult.feedback}` : "",
         currentHintUsed ? "注意：本題看過提示，不算精熟。" : "",
         aiError ? `AI錯誤：${aiError}` : ""
@@ -2201,14 +2507,20 @@
           markQuestionNeedsReview(q, "hint_used", `Bobo看提示後答對；正解：${expectedAnswer(q)}`);
           notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
         } else {
-          markQuestionNeedsReview(q, hasAi ? "active" : "parent_review", `Bobo答：${studentAnswer}；正解：${expectedAnswer(q)}`);
-          notifyMathEvent("wrong", q, hasAi ? `Bobo答：${studentAnswer}\nAI回饋：${(aiResult && aiResult.feedback) || "需要再檢查算式。"}\n已立刻加入待加強。` : `Bobo答：${studentAnswer}\nAI 批改網址尚未設定，照片已送出待媽媽確認。`);
+          markQuestionNeedsReview(q, hasAi ? "active" : "parent_review", `Bobo答：${studentAnswer}；正解：${expectedAnswer(q)}；原因：${reviewReason}`);
+          notifyMathEvent(
+            answerOk ? "needsReview" : "wrong",
+            q,
+            hasAi
+              ? `Bobo答：${studentAnswer}\n原因：${reviewReason}\nAI回饋：${(aiResult && aiResult.feedback) || "需要再檢查算式。"}\n已立刻加入待加強。`
+              : `Bobo答：${studentAnswer}\n${aiEndpointReady ? `AI 批改連線失敗：${aiError || "請稍後重試"}` : "AI 批改網址尚未設定"}，照片已送出待媽媽確認。`
+          );
         }
         feedbackEl.className = "feedback show bad";
         feedbackEl.innerHTML = `
           <div class="coach-thread">
             <div class="bubble student">我的答案：${studentAnswer}</div>
-            <div class="bubble coach alert">${hasAi ? "這題先不通過，請修正後再拍一次。" : "照片已送給媽媽確認；目前沒有 AI 批改網址，所以這題先不算精熟。"}</div>
+            <div class="bubble coach alert">${hasAi ? (answerOk ? "答案對，但算式照片還不能算通過，請補清楚再拍一次。" : "這題先不通過，請修正後再拍一次。") : (aiEndpointReady ? "AI 批改連線失敗，照片已送給媽媽確認；這題先保留待加強。" : "照片已送給媽媽確認；目前沒有 AI 批改網址，所以這題先不算精熟。")}</div>
             <div class="bubble coach">${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "等 AI 批改後，這裡就會像聊天一樣直接告訴你哪裡要修。"}</div>
             <div class="bubble coach">小提示：${safeHint(q)}</div>
           </div>
@@ -2261,7 +2573,7 @@
         `本輪題數：${totalPractice}\n` +
         `未提示答對：${sessionStats.cleanCorrect}\n` +
         `提示後答對：${sessionStats.hintedCorrect}\n` +
-        `首次答錯：${sessionStats.firstWrong}\n` +
+        `新增待加強：${sessionStats.firstWrong}\n` +
         `錯題加強完成：${sessionStats.reviewed}\n` +
         `目前待加強：${wrongCount} 題` +
         mistakeText
