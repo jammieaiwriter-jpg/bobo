@@ -2517,6 +2517,9 @@
         ? "最後答案不符合正解"
         : (!workOk ? (hasAi ? "答案正確，但算式照片未通過" : "答案正確，算式照片待媽媽確認") : "需要再確認");
       const canMaster = hasAi && answerOk && workOk && !currentHintUsed;
+      const parentReplyInstruction = !hasAi
+        ? "媽媽請直接回覆這張照片：OK 或 重做。Bobo 先繼續下一題。"
+        : "";
       const caption = [
         "Bobo 數學算式照片",
         `單元：${unitInfo(q.unit).label}`,
@@ -2528,6 +2531,7 @@
         aiAnswerDisagreed ? "注意：AI 對最後答案的判讀和輸入答案不一致，已以欄位輸入答案為準。" : "",
         aiResult && aiResult.feedback ? `回饋：${aiResult.feedback}` : "",
         currentHintUsed ? "注意：本題看過提示，不算精熟。" : "",
+        parentReplyInstruction,
         aiError ? `AI錯誤：${aiError}` : ""
       ].filter(Boolean).join("\n");
       await sendTgPhoto(imageDataUrl, caption);
@@ -2543,13 +2547,13 @@
         state.completed[q.id] = true;
         if (canMaster) recordReviewPass(q);
         if (parentReviewPass) {
-          notifyMathEvent("needsReview", q, `Bobo答：${studentAnswer}\n最後答案正確；AI 批改暫時失敗，照片已送出待媽媽確認。這題先不列入待加強。`);
+          notifyMathEvent("needsReview", q, `Bobo答：${studentAnswer}\n最後答案正確；AI 批改暫時失敗，照片已送出待媽媽確認。媽媽可直接回覆照片：OK 或 重做。這題先不列入待加強。`);
         }
         feedbackEl.className = "feedback show ok";
         feedbackEl.innerHTML = `
           <div class="coach-thread">
             <div class="bubble student">我的答案：${studentAnswer}</div>
-            <div class="bubble coach ok">${canMaster ? `通過。答案是 ${expectedAnswer(q)}。${aiResult.feedback ? `<br>${aiResult.feedback}` : ""}` : `最後答案正確：${expectedAnswer(q)}。AI 批改暫時失敗，照片已送給媽媽確認；這題先不列入待加強。`}</div>
+            <div class="bubble coach ok">${canMaster ? `通過。答案是 ${expectedAnswer(q)}。${aiResult.feedback ? `<br>${aiResult.feedback}` : ""}` : `最後答案正確：${expectedAnswer(q)}。照片已送給媽媽確認，可以先繼續下一題；這題先不列入待加強。`}</div>
             <div class="bubble coach">這題的標準整理：<ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol></div>
           </div>
         `;
@@ -2569,15 +2573,15 @@
             q,
             hasAi
               ? `Bobo答：${studentAnswer}\n原因：${reviewReason}\nAI回饋：${(aiResult && aiResult.feedback) || "需要再檢查算式。"}\n已立刻加入待加強。`
-              : `Bobo答：${studentAnswer}\n${aiEndpointReady ? `AI 批改連線失敗：${aiError || "請稍後重試"}` : "AI 批改網址尚未設定"}，照片已送出待媽媽確認。`
+              : `Bobo答：${studentAnswer}\n${aiEndpointReady ? `AI 批改連線失敗：${aiError || "請稍後重試"}` : "AI 批改網址尚未設定"}，照片已送出待媽媽確認；媽媽可直接回覆照片：OK 或 重做。`
           );
         }
         feedbackEl.className = "feedback show bad";
         feedbackEl.innerHTML = `
           <div class="coach-thread">
             <div class="bubble student">我的答案：${studentAnswer}</div>
-            <div class="bubble coach alert">${hasAi ? (answerOk ? "答案對，但算式照片還不能算通過，請補清楚再拍一次。" : "這題先不通過，請修正後再拍一次。") : (aiEndpointReady ? "AI 批改連線失敗，照片已送給媽媽確認；這題先保留待加強。" : "照片已送給媽媽確認；目前沒有 AI 批改網址，所以這題先不算精熟。")}</div>
-            <div class="bubble coach">${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "等 AI 批改後，這裡就會像聊天一樣直接告訴你哪裡要修。"}</div>
+            <div class="bubble coach alert">${hasAi ? (answerOk ? "答案對，但算式照片還不能算通過，請補清楚再拍一次。" : "這題先不通過，請修正後再拍一次。") : (aiEndpointReady ? "AI 批改連線失敗，照片已送給媽媽確認；你可以先繼續下一題。" : "照片已送給媽媽確認；你可以先繼續下一題。")}</div>
+            <div class="bubble coach">${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "媽媽會在 Telegram 照片上回覆 OK 或重做；我先把這題記錄好。"}</div>
             <div class="bubble coach">小提示：${safeHint(q)}</div>
           </div>
         `;
