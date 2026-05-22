@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bobo 他校自然考卷練習</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #15202b;
+      --muted: #627083;
+      --line: #d9e0e8;
+      --page: #f5f7fa;
+      --panel: #ffffff;
+      --brand: #176f7a;
+      --brand-soft: #e3f4f2;
+      --blue: #255aa8;
+      --blue-soft: #e9f0ff;
+      --orange: #a65d05;
+      --orange-soft: #fff0d8;
+      --good: #177245;
+      --good-soft: #e9f7ef;
+      --bad: #b42318;
+      --bad-soft: #ffe8e4;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--page);
+      line-height: 1.55;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    h2 {
+      font-size: 18px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    .subhead {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    button {
+      appearance: none;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--ink);
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: white;
+    }
+
+    button.ghost {
+      background: #f8fafc;
+    }
+
+    button.danger {
+      border-color: #f0b8af;
+      color: var(--bad);
+      background: #fff8f6;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px 20px 34px;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .paper-card,
+    .panel,
+    .question-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .paper-card {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .paper-meta,
+    .mini-row,
+    .q-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 5px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      padding: 3px 8px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .badge.done {
+      background: var(--good-soft);
+      color: var(--good);
+    }
+
+    .badge.pending {
+      background: var(--orange-soft);
+      color: var(--orange);
+    }
+
+    .exam-layout {
+      display: none;
+      grid-template-columns: minmax(250px, 320px) 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .exam-layout.show {
+      display: grid;
+    }
+
+    .home.hide {
+      display: none;
+    }
+
+    .side {
+      position: sticky;
+      top: 14px;
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfcfe;
+      min-height: 62px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .meter {
+      height: 10px;
+      background: #e7ebf0;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .meter span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--blue));
+      transition: width .2s ease;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .question-card {
+      overflow: hidden;
+    }
+
+    .question-card.missed {
+      border-color: #f0b8af;
+      box-shadow: 0 0 0 3px rgba(180, 35, 24, .08);
+    }
+
+    .q-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #fbfcfe;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .q-body {
+      padding: 14px;
+    }
+
+    .prompt {
+      margin: 0 0 12px;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .choices {
+      display: grid;
+      gap: 8px;
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      min-height: 46px;
+    }
+
+    .choice .letter {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #eef2f6;
+      color: var(--muted);
+      display: inline-grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    .choice.selected {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .choice.correct {
+      border-color: var(--good);
+      background: var(--good-soft);
+    }
+
+    .choice.wrong {
+      border-color: var(--bad);
+      background: var(--bad-soft);
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #fbfcfe;
+      border: 1px solid var(--line);
+    }
+
+    .submitted .feedback {
+      display: block;
+    }
+
+    .answer-line {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .result {
+      display: none;
+      margin-bottom: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .weak-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 880px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .exam-layout.show {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        padding: 12px 10px 28px;
+      }
+
+      .topbar {
+        padding: 14px 12px;
+      }
+
+      h1 {
+        font-size: 21px;
+      }
+
+      .q-head {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>Bobo 他校自然考卷練習</h1>
+        <div class="subhead">整份考卷線上作答，交卷後記錄哪一份已完成。</div>
+      </div>
+      <div class="toolbar">
+        <button class="ghost" id="homeBtn" type="button">考卷首頁</button>
+        <button class="danger" id="clearBtn" type="button">清除完成記錄</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="home" id="home">
+      <h2>選一份考卷</h2>
+      <div class="home-grid" id="paperGrid"></div>
+    </section>
+
+    <section class="exam-layout" id="exam">
+      <aside class="panel side">
+        <section class="section">
+          <h2 id="paperTitle">考卷</h2>
+          <div class="mini-row" id="paperInfo"></div>
+          <div class="meter" aria-label="答題進度"><span id="progressBar"></span></div>
+          <div class="stat-grid">
+            <div class="stat"><b id="answeredCount">0</b><span>已答</span></div>
+            <div class="stat"><b id="scoreCount">0</b><span>得分</span></div>
+            <div class="stat"><b id="missCount">0</b><span>待加強</span></div>
+          </div>
+        </section>
+        <section class="section">
+          <div class="toolbar">
+            <button class="primary" id="submitBtn" type="button">交卷批改</button>
+            <button class="ghost" id="wrongOnlyBtn" type="button">只看錯題</button>
+            <button class="ghost" id="retryBtn" type="button">重做本卷</button>
+          </div>
+        </section>
+      </aside>
+
+      <section>
+        <div class="result" id="result"></div>
+        <div class="question-list" id="questionList"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'bobo_exam_papers_completed_v1';
+
+    const papers = [
+      {
+        id: 'guangxing-112-final-nani',
+        title: '彰化縣廣興國小 112 下學期六年級自然期末',
+        school: '縣立廣興國小',
+        year: '112',
+        publisher: '南一',
+        status: 'ready',
+        sourceFile: '縣立廣興國小 六年級 112 下學期 自然科學領域 自然 第二次段考 期末考 南一 試卷.pdf',
+        questions: [
+          q('g112-01', '選擇', '全球暖化', '哪一種氣體是加強地球暖化的主要氣體之一？', ['二氧化碳', '氧氣', '氮氣', '氫氣'], 0, '二氧化碳是重要溫室氣體之一，增加太多會加強溫室效應。'),
+          q('g112-02', '選擇', '節能標章', '標有節能標章的家電，最合理的特性是什麼？', ['是可以資源回收的環保產品', '購買時一定可省 15% 金額', '使用時一定可省 50% 以上用電量', '比國家認證標準更省電'], 3, '節能標章代表能源效率符合節能標準，不是保證折扣或固定省電百分比。'),
+          q('g112-03', '選擇', '候鳥', '黑面琵鷺屬於冬候鳥，哪一個月份最不容易在臺灣見到牠？', ['12 月', '1 月', '2 月', '6 月'], 3, '黑面琵鷺多在冬季來臺度冬，6 月不屬於主要度冬季節。'),
+          q('g112-04', '選擇', '碳足跡', '碳足跡的數值愈大，表示所從事活動通常愈如何？', ['使人愈健康', '產生愈多二氧化碳或溫室氣體', '愈容易發胖', '可以省下愈多錢'], 1, '碳足跡用來估計產品或活動造成的溫室氣體排放量。'),
+          q('g112-05', '選擇', '水土保持', '怎麼做可以避免或降低土石流發生？', ['開墾山坡地', '減少開墾山坡地', '傾倒廢水', '搭乘大眾運輸工具'], 1, '山坡地若過度開墾，植被減少，容易增加土石流風險。'),
+          q('g112-06', '選擇', '環保行動', '環保行動最主要的目的為何？', ['防止家暴', '防制毒品', '推廣戒菸', '保護地球'], 3, '環保行動的核心是減少污染、節省資源並保護環境。'),
+          q('g112-07', '選擇', '全球暖化', '下列關於全球暖化的敘述哪一項正確？', ['由雨林植物排放過多氧氣造成', '可能造成氣候異常、沙漠化擴大', '會使極地冰原融化後海平面下降', '只會影響野外動植物'], 1, '全球暖化可能造成極端氣候、海平面上升與生態改變。'),
+          q('g112-08', '選擇', '水汙染', '採取哪項行為無法減少水汙染？', ['利用天然溼地淨化水質', '在河川旁飼養鴨鵝並讓排泄物進入水中', '藉由汙水處理廠處理廢水', '不將垃圾丟進河流中'], 1, '畜養動物的排泄物若流入河川，會增加水汙染。'),
+          q('g112-09', '選擇', '極地生態', '北極熊出現「冰凍廚餘」等儲存食物行為，較合理的推論是什麼？', ['冰凍食物一定比較好吃', '食物必須冰凍才能食用', '牠可能感受到食物不足而有儲存行為', '牠一直都有這種行為，只是人類不知道'], 2, '食物來源改變或不足，可能讓動物出現新的覓食與儲存行為。'),
+          q('g112-10', '選擇', '外來入侵種', '關於外來入侵種的敘述，何者錯誤？', ['原本沒有分布於該地區', '原本就有分布於該地區', '可能因人類引進而出現', '可能在新環境繁衍並影響生態'], 1, '外來種不是當地原本就有自然分布的生物。'),
+          q('g112-11', '選擇', '河口溼地', '下列哪項不是河口溼地常見情形？', ['泥灘地上有招潮蟹和彈塗魚', '有許多泥沙和營養物質沉積', '水位幾乎沒有變化', '會受漲潮和退潮影響'], 2, '河口溼地受潮汐影響，水位會變化。'),
+          q('g112-12', '是非', '外來植物', '看見互花米草入侵溼地時，可以隨意放火焚燒來處理。', ['O 正確', 'X 錯誤'], 1, '外來種處理需要依規定與專業方式進行，不能任意放火。'),
+          q('g112-13', '是非', '全球暖化', '全球暖化的主因是水汙染，只要改善水質就可以減緩暖化。', ['O 正確', 'X 錯誤'], 1, '全球暖化主要和溫室氣體增加有關，水質改善不能單獨解決暖化。'),
+          q('g112-14', '是非', '環保行動', '透過參與不同的環保活動，可以身體力行愛護地球。', ['O 正確', 'X 錯誤'], 0, '環保活動可以減少污染、節省資源，也能建立保護環境的習慣。'),
+          q('g112-15', '是非', '再生能源', '地熱、風能相較於不可再生能源，屬於可再生能源。', ['O 正確', 'X 錯誤'], 0, '地熱和風能能由自然循環補充，屬於再生能源。'),
+          q('g112-16', '是非', '綠色消費', '購買低汙染、可重複利用及節省資源的商品，屬於綠色消費。', ['O 正確', 'X 錯誤'], 0, '綠色消費重視低汙染、省資源、可重複利用。'),
+          q('g112-17', '選擇', '發電方式', '利用水位高度差，經由發電機轉換產生電，屬於哪種發電？', ['太陽能發電', '火力發電', '核能發電', '水力發電'], 3, '水力發電利用水位差或水流能量帶動發電機。'),
+          q('g112-18', '選擇', '發電方式', '發電原料為鈾的是哪一種？', ['核能發電', '地熱發電', '生質能發電', '太陽能發電'], 0, '核能發電常以鈾作為核燃料。'),
+          q('g112-19', '選擇', '發電方式', '以煤、石油、天然氣作為原料的是哪一種發電？', ['風力發電', '火力發電', '地熱發電', '水力發電'], 1, '火力發電燃燒化石燃料產生熱能，再推動發電設備。'),
+          q('g112-20', '選擇', '發電方式', '利用太陽能板吸收太陽能量來發電的是哪一種？', ['太陽能發電', '核能發電', '生質能發電', '火力發電'], 0, '太陽能發電把陽光轉換成電能。'),
+          q('g112-21', '選擇', '發電方式', '透過溫泉、火山活動等地球內部熱能進行發電的是哪一種？', ['水力發電', '地熱發電', '風力發電', '火力發電'], 1, '地熱發電利用地球內部熱能。'),
+          q('g112-22', '選擇', '發電方式', '將農作物處理後直接燃燒或提煉成燃料來發電，屬於哪一種？', ['核能發電', '生質能發電', '地熱發電', '水力發電'], 1, '生質能可由植物、農作物或有機廢棄物轉換成能源。'),
+          q('g112-23', '選擇', '綠色消費', '「把要丟棄的物品分類回收」最符合哪一項綠色消費做法？', ['減量', '環保選購', '重複使用', '回收再生'], 3, '分類回收能讓資源再利用，屬於回收再生。'),
+          q('g112-24', '選擇', '綠色消費', '「購物時自備購物袋」最符合哪一項？', ['減量', '環保選購', '重複使用', '回收再生'], 0, '自備購物袋可以減少一次性包裝和塑膠袋使用。'),
+          q('g112-25', '選擇', '綠色消費', '「買有環保標章的商品」最符合哪一項？', ['減量', '環保選購', '重複使用', '回收再生'], 1, '選購較環保的商品屬於環保選購。'),
+          q('g112-26', '是非', '碳足跡', '臺灣碳標籤上的數字愈高，表示商品愈環保。', ['O 正確', 'X 錯誤'], 1, '碳足跡數值愈高，通常代表排放愈多，應選擇較低者。'),
+          q('g112-27', '是非', '候鳥', '候鳥指的是具有遷徙行為的鳥類。', ['O 正確', 'X 錯誤'], 0, '候鳥會依季節在不同地區間遷徙。'),
+          q('g112-28', '是非', '候鳥', '遷徙途中在臺灣短暫休息、覓食後再飛往其他地區的鳥類，稱為過境鳥。', ['O 正確', 'X 錯誤'], 0, '過境鳥是在遷徙途中短暫停留補充體力的鳥類。'),
+          q('g112-29', '是非', '極地環境', '極地環境終年被冰雪封凍，溫度非常低。', ['O 正確', 'X 錯誤'], 0, '極地的特徵是低溫、冰雪和厚冰層。'),
+          q('g112-30', '是非', '極地環境', '因為極地很冷，所以找不到任何動物。', ['O 正確', 'X 錯誤'], 1, '企鵝、北極熊、海豹等生物可適應極地環境。'),
+          q('g112-31', '是非', '節能減碳', '自備環保餐具與環保袋、多搭大眾運輸，有助於減緩全球暖化。', ['O 正確', 'X 錯誤'], 0, '這些行動能減少資源浪費與能源消耗。'),
+          q('g112-32', '選擇', '恆溫與變溫', '鱷魚和蛇的體溫特性比較接近哪一種？', ['體溫隨外界氣溫而升降', '體溫固定在一定範圍內', '完全不受氣溫影響', '只在冬天有體溫'], 0, '爬蟲類多屬變溫動物，體溫會受外界溫度影響。'),
+          q('g112-33', '是非', '水土保持', '山坡地濫墾濫建，可能使野生動植物失去棲地，也可能增加土石流風險。', ['O 正確', 'X 錯誤'], 0, '過度開發會破壞棲地與植被，增加災害風險。'),
+          q('g112-34', '是非', '水汙染', '家庭廢水對河水完全不會構成威脅。', ['O 正確', 'X 錯誤'], 1, '家庭廢水也可能含有清潔劑、油污和有機物，會影響水質。')
+        ]
+      },
+      {
+        id: 'anhe-109-final-nani',
+        title: '新北市安和國小 109 下學期六年級自然期末',
+        school: '市立安和國小',
+        year: '109',
+        publisher: '南一',
+        status: 'ready',
+        sourceFile: '市立安和國小 六年級 109 下學期 自然科學領域 自然 第二次段考 期末考 南一 試卷.pdf',
+        questions: [
+          q('a109-01', '選擇', '發電方式', '目前臺灣哪種發電方式供應的發電量最多？', ['核能發電', '風力發電', '火力發電', '水力發電'], 2, '臺灣長期以火力發電供應最多電力。'),
+          q('a109-02', '選擇', '水力發電', '水力發電如何產生電力？', ['利用太陽能板吸收太陽能', '利用風力帶動葉片', '利用水位差產生的能量', '燃燒煤炭加熱水'], 2, '水力發電利用水位差或水流能量帶動發電機。'),
+          q('a109-03', '選擇', '食品添加物', '關於食品添加物，下列何者錯誤？', ['可用於調味、增色', '可降低生產成本', '可抑制細菌繁殖', '完全不影響身體健康'], 3, '食品添加物必須適量且符合規定，不能說完全不影響健康。'),
+          q('a109-04', '選擇', '微生物', '下列哪一個食物的製作與微生物使用較無關？', ['芒果青', '臭豆腐', '味噌湯', '啤酒'], 0, '臭豆腐、味噌、啤酒常與微生物發酵有關。'),
+          q('a109-05', '選擇', '金屬生鏽', '關於生鏽現象，下列何者較正確？', ['鋁生鏽後會變棕色', '鐵生鏽後變灰白色', '銅生鏽後可能變綠色', '金屬生鏽後皆為棕色'], 2, '銅氧化後常見綠色鏽蝕；鐵鏽通常偏紅褐色。'),
+          q('a109-06', '選擇', '不鏽鋼', '關於不鏽鋼，下列敘述何者較正確？', ['由鐵、鈷、鎳三種金屬合成', '鎳有助於抗酸性', '鈷的作用是抗鏽蝕', '永遠不會生鏽'], 1, '不鏽鋼耐鏽性較好，但不是完全不會生鏽。'),
+          q('a109-07', '選擇', '綠能發電', '以下哪些屬於綠能發電？a.核能 b.風力 c.太陽能 d.天然氣', ['ab', 'bc', 'cd', 'ad'], 1, '風力和太陽能屬於常見綠能或再生能源。'),
+          q('a109-08', '選擇', '黴菌觀察', '觀察黴菌生長時，夾鏈袋不是用來做什麼？', ['防止黴菌飄散', '保存土司以便食用', '避免他人觸摸黴菌', '減少外界水分影響實驗'], 1, '發霉土司不可食用，夾鏈袋是為了隔離和安全觀察。'),
+          q('a109-09', '選擇', '食品安全', '食物發霉時，最安全的處理方式是什麼？', ['洗掉發霉部分後食用', '丟進廚餘桶中', '切掉發霉部分後食用', '高溫烹煮後食用'], 1, '發霉食物可能已被菌絲或毒素污染，應避免食用。'),
+          q('a109-10', '選擇', '金屬生鏽', '哪一種物質塗在鐵製品表面後，可能使鐵最快生鏽？', ['純水', '酸性水溶液', '沙拉油', '香油'], 1, '酸性環境通常會加速鐵的鏽蝕。'),
+          q('a109-11', '選擇', '黴菌', '黴菌最喜歡下列哪一種環境？', ['高溫乾燥', '低溫乾燥', '溫暖潮溼', '缺乏氧氣'], 2, '黴菌容易在溫暖潮溼的環境中生長。'),
+          q('a109-12', '選擇', '金屬生鏽', '海上航行的輪船，哪個部位通常最容易嚴重生鏽？', ['空氣中的船身', '空氣與海水接觸面的船身', '整艘船都相同', '完全泡在海水中的船身'], 1, '空氣和海水同時接觸處，氧氣與水分充足，容易鏽蝕。'),
+          q('a109-13', '選擇', '金屬生鏽', '鐵製品生鏽時會發生什麼變化？', ['顏色改變', '外觀改變', '產生鐵鏽', '以上都會'], 3, '生鏽會改變顏色、外觀，也會產生鐵鏽。'),
+          q('a109-14', '選擇', '黴菌', '黴菌主要利用下列何者繁殖？', ['種子', '孢子', '菌絲', '根'], 1, '黴菌常利用孢子繁殖。'),
+          q('a109-15', '選擇', '再生能源', '下列哪一項屬於再生能源？', ['風力', '核能', '煤礦', '天然氣'], 0, '風力可由自然循環補充，屬於再生能源。'),
+          q('a109-16', '選擇', '再生能源', '下列哪一項屬於非再生能源？', ['地熱', '潮汐', '煤礦', '風力'], 2, '煤礦是化石燃料，形成時間很長，屬非再生能源。'),
+          q('a109-17', '選擇', '實驗變因', '研究「容器大小會不會影響鋼棉生鏽速度」時，容器大小是什麼變因？', ['保持不變變因', '改變變因', '應變變因', '無關變因'], 1, '被刻意改變來觀察影響的條件，是改變變因。'),
+          q('a109-18', '選擇', '實驗變因', '同一實驗中，「生鏽情形」屬於什麼變因？', ['保持不變變因', '改變變因', '應變變因', '控制變因'], 2, '實驗觀察到的結果是應變變因。'),
+          q('a109-19', '是非', '金屬生鏽', '生鏽會使物體表面變脆弱。', ['O 正確', 'X 錯誤'], 0, '鏽蝕會破壞金屬表面和結構。'),
+          q('a109-20', '是非', '金屬防鏽', '把鐵製品泡在水中，就可以避免鐵和空氣作用而完全不會生鏽。', ['O 正確', 'X 錯誤'], 1, '水中仍可能有溶解氧，鐵仍會生鏽。'),
+          q('a109-21', '是非', '黴菌', '黴菌是由菌絲構成，並可利用孢子繁殖。', ['O 正確', 'X 錯誤'], 0, '黴菌常由菌絲組成，孢子可幫助繁殖與擴散。'),
+          q('a109-22', '是非', '黴菌', '黴菌在溫暖、潮溼的環境下容易生長。', ['O 正確', 'X 錯誤'], 0, '溫暖潮溼是黴菌常見的適合條件。'),
+          q('a109-23', '是非', '食品保存', '罐頭常利用隔絕空氣來延長保存。', ['O 正確', 'X 錯誤'], 0, '罐頭密封後能隔絕空氣和外界微生物。'),
+          q('a109-24', '是非', '金屬生鏽實驗', '鋼棉生鏽會消耗空氣中的氧氣，因此倒扣廣口瓶內水位可能上升。', ['O 正確', 'X 錯誤'], 0, '氧氣被消耗後，瓶內氣體體積減少，水位可能上升。'),
+          q('a109-25', '選擇', '發電優缺點', '下列哪一項最可能是火力發電的缺點？', ['發電穩定', '技術成熟', '燃燒燃料會造成空氣污染與碳排放', '可完全不產生廢氣'], 2, '火力發電燃燒燃料會排放污染物與溫室氣體。'),
+          q('a109-26', '選擇', '發電優缺點', '下列哪一項最可能是綠能發電的限制？', ['完全沒有任何限制', '可能受天氣、地形或時間影響', '一定比火力發電污染更高', '一定需要鈾作為燃料'], 1, '風力、太陽能等常受自然條件影響。')
+        ]
+      },
+      pendingPaper('zhongzheng-111-final-nani', '縣立中正國小 111 下學期六年級自然期末'),
+      pendingPaper('guangxing-111-final-nani', '縣立廣興國小 111 下學期六年級自然期末'),
+      pendingPaper('tianzhong-111-final-nani', '縣立田中國小 111 下學期六年級自然期末')
+    ];
+
+    const state = {
+      paper: null,
+      answers: {},
+      submitted: false,
+      wrongOnly: false
+    };
+
+    const home = document.getElementById('home');
+    const exam = document.getElementById('exam');
+    const paperGrid = document.getElementById('paperGrid');
+    const paperTitle = document.getElementById('paperTitle');
+    const paperInfo = document.getElementById('paperInfo');
+    const questionList = document.getElementById('questionList');
+    const result = document.getElementById('result');
+    const progressBar = document.getElementById('progressBar');
+    const answeredCount = document.getElementById('answeredCount');
+    const scoreCount = document.getElementById('scoreCount');
+    const missCount = document.getElementById('missCount');
+
+    function q(id, type, concept, prompt, choices, answer, explanation) {
+      return { id, type, concept, prompt, choices, answer, explanation };
+    }
+
+    function pendingPaper(id, title) {
+      return { id, title, status: 'pending', questions: [] };
+    }
+
+    function readRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function writeRecords(records) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function renderHome() {
+      const records = readRecords();
+      paperGrid.innerHTML = papers.map(paper => {
+        const record = records[paper.id];
+        const ready = paper.status === 'ready';
+        const status = record
+          ? `<span class="badge done">已完成 ${record.score}/${record.total}</span>`
+          : ready ? '<span class="badge">可作答</span>' : '<span class="badge pending">待整理</span>';
+        const meta = ready
+          ? `${paper.school} · ${paper.year} 學年 · ${paper.questions.length} 題可自動批改`
+          : 'PDF 已匯入，尚未轉成線上題目';
+        return `
+          <article class="paper-card">
+            <div>
+              <h3>${paper.title}</h3>
+              <div class="paper-meta">${status}<span>${meta}</span></div>
+            </div>
+            <div class="mini-row">${record ? `上次完成：${new Date(record.finishedAt).toLocaleString('zh-TW')}` : '完成後會記錄在這台瀏覽器'}</div>
+            <button class="${ready ? 'primary' : 'ghost'}" type="button" data-paper="${paper.id}" ${ready ? '' : 'disabled'}>${record ? '重做這份' : ready ? '開始作答' : '整理中'}</button>
+          </article>
+        `;
+      }).join('');
+
+      paperGrid.querySelectorAll('[data-paper]').forEach(button => {
+        button.addEventListener('click', () => startPaper(button.dataset.paper));
+      });
+    }
+
+    function startPaper(id) {
+      const paper = papers.find(item => item.id === id);
+      if (!paper || paper.status !== 'ready') return;
+      state.paper = paper;
+      state.answers = {};
+      state.submitted = false;
+      state.wrongOnly = false;
+      document.getElementById('wrongOnlyBtn').textContent = '只看錯題';
+      home.classList.add('hide');
+      exam.classList.add('show');
+      paperTitle.textContent = paper.title;
+      paperInfo.innerHTML = `<span class="badge">${paper.publisher}</span><span>${paper.sourceFile}</span>`;
+      renderExam();
+    }
+
+    function renderExam() {
+      const questions = visibleQuestions();
+      questionList.innerHTML = questions.map((question, visibleIndex) => {
+        const answer = state.answers[question.id];
+        const isMissed = state.submitted && answer !== question.answer;
+        const choices = question.choices.map((choice, choiceIndex) => {
+          let klass = 'choice';
+          if (answer === choiceIndex) klass += ' selected';
+          if (state.submitted && choiceIndex === question.answer) klass += ' correct';
+          if (state.submitted && answer === choiceIndex && answer !== question.answer) klass += ' wrong';
+          return `
+            <button class="${klass}" type="button" data-qid="${question.id}" data-choice="${choiceIndex}" ${state.submitted ? 'disabled' : ''}>
+              <span class="letter">${question.type === '是非' ? (choiceIndex === 0 ? 'O' : 'X') : String.fromCharCode(65 + choiceIndex)}</span>
+              <span>${choice}</span>
+            </button>
+          `;
+        }).join('');
+        const number = state.paper.questions.findIndex(item => item.id === question.id) + 1;
+        return `
+          <article class="question-card ${isMissed ? 'missed' : ''}">
+            <div class="q-head">
+              <div class="q-meta"><span>第 ${number} 題</span><span class="badge">${question.type}</span><span class="badge pending">${question.concept}</span></div>
+              <div class="q-meta">${state.submitted ? (isMissed ? '待加強' : '答對') : answer === undefined ? '未作答' : '已作答'}</div>
+            </div>
+            <div class="q-body">
+              <p class="prompt">${question.prompt}</p>
+              <div class="choices">${choices}</div>
+              <div class="feedback">
+                <b>${isMissed ? '這題要再看一次' : '答對'}</b>
+                <div>${question.explanation}</div>
+                <div class="answer-line">正確答案：${question.choices[question.answer]}</div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      questionList.querySelectorAll('.choice').forEach(button => {
+        button.addEventListener('click', () => {
+          state.answers[button.dataset.qid] = Number(button.dataset.choice);
+          renderExam();
+        });
+      });
+      updateStats();
+    }
+
+    function visibleQuestions() {
+      if (!state.paper) return [];
+      if (!state.wrongOnly || !state.submitted) return state.paper.questions;
+      return state.paper.questions.filter(question => state.answers[question.id] !== question.answer);
+    }
+
+    function updateStats() {
+      if (!state.paper) return;
+      const total = state.paper.questions.length;
+      const answered = state.paper.questions.filter(question => state.answers[question.id] !== undefined).length;
+      const score = state.paper.questions.filter(question => state.answers[question.id] === question.answer).length;
+      const missed = state.submitted ? total - score : 0;
+      answeredCount.textContent = answered;
+      scoreCount.textContent = state.submitted ? score : 0;
+      missCount.textContent = missed;
+      progressBar.style.width = `${Math.round(answered / total * 100)}%`;
+    }
+
+    function submitPaper() {
+      if (!state.paper) return;
+      const total = state.paper.questions.length;
+      const answered = state.paper.questions.filter(question => state.answers[question.id] !== undefined).length;
+      if (answered < total && !confirm(`還有 ${total - answered} 題沒作答，確定要交卷嗎？`)) return;
+      state.submitted = true;
+      const score = state.paper.questions.filter(question => state.answers[question.id] === question.answer).length;
+      const wrongConcepts = state.paper.questions
+        .filter(question => state.answers[question.id] !== question.answer)
+        .map(question => question.concept);
+      const records = readRecords();
+      records[state.paper.id] = {
+        paperId: state.paper.id,
+        title: state.paper.title,
+        score,
+        total,
+        finishedAt: new Date().toISOString(),
+        missedConcepts: [...new Set(wrongConcepts)]
+      };
+      writeRecords(records);
+      result.classList.add('show');
+      result.innerHTML = `
+        <h2>交卷完成：${score}/${total}</h2>
+        <div class="subhead">${wrongConcepts.length === 0 ? '這份全對，可以換下一份。' : `有 ${wrongConcepts.length} 題待加強，下面已標出錯題。`}</div>
+        <div class="weak-list">${[...new Set(wrongConcepts)].map(concept => `<span class="badge pending">${concept}</span>`).join('')}</div>
+      `;
+      renderExam();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetCurrentPaper() {
+      if (!state.paper) return;
+      state.answers = {};
+      state.submitted = false;
+      state.wrongOnly = false;
+      result.classList.remove('show');
+      document.getElementById('wrongOnlyBtn').textContent = '只看錯題';
+      renderExam();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', submitPaper);
+    document.getElementById('retryBtn').addEventListener('click', resetCurrentPaper);
+    document.getElementById('wrongOnlyBtn').addEventListener('click', () => {
+      state.wrongOnly = !state.wrongOnly;
+      document.getElementById('wrongOnlyBtn').textContent = state.wrongOnly ? '看全部題目' : '只看錯題';
+      renderExam();
+    });
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      exam.classList.remove('show');
+      home.classList.remove('hide');
+      result.classList.remove('show');
+      renderHome();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (!confirm('確定清除這台瀏覽器裡的完成記錄嗎？')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderHome();
+      updateStats();
+    });
+
+    renderHome();
+  </script>
+</body>
+</html>
