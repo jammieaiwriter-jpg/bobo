@@ -65,12 +65,8 @@
   <div class="wrap toolbar">
     <div class="runstatus" id="runStatus">目前回合載入中</div>
     <div class="group">
-      <button class="tab active" data-filter="all">全部</button>
-      <button class="tab" data-filter="basic">基礎</button>
-      <button class="tab" data-filter="challenge">挑戰</button>
-      <button class="tab" data-filter="retry">再練</button>
+      <button id="retryMode">再練</button>
       <button class="primary" id="checkAll">批改</button>
-      <button id="reportBtn">回報</button>
       <button id="resetRun">重來本回</button>
       <button id="printPage">列印</button>
     </div>
@@ -160,7 +156,7 @@
         });
         return items;
       }
-      return questions().filter(q => (filter === "all" || q.level === filter) && (unitFilter === "all" || q.unit === unitFilter));
+      return questions();
     }
     function itemKey(q){ return q.retryStage ? `${q.retrySource}:${q.id}` : q.id; }
     function itemState(q){ return get(itemKey(q)); }
@@ -171,6 +167,11 @@
       document.getElementById("runStatus").textContent = `目前練習：${run().label}｜已完成 ${completed} / ${BANK.runs.length} 回`;
     }
     function renderUnits(){
+      if(filter !== "retry"){
+        unitFilter = "all";
+        document.getElementById("unitTabs").innerHTML = "";
+        return;
+      }
       const units = [...new Set(questions().map(q => q.unit))];
       document.getElementById("unitTabs").innerHTML = `<button class="unit-tab ${unitFilter==="all"?"active":""}" data-unit="all">全部單元</button>` + units.map(u => `<button class="unit-tab ${unitFilter===u?"active":""}" data-unit="${escapeHtml(u)}">${escapeHtml(u.replace("問題","").replace("圓形百分圖和圓形圖的應用","圓形圖應用"))}</button>`).join("");
       document.querySelectorAll(".unit-tab").forEach(btn => btn.addEventListener("click", () => { unitFilter=btn.dataset.unit; reportBox.classList.remove("show"); renderAll(false); }));
@@ -180,7 +181,8 @@
     function solutionFor(q){ return `答案：${q.answer[0]}
 
 ${q.solution || ""}`; }
-    function renderAll(refreshTabs=true){ if(refreshTabs){renderRunStatus(); renderUnits();} renderQuestions(); updateStats(); }
+    function syncRetryModeButton(){ const btn=document.getElementById("retryMode"); btn.textContent = filter === "retry" ? "回本回 24 題" : "再練"; btn.classList.toggle("active", filter === "retry"); }
+    function renderAll(refreshTabs=true){ syncRetryModeButton(); if(refreshTabs){renderRunStatus(); renderUnits();} renderQuestions(); updateStats(); }
     function renderQuestions(){
       const items = activeItems();
       grid.innerHTML = items.length ? "" : '<article class="q"><div class="body"><p class="prompt">目前沒有再練項目。</p></div></article>';
@@ -217,7 +219,7 @@ ${q.solution || ""}`; }
       document.getElementById("doneCount").textContent=done; document.getElementById("correctCount").textContent=clean; document.getElementById("retryCount").textContent=retry; document.getElementById("totalCount").textContent=questions().length; document.getElementById("progressText").textContent=`${run().label}：精熟 ${clean} / ${questions().length}，再練 ${retry} 題`; document.getElementById("progressBar").style.width=`${Math.round(clean/questions().length*100)}%`;
       maybeNotifyCompletion(done, clean, retry);
     }
-    document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => { filter=btn.dataset.filter; document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === btn)); reportBox.classList.remove("show"); renderAll(false); }));
+    document.getElementById("retryMode").addEventListener("click", () => { filter = filter === "retry" ? "all" : "retry"; reportBox.classList.remove("show"); renderAll(true); });
     document.getElementById("checkAll").addEventListener("click", () => document.querySelectorAll(".q[data-id]").forEach(card => card.querySelector('[data-action="check"]')?.click()));
     document.getElementById("resetRun").addEventListener("click", () => {
       if(!confirm("確定清除本回填寫內容嗎？看過提示、詳解或答錯的紀錄會保留，不能用重來躲過再練。")) return;
@@ -235,7 +237,6 @@ ${q.solution || ""}`; }
       saveState(); reportBox.classList.remove("show"); renderAll();
     });
     document.getElementById("printPage").addEventListener("click", () => window.print());
-    document.getElementById("reportBtn").addEventListener("click", () => { reportBox.textContent=buildReport(); reportBox.classList.add("show"); reportBox.scrollIntoView({behavior:"smooth", block:"nearest"}); });
     async function sendTgMessage(text){
       if(!NOTIFY_ENDPOINT || NOTIFY_ENDPOINT.includes("YOUR_WORKER")) return false;
       try {
