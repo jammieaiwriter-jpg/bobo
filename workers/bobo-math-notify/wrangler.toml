@@ -1,0 +1,7 @@
+name = "bobo-math-notify"
+main = "worker.js"
+compatibility_date = "2026-05-23"
+
+# Set these as Cloudflare Worker secrets, not in this file:
+# wrangler secret put TELEGRAM_BOT_TOKEN
+# wrangler secret put TELEGRAM_CHAT_ID
