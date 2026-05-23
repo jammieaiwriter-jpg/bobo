@@ -199,8 +199,9 @@ ${q.solution || ""}`; }
         const hintPanel = article.querySelector(".hint-panel");
         if(st.checked) mark(article, q, st);
         if(st.hinted && hintPanel) hintPanel.classList.add("show");
-        input.addEventListener("input", () => { const next={...itemState(q), value:input.value, checked:false, correct:false, shown:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
-        article.querySelector('[data-action="check"]').addEventListener("click", () => { const correct=ok(q,input.value); const next={...itemState(q), value:input.value, checked:true, correct, shown:false}; setItemState(q,next); mark(article,q,next); updateStats(); });
+        input.addEventListener("input", () => { const current=itemState(q); const next={...current, value:input.value, checked:false, correct:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
+        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; setItemState(q,next); mark(article,q,next); updateStats(); });
+        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,q,next); updateStats(); });
         const hintBtn = article.querySelector('[data-action="hint"]');
         if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); });
         const showBtn = article.querySelector('[data-action="show"]');
