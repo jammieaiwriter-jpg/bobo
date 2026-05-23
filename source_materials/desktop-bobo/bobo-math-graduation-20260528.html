@@ -120,7 +120,7 @@
       return BANK.runs[BANK.runs.length - 1].run_id;
     }
     function rawGet(runId, id){ return state[`${runId}:${id}`] || {}; }
-    function rawIsRetryItem(runId, q){ const item=rawGet(runId, q.id); return item.checked && (!item.correct || item.hinted || item.shown); }
+    function rawIsRetryItem(runId, q){ const item=rawGet(runId, q.id); return !!item.tainted || (item.checked && (!item.correct || item.hinted || item.shown)); }
     function rawRetryFlowDone(runId, q){
       const original = rawGet(runId, `${q.id}:${q.id}`);
       const variants = q.retry_variants.map(v => rawGet(runId, `${q.id}:${v.id}`));
@@ -147,7 +147,8 @@
     function normalize(v){ return String(v).trim().replace(/\s+/g,"").replace("％","%").toUpperCase(); }
     function ok(q, v){ const got=normalize(v); return q.answer.some(a => normalize(a) === got); }
     function label(level){ return level === "basic" ? "基礎" : level === "challenge" ? "挑戰" : "再練"; }
-    function isRetryItem(q){ const item=get(q.id); return item.checked && (!item.correct || item.hinted || item.shown); }
+    function isRetryItem(q){ const item=get(q.id); return !!item.tainted || (item.checked && (!item.correct || item.hinted || item.shown)); }
+    function retryReasonFor(st){ return st.retryReason || (st.shown ? "看詳解/答案" : st.hinted ? "看提示" : "答錯"); }
     function activeItems(){
       if(filter === "retry"){
         const items = [];
@@ -200,25 +201,39 @@ ${q.solution || ""}`; }
         if(st.checked) mark(article, q, st);
         if(st.hinted && hintPanel) hintPanel.classList.add("show");
         input.addEventListener("input", () => { const current=itemState(q); const next={...current, value:input.value, checked:false, correct:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
-        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; setItemState(q,next); mark(article,q,next); updateStats(); });
-        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,q,next); updateStats(); });
+        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); mark(article,q,next); updateStats(); });
+        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,q,next); updateStats(); });
         const hintBtn = article.querySelector('[data-action="hint"]');
-        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); });
+        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); });
         const showBtn = article.querySelector('[data-action="show"]');
-        if(showBtn) showBtn.addEventListener("click", () => { input.value=q.answer[0]; const next={value:q.answer[0], checked:true, correct:false, shown:true, hinted:true}; setItemState(q,next); details.open=true; mark(article,q,next); updateStats(); });
+        if(showBtn) showBtn.addEventListener("click", () => { input.value=q.answer[0]; const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); details.open=true; mark(article,q,next); updateStats(); });
         grid.appendChild(article);
       });
     }
-    function mark(article,q,st){ const el=article.querySelector(".result"); if(st.shown){el.textContent="看過答案，這題會進再練。"; el.className="result no"; return;} if(st.correct && st.hinted){el.textContent="答對，但看過提示，進再練。"; el.className="result no"; return;} el.textContent=st.correct?"答對":"再想想，答案不會直接顯示；需要時可看詳解。"; el.className=`result ${st.correct?"ok":"no"}`; }
+    function mark(article,q,st){ const el=article.querySelector(".result"); if(st.tainted || st.shown || st.hinted){el.textContent=`${retryReasonFor(st)}，這題會進再練。`; el.className="result no"; return;} el.textContent=st.correct?"答對":"再想想，答案不會直接顯示；需要時可看詳解。"; el.className=`result ${st.correct?"ok":"no"}`; }
     function updateStats(){
       let done=0, clean=0, retry=0;
-      questions().forEach(q => { const st=get(q.id); if(st.value && st.value.trim()) done++; if(st.checked && st.correct && !st.hinted && !st.shown) clean++; if(isRetryItem(q)) retry++; });
+      questions().forEach(q => { const st=get(q.id); if(st.value && st.value.trim()) done++; if(st.checked && st.correct && !st.hinted && !st.shown && !st.tainted) clean++; if(isRetryItem(q)) retry++; });
       document.getElementById("doneCount").textContent=done; document.getElementById("correctCount").textContent=clean; document.getElementById("retryCount").textContent=retry; document.getElementById("totalCount").textContent=questions().length; document.getElementById("progressText").textContent=`${run().label}：精熟 ${clean} / ${questions().length}，再練 ${retry} 題`; document.getElementById("progressBar").style.width=`${Math.round(clean/questions().length*100)}%`;
       maybeNotifyCompletion(done, clean, retry);
     }
     document.querySelectorAll(".tab").forEach(btn => btn.addEventListener("click", () => { filter=btn.dataset.filter; document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === btn)); reportBox.classList.remove("show"); renderAll(false); }));
     document.getElementById("checkAll").addEventListener("click", () => document.querySelectorAll(".q[data-id]").forEach(card => card.querySelector('[data-action="check"]')?.click()));
-    document.getElementById("resetRun").addEventListener("click", () => { if(!confirm("確定清除本回作答紀錄嗎？")) return; Object.keys(state).filter(k => k.startsWith(activeRunId + ":")).forEach(k => delete state[k]); saveState(); reportBox.classList.remove("show"); renderAll(); });
+    document.getElementById("resetRun").addEventListener("click", () => {
+      if(!confirm("確定清除本回填寫內容嗎？看過提示、詳解或答錯的紀錄會保留，不能用重來躲過再練。")) return;
+      Object.keys(state).filter(k => k.startsWith(activeRunId + ":")).forEach(k => {
+        const item = state[k];
+        const isMeta = k.includes(":_meta:");
+        const isRetryDetail = k.split(":").length > 2 && !isMeta;
+        if(isMeta || isRetryDetail){ delete state[k]; return; }
+        if(item && (item.tainted || item.hinted || item.shown || item.retryReason)){
+          state[k] = {tainted:true, hinted:!!item.hinted, shown:!!item.shown, retryReason:item.retryReason || retryReasonFor(item)};
+        } else {
+          delete state[k];
+        }
+      });
+      saveState(); reportBox.classList.remove("show"); renderAll();
+    });
     document.getElementById("printPage").addEventListener("click", () => window.print());
     document.getElementById("reportBtn").addEventListener("click", () => { reportBox.textContent=buildReport(); reportBox.classList.add("show"); reportBox.scrollIntoView({behavior:"smooth", block:"nearest"}); });
     async function sendTgMessage(text){
@@ -245,7 +260,7 @@ ${q.solution || ""}`; }
     }
     function runSummary(){
       const retryItems = retrySources();
-      const clean = questions().filter(q => { const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown; }).length;
+      const clean = questions().filter(q => { const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown && !st.tainted; }).length;
       const attempted = questions().filter(q => get(q.id).checked).length;
       return { attempted, clean, retryCount: retryItems.length, retryItems };
     }
@@ -264,7 +279,7 @@ ${q.solution || ""}`; }
         const summary = runSummary();
         const retryLines = summary.retryItems.map((q, index) => {
           const st = get(q.id);
-          const reason = st.shown ? "看答案" : (st.hinted ? "看提示" : "答錯");
+          const reason = retryReasonFor(st);
           return `${index + 1}. ${q.unit}｜${reason}\n${q.prompt}\n正解：${q.answer[0]}`;
         }).join("\n\n");
         sendTgMessage(`Bobo 數學完成一回練習\n${runProgressText()}\n回合：${run().label}\n範圍：康軒六下第五、六單元\n本回題數：${questions().length}\n未提示答對：${summary.clean}\n需補洞：${summary.retryCount}\n\n錯題/待補洞清單：\n${retryLines || "沒有錯題，今日練習完成。"}\n\n${summary.retryCount ? "請完成網頁的「再練」補洞。" : ""}`);
@@ -285,11 +300,11 @@ ${q.solution || ""}`; }
       const lines=["Bobo 數學畢業考練習回報",`回合：${run().label}`,`時間：${new Date().toLocaleString("zh-TW")}`,""];
       [...new Set(questions().map(q => q.unit))].forEach(unit => {
         const qs=questions().filter(q => q.unit===unit);
-        const clean=qs.filter(q => {const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown;}).length;
+        const clean=qs.filter(q => {const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown && !st.tainted;}).length;
         const retry=qs.filter(q => isRetryItem(q)).length;
         lines.push(`${unit}：精熟 ${clean}/${qs.length}，再練 ${retry}`);
       });
-      const retryItems=questions().filter(q => isRetryItem(q)).map(q => {const st=get(q.id); const reason=st.shown?"看答案":st.hinted?"看提示":"答錯"; return `- ${q.unit}｜${reason}｜${q.prompt}`;});
+      const retryItems=questions().filter(q => isRetryItem(q)).map(q => {const st=get(q.id); const reason=retryReasonFor(st); return `- ${q.unit}｜${reason}｜${q.prompt}`;});
       lines.push("","待補洞：",retryItems.join("\n") || "目前沒有待補洞題。","", "再練規則：每題會安排原錯題 + 補洞題 1 + 補洞題 2。");
       return lines.join("\n");
     }
