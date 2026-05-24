@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bobo 自然畢業考第 1 回</title>
+  <style>
+    :root { --ink:#17212b; --muted:#637083; --line:#d9e1ea; --bg:#f5f7fa; --paper:#fff; --blue:#2563eb; --green:#0f8f68; --red:#d84a3a; --amber:#a66321; --shadow:0 10px 24px rgba(23,33,43,.08); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif; background:var(--bg); color:var(--ink); }
+    header { background:#fff; border-bottom:1px solid var(--line); }
+    .wrap { width:min(1160px, calc(100% - 32px)); margin:0 auto; }
+    .top { min-height:124px; display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; padding:24px 0; }
+    h1 { margin:0 0 8px; font-size:clamp(28px,4vw,42px); line-height:1.12; letter-spacing:0; }
+    .subtitle { margin:0; color:var(--muted); line-height:1.6; }
+    .leaf { width:116px; height:116px; border-radius:50%; border:1px solid var(--line); background:radial-gradient(circle at 58% 42%, #fff 0 22%, transparent 23%), conic-gradient(from 20deg, #0f8f68 0 34%, #2563eb 34% 59%, #a66321 59% 78%, #d84a3a 78%); box-shadow:var(--shadow); }
+    .toolbar, .unitbar { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center; padding:16px 0; }
+    .runstatus { font-weight:800; color:var(--blue); padding:8px 0; }
+    .unitbar { padding-top:0; justify-content:flex-start; }
+    .group { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    button { min-height:38px; border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:8px; padding:8px 12px; font-size:15px; cursor:pointer; }
+    button:hover { border-color:#9aacbf; }
+    button.active { border-color:var(--blue); background:#eaf1ff; color:#1747b8; font-weight:800; }
+    button.primary { background:var(--ink); color:#fff; border-color:var(--ink); }
+    main { padding:20px 0 48px; }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(92px,1fr)); gap:10px; margin-bottom:14px; }
+    .stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px; min-height:70px; }
+    .stat b { display:block; font-size:24px; margin-bottom:4px; }
+    .stat span { color:var(--muted); font-size:13px; }
+    .progress { display:grid; gap:8px; color:var(--muted); font-size:14px; margin-bottom:18px; }
+    .bar { height:10px; border-radius:99px; background:#e7edf5; overflow:hidden; }
+    .bar span { display:block; width:0; height:100%; background:linear-gradient(90deg,var(--green),var(--blue)); }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .q { background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); display:grid; grid-template-rows:auto 1fr auto auto; min-height:292px; overflow:hidden; }
+    .qhead { display:flex; justify-content:space-between; gap:10px; padding:14px 14px 0; }
+    .badge { display:inline-flex; align-items:center; border-radius:99px; padding:4px 10px; min-height:28px; font-weight:800; font-size:13px; background:#eef2f7; color:#334155; }
+    .basic { background:#e8f7f1; color:#087855; }
+    .challenge { background:#fff1e8; color:#a63d2a; }
+    .retry { background:#fff8e8; color:#8a5a00; }
+    .qnum { color:var(--muted); font-weight:800; }
+    .body { padding:12px 14px 14px; }
+    .unit { margin:0 0 8px; color:var(--blue); font-weight:800; font-size:14px; }
+    .prompt { margin:0 0 14px; line-height:1.65; font-size:17px; }
+    input { width:min(100%, 340px); height:42px; border:1px solid #b9c5d6; border-radius:8px; padding:8px 11px; font-size:17px; }
+    input:focus { outline:3px solid rgba(37,99,235,.18); border-color:var(--blue); }
+    .actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:0 14px 14px; }
+    .result { min-height:22px; font-size:14px; font-weight:800; }
+    .ok { color:var(--green); }
+    .no { color:var(--red); }
+    .hint-panel { display:none; margin:0 14px 14px; padding:10px 12px; border:1px solid #f0d59f; border-radius:8px; background:#fff8e8; color:#704f12; line-height:1.65; }
+    .hint-panel.show { display:block; }
+    details { border-top:1px solid var(--line); background:#fbfcfe; padding:10px 14px 14px; line-height:1.65; }
+    summary { cursor:pointer; font-weight:800; }
+    .solution { margin-top:8px; white-space:pre-wrap; }
+    .trap { color:var(--muted); margin-top:6px; }
+    .report { display:none; white-space:pre-wrap; margin:18px 0 0; padding:14px; line-height:1.65; border:1px solid var(--line); border-radius:8px; background:#fff; }
+    .report.show { display:block; }
+    .note { color:var(--muted); line-height:1.6; font-size:13px; padding-top:18px; }
+    @media (max-width:760px){ .top,.stats,.grid{grid-template-columns:1fr}.leaf{width:92px;height:92px}.toolbar{align-items:stretch}.group{width:100%}button{flex:1 1 auto} }
+    @media print { button,.toolbar,.unitbar,.stats,.progress,details,.report{display:none}.grid{grid-template-columns:1fr}.q{box-shadow:none;break-inside:avoid;min-height:170px} }
+  </style>
+</head>
+<body>
+  <header><div class="wrap top"><div><h1>Bobo 自然畢業考第 1 回</h1><p class="subtitle">第 3 單元混合練習｜24 題：14 基礎 + 10 挑戰｜再練：原題 + 兩題補洞</p></div><div class="leaf" aria-label="自然科混合題視覺"></div></div></header>
+  <div class="wrap toolbar">
+    <div class="runstatus" id="runStatus">目前回合載入中</div>
+    <div class="group">
+      <button id="retryMode">再練</button>
+      <button class="primary" id="checkAll">批改</button>
+      <button id="resetRun">重來本回</button>
+      <button id="reportBtn">回報文字</button>
+      <button id="printPage">列印</button>
+    </div>
+  </div>
+  <main class="wrap">
+    <section class="unitbar" id="unitTabs"></section>
+    <section class="stats"><div class="stat"><b id="doneCount">0</b><span>已作答</span></div><div class="stat"><b id="correctCount">0</b><span>精熟</span></div><div class="stat"><b id="retryCount">0</b><span>再練項目</span></div><div class="stat"><b id="totalCount">24</b><span>本回題數</span></div></section>
+    <section class="progress"><div id="progressText">完成 0 / 24 題</div><div class="bar"><span id="progressBar"></span></div></section>
+    <section class="grid" id="grid"></section>
+    <pre class="report" id="reportBox"></pre>
+    <p class="note">題庫依課綱、考古題題型矩陣與配題規劃預先生產。看提示、看答案或答錯都會進入再練。</p>
+  </main>
+  <script>
+    const BANK = {"project":"bobo-science-graduation-20260528","scope":"自然第 3 單元：生物生長的環境、人類活動對環境的影響、珍惜自然資源","generated_at":"2026-05-24","policy":"pre_generated_verified_only","run_count":1,"questions_per_run":24,"retry_variants_per_question":2,"source_basis":["03_alignment/01-curriculum-scope.md","03_alignment/01-alignment-table.json","03_alignment/03-question-type-matrix.json","03_alignment/04-allocation-plan.json"],"runs":[{"run_id":"run01","label":"第 1 回","questions":[{"id":"s01-b01","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"environment-feature","prompt":"哪一種環境通常日夜溫差大、降雨少，動物常在夜間活動？請填：沙漠、草原、熱帶雨林或河口溼地。","answer":["沙漠"],"solution":"沙漠降雨少、日夜溫差大，許多動物為了避開白天高溫，會在夜間活動。","trap":"不要看到動物活動就選草原；題目重點是缺水和日夜溫差大。","hint":"先抓環境線索：少雨、溫差大、夜行。","verified":true,"retry_variants":[{"id":"s01-b01-r1","variant_role":"same_type_new_context","prompt":"哪一種環境四季高溫、雨量多、物種非常豐富？","answer":["熱帶雨林"],"solution":"高溫多雨且物種豐富，是熱帶雨林的典型特徵。","verified":true},{"id":"s01-b01-r2","variant_role":"same_concept_different_ask_direction","prompt":"題目說「水位和鹽分變化大，常有招潮蟹」，應選哪一種環境？","answer":["河口溼地"],"solution":"河口是河川與海洋交界，鹽分和水位都會變動。","verified":true}]},{"id":"s01-b02","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"adaptation-reason","prompt":"仙人掌肥厚的莖主要可以幫助它做什麼？請填：儲存水分、防寒、吸引昆蟲或加速蒸散。","answer":["儲存水分"],"solution":"沙漠乾燥，仙人掌肥厚的莖能儲存水分，幫助度過缺水環境。","trap":"仙人掌的刺可減少水分散失，但本題問的是肥厚的莖。","hint":"看清楚題目問的是哪個構造。","verified":true,"retry_variants":[{"id":"s01-b02-r1","variant_role":"same_type_new_context","prompt":"沙漠植物把葉變成刺，主要可以減少什麼散失？","answer":["水分","水"],"solution":"葉變成刺可降低蒸散，減少水分散失。","verified":true},{"id":"s01-b02-r2","variant_role":"same_concept_different_ask_direction","prompt":"如果植物葉片厚、表面有蠟質，通常是在適應哪一種壓力？請填：缺水、強光、肥沃或黑暗。","answer":["缺水"],"solution":"厚葉和蠟質能降低水分散失。","verified":true}]},{"id":"s01-b03","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"environment-species","prompt":"彈塗魚常生活在泥灘、可用潮溼皮膚輔助呼吸，較適合哪一種環境？請填：河口溼地、沙漠、極地或高山。","answer":["河口溼地","河口濕地"],"solution":"彈塗魚常見於河口溼地或泥灘環境，能適應水陸交界。","trap":"不要把所有魚都歸到海洋；彈塗魚的重點是泥灘與河口。","hint":"看到泥灘、水陸交界、招潮蟹、水筆仔，多半想到河口溼地。","verified":true,"retry_variants":[{"id":"s01-b03-r1","variant_role":"same_type_new_context","prompt":"水筆仔胎生苗是為了適應哪一種水位和鹽分變化大的環境？","answer":["河口溼地","河口濕地"],"solution":"水筆仔是河口溼地常見植物，胎生苗有助於在潮汐環境中扎根。","verified":true},{"id":"s01-b03-r2","variant_role":"same_concept_different_ask_direction","prompt":"招潮蟹、彈塗魚、水筆仔最常一起指向哪一種環境？","answer":["河口溼地","河口濕地"],"solution":"三者都是河口溼地的常見例子。","verified":true}]},{"id":"s01-b04","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"taiwan-endemic","prompt":"「只自然分布在某一地區，其他地方沒有」的生物，稱為什麼？請填：特有種、外來種、消費者或分解者。","answer":["特有種"],"solution":"特有種是只分布在特定地區的生物，重點是分布範圍，不是數量多少。","trap":"特有種不一定等於瀕臨絕種，也不一定都是保育類。","hint":"把定義裡的「只分布在某地」圈起來。","verified":true,"retry_variants":[{"id":"s01-b04-r1","variant_role":"same_type_new_context","prompt":"臺灣藍鵲是只自然分布於臺灣的鳥類，可稱為什麼種？","answer":["特有種"],"solution":"只自然分布在臺灣，就是臺灣特有種。","verified":true},{"id":"s01-b04-r2","variant_role":"same_concept_different_ask_direction","prompt":"「數量稀少，需要法律保護」比較接近哪個概念？請填：保育類或特有種。","answer":["保育類"],"solution":"保育類著重保護需求；特有種著重分布範圍。","verified":true}]},{"id":"s01-b05","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"cold-adaptation","prompt":"極地或凍原動物常有厚皮毛或厚脂肪，主要用途是什麼？請填：保暖、儲水、飛行或吸引花粉。","answer":["保暖"],"solution":"寒冷環境中，厚皮毛和厚脂肪能減少熱量散失，幫助保暖。","trap":"厚脂肪在本題不是為了儲存水分，而是抵禦寒冷。","hint":"先判斷環境壓力是冷、乾、鹽分或水位變化。","verified":true,"retry_variants":[{"id":"s01-b05-r1","variant_role":"same_type_new_context","prompt":"北極熊有厚脂肪和厚毛，主要是為了適應什麼環境壓力？","answer":["寒冷","低溫","嚴寒"],"solution":"厚脂肪與厚毛可抵禦寒冷。","verified":true},{"id":"s01-b05-r2","variant_role":"same_concept_different_ask_direction","prompt":"若題目問駱駝耐乾旱，重點通常是適應寒冷還是缺水？","answer":["缺水"],"solution":"駱駝是乾燥環境適應，不是寒冷適應。","verified":true}]},{"id":"s01-b06","level":"basic","unit":"3-1 生物生長的環境","question_type_id":"food-chain-role","prompt":"食物鏈中，能利用陽光行光合作用製造養分的角色稱為什麼？請填：生產者、消費者或分解者。","answer":["生產者"],"solution":"植物和藻類可行光合作用，將光能轉成養分，是食物鏈能量的開端。","trap":"消費者是靠吃其他生物取得能量；分解者分解遺骸和排泄物。","hint":"找關鍵字：光合作用、製造養分。","verified":true,"retry_variants":[{"id":"s01-b06-r1","variant_role":"same_type_new_context","prompt":"兔子吃草取得能量，兔子在食物鏈中通常是什麼者？","answer":["消費者","一級消費者"],"solution":"兔子吃植物，因此是消費者，通常是一級消費者。","verified":true},{"id":"s01-b06-r2","variant_role":"same_concept_different_ask_direction","prompt":"真菌分解枯木取得養分，通常稱為什麼者？","answer":["分解者"],"solution":"分解遺骸、枯木、排泄物的角色是分解者。","verified":true}]},{"id":"s01-b07","level":"basic","unit":"3-2 人類活動對環境的影響","question_type_id":"invasive-definition","prompt":"外來種能在新環境繁殖，並威脅原生生物生存時，稱為什麼？請填：外來入侵種、特有種、保育類或生產者。","answer":["外來入侵種","入侵種"],"solution":"外來入侵種的關鍵是外來、能繁殖，且造成生態或經濟危害。","trap":"不是所有外來種都一定是外來入侵種，要看是否造成威脅。","hint":"定義題要看三件事：外來、繁殖、造成危害。","verified":true,"retry_variants":[{"id":"s01-b07-r1","variant_role":"same_type_new_context","prompt":"小花蔓澤蘭生長快、覆蓋植物並造成危害，屬於哪一類？","answer":["外來入侵種","入侵種"],"solution":"它會威脅原生植物生長，是外來入侵種。","verified":true},{"id":"s01-b07-r2","variant_role":"same_concept_different_ask_direction","prompt":"只要不是臺灣原生的生物，都一定會造成危害嗎？請填：是或否。","answer":["否","不是"],"solution":"外來種不一定造成危害，造成威脅才稱外來入侵種。","verified":true}]},{"id":"s01-b08","level":"basic","unit":"3-2 人類活動對環境的影響","question_type_id":"conservation-action","prompt":"下列哪一項不是保育環境的適當做法？請填選項：A 設置自然保留區、B 復育瀕危生物、C 任意放生寵物、D 加強進口檢疫。","answer":["C","任意放生寵物"],"solution":"任意放生可能讓外來種進入野外，反而破壞生態，不是正確保育。","trap":"看到放生不要直接當成愛護生命，要判斷是否破壞原生生態。","hint":"保育不只是把生物放到野外，還要看生態風險。","verified":true,"retry_variants":[{"id":"s01-b08-r1","variant_role":"same_type_new_context","prompt":"為防止外來種入侵，機場港口加強動植物檢疫是好做法嗎？請填：是或否。","answer":["是"],"solution":"檢疫能降低外來入侵種進入的風險。","verified":true},{"id":"s01-b08-r2","variant_role":"same_concept_different_ask_direction","prompt":"把不想養的巴西龜丟到池塘，這是保育行為嗎？請填：是或否。","answer":["否","不是"],"solution":"棄養或放生外來寵物可能危害原生生物。","verified":true}]},{"id":"s01-b09","level":"basic","unit":"3-2 人類活動對環境的影響","question_type_id":"air-pollution","prompt":"AQI 數值越低，通常代表空氣品質越好還是越差？請填：越好或越差。","answer":["越好","好"],"solution":"AQI 是空氣品質指標，數值越低代表污染程度較低，空氣品質較好。","trap":"不要把顏色深或數值大誤認為比較好。","hint":"AQI 像警示燈，數字越高越需要注意。","verified":true,"retry_variants":[{"id":"s01-b09-r1","variant_role":"same_type_new_context","prompt":"如果 AQI 顯示紅色且數值高，戶外活動通常應增加還是減少？","answer":["減少"],"solution":"AQI 高表示空氣污染較嚴重，應減少戶外劇烈活動。","verified":true},{"id":"s01-b09-r2","variant_role":"same_concept_different_ask_direction","prompt":"PM2.5 主要影響人體哪個系統？請填：呼吸系統、消化系統或骨骼系統。","answer":["呼吸系統"],"solution":"細懸浮微粒會影響呼吸道，也可能影響心血管。","verified":true}]},{"id":"s01-b10","level":"basic","unit":"3-2 人類活動對環境的影響","question_type_id":"water-pollution","prompt":"家庭廢水、農藥和肥料流入河川，最直接會造成哪一類污染？請填：水汙染、光害或噪音污染。","answer":["水汙染","水污染"],"solution":"廢水、農藥、肥料進入河川會污染水體，影響水生生物和人類用水。","trap":"不要以為只有工廠排放才算水汙染，家庭和農業也可能造成污染。","hint":"看污染物進到哪裡：河川、湖泊、海洋就是水汙染。","verified":true,"retry_variants":[{"id":"s01-b10-r1","variant_role":"same_type_new_context","prompt":"在河邊大量飼養家禽，排泄物進入水中，可能造成什麼污染？","answer":["水汙染","水污染"],"solution":"排泄物進入水體會造成水汙染。","verified":true},{"id":"s01-b10-r2","variant_role":"same_concept_different_ask_direction","prompt":"只要蓋了汙水處理廠，就可以任意浪費水嗎？請填：是或否。","answer":["否","不是"],"solution":"水資源仍需節約，污染也要從源頭減少。","verified":true}]},{"id":"s01-b11","level":"basic","unit":"3-3 珍惜自然資源","question_type_id":"renewable-resource","prompt":"下列哪一項屬於短時間內無法再生的非再生資源？請填：石油、陽光、風或水。","answer":["石油"],"solution":"石油形成需要很長時間，短期內無法再生，因此屬於非再生資源。","trap":"陽光、風和水可持續循環利用，但仍應節約使用。","hint":"礦產、石油、煤、天然氣通常屬於非再生資源。","verified":true,"retry_variants":[{"id":"s01-b11-r1","variant_role":"same_type_new_context","prompt":"煤和天然氣比較接近可再生資源還是非再生資源？","answer":["非再生資源"],"solution":"煤和天然氣形成時間很長，短期內無法再生。","verified":true},{"id":"s01-b11-r2","variant_role":"same_concept_different_ask_direction","prompt":"陽光和風通常屬於可再生資源嗎？請填：是或否。","answer":["是"],"solution":"陽光和風可持續供應，屬於可再生資源。","verified":true}]},{"id":"s01-b12","level":"basic","unit":"3-3 珍惜自然資源","question_type_id":"energy-source","prompt":"火力發電的優點常是供電穩定、燃料容易取得；主要缺點是容易造成什麼？請填：空氣汙染、河口潮汐或物種增加。","answer":["空氣汙染","空氣污染"],"solution":"火力發電燃燒燃料，會排放污染物和二氧化碳，可能造成空氣汙染與溫室效應加劇。","trap":"不能只記火力發電穩定，也要記它的環境代價。","hint":"看到燃燒燃料，先想到排放和空氣污染。","verified":true,"retry_variants":[{"id":"s01-b12-r1","variant_role":"same_type_new_context","prompt":"火力發電主要會加重哪一種全球環境問題？請填：溫室效應或河口鹽分。","answer":["溫室效應"],"solution":"燃燒化石燃料會增加二氧化碳排放。","verified":true},{"id":"s01-b12-r2","variant_role":"same_concept_different_ask_direction","prompt":"風力和太陽能通常污染較低，但會受天氣影響嗎？請填：會或不會。","answer":["會"],"solution":"風力和太陽能受風況、日照和地點限制。","verified":true}]},{"id":"s01-b13","level":"basic","unit":"3-3 珍惜自然資源","question_type_id":"eco-label","prompt":"象徵「可回收、低污染、省資源」綠色消費觀念的是哪一種標章？請填：環保標章、節能標章、碳標籤或食品標章。","answer":["環保標章"],"solution":"環保標章強調產品較符合可回收、低污染、省資源等綠色消費原則。","trap":"節能標章重點是能源效率；碳標籤重點是碳足跡。","hint":"先分清標章關鍵字：環保、節能、碳足跡。","verified":true,"retry_variants":[{"id":"s01-b13-r1","variant_role":"same_type_new_context","prompt":"選購冷氣、冰箱時，想找能源效率高的產品，主要看哪一種標章？","answer":["節能標章"],"solution":"節能標章表示能源效率較佳。","verified":true},{"id":"s01-b13-r2","variant_role":"same_concept_different_ask_direction","prompt":"標示產品生命週期二氧化碳排放量的通常是哪一種？","answer":["碳標籤","碳足跡標籤"],"solution":"碳標籤用來呈現產品碳足跡。","verified":true}]},{"id":"s01-b14","level":"basic","unit":"3-3 珍惜自然資源","question_type_id":"green-action","prompt":"下列哪一項最符合節能減碳？請填選項：A 購買過度包裝商品、B 自備餐具、C 長時間開冰箱、D 短程也開車。","answer":["B","自備餐具"],"solution":"自備餐具可減少一次性用品使用，屬於日常綠色行動。","trap":"包裝精美不代表環保；方便也不一定節能。","hint":"綠色行動常見線索：減少、重複使用、回收、節能。","verified":true,"retry_variants":[{"id":"s01-b14-r1","variant_role":"same_type_new_context","prompt":"外出購物自備購物袋，可減少哪一類用品？","answer":["一次性用品","塑膠袋","塑膠"],"solution":"自備購物袋可減少一次性塑膠袋使用。","verified":true},{"id":"s01-b14-r2","variant_role":"same_concept_different_ask_direction","prompt":"購買當地、當季食物通常能減少運輸能源，這是節能減碳嗎？請填：是或否。","answer":["是"],"solution":"減少長途運輸可降低能源消耗與碳排。","verified":true}]},{"id":"s01-c01","level":"challenge","unit":"3-1 生物生長的環境","question_type_id":"wrong-statement-ecosystem","prompt":"下列哪一個敘述不正確？A 熱帶雨林物種豐富、B 草原動物常擅長奔跑、C 沙漠植物常需適應缺水、D 臺灣自然環境包含極地。","answer":["D","臺灣自然環境包含極地"],"solution":"臺灣有高山、森林、河口、海洋等環境，但沒有自然的極地環境。","trap":"高山寒冷不等於極地；題目問臺灣自然環境。","hint":"找出太絕對或和臺灣地理不符的選項。","verified":true,"retry_variants":[{"id":"s01-c01-r1","variant_role":"same_type_new_context","prompt":"臺灣高山氣溫低，所以臺灣就有極地環境嗎？請填：是或否。","answer":["否","不是"],"solution":"高山和極地是不同環境。","verified":true},{"id":"s01-c01-r2","variant_role":"same_concept_different_ask_direction","prompt":"草原動物常具有良好視覺與奔跑能力，這個敘述正確嗎？","answer":["正確","是"],"solution":"草原空曠，奔跑和警覺有助於覓食或避敵。","verified":true}]},{"id":"s01-c02","level":"challenge","unit":"3-1 生物生長的環境","question_type_id":"species-habitat-trap","prompt":"哪一組生物與環境配對最合理？A 水筆仔—河口溼地、B 樹懶—極地、C 企鵝—沙漠、D 仙人掌—熱帶雨林。","answer":["A","水筆仔—河口溼地","水筆仔-河口溼地"],"solution":"水筆仔可適應河口溼地鹽分與水位變化，是合理配對。","trap":"其他選項把生物放到不適合的環境，是考古題常見陷阱。","hint":"先想該生物最需要適應的環境壓力。","verified":true,"retry_variants":[{"id":"s01-c02-r1","variant_role":"same_type_new_context","prompt":"玉山杜鵑較適合和哪個環境配對？請填：高山或河口溼地。","answer":["高山"],"solution":"玉山杜鵑生長在高山環境。","verified":true},{"id":"s01-c02-r2","variant_role":"same_concept_different_ask_direction","prompt":"樹懶較常出現在熱帶雨林還是極地？","answer":["熱帶雨林"],"solution":"樹懶是熱帶雨林常見例子。","verified":true}]},{"id":"s01-c03","level":"challenge","unit":"3-1 生物生長的環境","question_type_id":"food-chain-arrow","prompt":"草 → 蚱蜢 → 青蛙 → 蛇。這條食物鏈中，蚱蜢通常是幾級消費者？請填：一級、二級或三級。","answer":["一級","一級消費者"],"solution":"蚱蜢吃草，直接以生產者為食，所以是一級消費者。","trap":"青蛙吃蚱蜢才是二級消費者，不要把位置往後數錯。","hint":"從生產者後第一個吃植物的動物開始數一級。","verified":true,"retry_variants":[{"id":"s01-c03-r1","variant_role":"same_type_new_context","prompt":"同一條食物鏈中，青蛙吃蚱蜢，青蛙通常是幾級消費者？","answer":["二級","二級消費者"],"solution":"青蛙吃一級消費者，因此是二級消費者。","verified":true},{"id":"s01-c03-r2","variant_role":"same_concept_different_ask_direction","prompt":"草在食物鏈中通常是生產者還是消費者？","answer":["生產者"],"solution":"草可行光合作用製造養分。","verified":true}]},{"id":"s01-c04","level":"challenge","unit":"3-2 人類活動對環境的影響","question_type_id":"human-impact-cause","prompt":"沿海地區長期大量抽取地下水，最可能造成哪一種影響？請填：地層下陷、珊瑚增加、空氣變好或沙漠降雨。","answer":["地層下陷"],"solution":"超抽地下水會使地層下陷，也可能造成海水倒灌與土壤鹽化。","trap":"不要只想到水變少，考題常問連鎖影響。","hint":"地下水被抽走，地層支撐變弱，是關鍵因果。","verified":true,"retry_variants":[{"id":"s01-c04-r1","variant_role":"same_type_new_context","prompt":"沿海超抽地下水可能讓海水進入地下水層，造成土壤什麼化？","answer":["鹽化","土壤鹽化"],"solution":"海水倒灌會造成土壤鹽化。","verified":true},{"id":"s01-c04-r2","variant_role":"same_concept_different_ask_direction","prompt":"河川砂石被大量開採，可能讓河岸更穩定嗎？請填：是或否。","answer":["否","不是"],"solution":"濫採砂石會改變河床，可能造成坍方並傷害生物。","verified":true}]},{"id":"s01-c05","level":"challenge","unit":"3-2 人類活動對環境的影響","question_type_id":"pollution-cross-border","prompt":"「空氣和水的流動會讓污染擴散到其他地區，所以污染不分國界。」這個敘述正確嗎？請填：正確或錯誤。","answer":["正確","是"],"solution":"大氣和水體會流動，污染物可能隨風或水流擴散到其他地區。","trap":"不要以為污染只停留在排放地點附近。","hint":"想想風、水流和食物鏈都會讓污染移動。","verified":true,"retry_variants":[{"id":"s01-c05-r1","variant_role":"same_type_new_context","prompt":"酸雨只會影響下雨的那一小塊地方，和空氣汙染無關。此敘述正確或錯誤？","answer":["錯誤"],"solution":"酸雨和空氣污染物有關，也可能影響較大範圍。","verified":true},{"id":"s01-c05-r2","variant_role":"same_concept_different_ask_direction","prompt":"水中污染物可能透過食物鏈進入人體嗎？請填：會或不會。","answer":["會"],"solution":"污染物可能經由水生生物與食物鏈累積。","verified":true}]},{"id":"s01-c06","level":"challenge","unit":"3-2 人類活動對環境的影響","question_type_id":"invasive-scenario","prompt":"小明從國外買昆蟲飼養，後來牠逃到野外並大量繁殖，壓縮原生昆蟲生存空間。這最符合哪個概念？","answer":["外來入侵種","入侵種"],"solution":"國外引進、逃逸繁殖、威脅原生物種，符合外來入侵種的判斷。","trap":"不是只要漂亮或稀有就能任意引進飼養。","hint":"用三步判斷：來源外來、能繁殖、造成危害。","verified":true,"retry_variants":[{"id":"s01-c06-r1","variant_role":"same_type_new_context","prompt":"防止這類事件，入境時應加強什麼？請填：檢疫或放生。","answer":["檢疫"],"solution":"檢疫可降低外來生物進入與危害風險。","verified":true},{"id":"s01-c06-r2","variant_role":"same_concept_different_ask_direction","prompt":"外來寵物不想養時，可以直接放到野外嗎？請填：可以或不可以。","answer":["不可以","不能"],"solution":"放生或棄養可能造成外來入侵種問題。","verified":true}]},{"id":"s01-c07","level":"challenge","unit":"3-2 人類活動對環境的影響","question_type_id":"AQI-reading","prompt":"某日甲地 AQI 42、乙地 AQI 88、丙地 AQI 156。哪一地空氣品質最差？請填：甲、乙或丙。","answer":["丙"],"solution":"AQI 數值越高代表空氣污染越嚴重；156 高於 88 和 42，所以丙地最差。","trap":"題目問最差，不是最好。","hint":"比較 AQI 時，數字越大越需要注意。","verified":true,"retry_variants":[{"id":"s01-c07-r1","variant_role":"same_type_new_context","prompt":"同樣三地中，哪一地空氣品質最好？甲 AQI 42、乙 88、丙 156。","answer":["甲"],"solution":"AQI 最低的甲地空氣品質最好。","verified":true},{"id":"s01-c07-r2","variant_role":"same_concept_different_ask_direction","prompt":"AQI 高時，戶外劇烈運動應增加還是減少？","answer":["減少"],"solution":"AQI 高代表污染較嚴重，應減少戶外劇烈活動。","verified":true}]},{"id":"s01-c08","level":"challenge","unit":"3-3 珍惜自然資源","question_type_id":"resource-counting","prompt":"石油、風、鐵礦、陽光、水這五項中，屬於可再生資源的有幾項？請填數字。","answer":["3","三"],"solution":"風、陽光、水屬於可再生資源；石油和鐵礦短時間內無法再生。","trap":"鐵礦和石油不是短期可再生，不能因為自然界有就算可再生。","hint":"一項一項分類，不要憑感覺算。","verified":true,"retry_variants":[{"id":"s01-c08-r1","variant_role":"same_type_new_context","prompt":"煤、天然氣、太陽能、風力四項中，可再生資源有幾項？","answer":["2","二"],"solution":"太陽能和風力可再生；煤、天然氣非再生。","verified":true},{"id":"s01-c08-r2","variant_role":"same_concept_different_ask_direction","prompt":"水是可再生資源，所以完全不用節約。此敘述正確或錯誤？","answer":["錯誤"],"solution":"水會循環，但污染或不當使用仍會造成缺水。","verified":true}]},{"id":"s01-c09","level":"challenge","unit":"3-3 珍惜自然資源","question_type_id":"energy-table","prompt":"下列哪一項最適合描述太陽能發電？A 需要燃燒煤、B 受日照影響、C 一定造成大量空汙、D 使用鈾燃料。","answer":["B","受日照影響"],"solution":"太陽能發電利用日照，污染較低，但會受日照、天氣和地點影響。","trap":"再生能源不是完全沒有條件限制。","hint":"把能源來源和限制配起來。","verified":true,"retry_variants":[{"id":"s01-c09-r1","variant_role":"same_type_new_context","prompt":"風力發電最直接會受哪個條件影響？請填：風況、煤礦或水庫深度。","answer":["風況"],"solution":"風力發電需要足夠且穩定的風。","verified":true},{"id":"s01-c09-r2","variant_role":"same_concept_different_ask_direction","prompt":"核能發電和火力發電都屬於燃燒煤炭嗎？請填：是或否。","answer":["否","不是"],"solution":"火力常燃燒化石燃料；核能使用核燃料，不是燃煤。","verified":true}]},{"id":"s01-c10","level":"challenge","unit":"3 綜合素養","question_type_id":"reading-reasoning","prompt":"閱讀情境：某社區淨溪時發現塑膠袋、廢油和魚蝦死亡。志工建議減少一次性用品、避免廢油倒入水槽。這些行動主要想改善什麼問題？","answer":["水汙染","水污染"],"solution":"塑膠和廢油進入溪流會污染水體，影響水生生物；減少一次性用品和正確處理廢油可降低水汙染。","trap":"淨溪也有垃圾問題，但題目問廢油和魚蝦死亡，主軸是水汙染。","hint":"從情境中的污染物去判斷它進入哪個環境。","verified":true,"retry_variants":[{"id":"s01-c10-r1","variant_role":"same_type_new_context","prompt":"若溪流中的污染物被小魚吃下，再被大魚吃下，這和哪個概念有關？請填：食物鏈或輪軸。","answer":["食物鏈"],"solution":"污染物可能沿食物鏈移動和累積。","verified":true},{"id":"s01-c10-r2","variant_role":"same_concept_different_ask_direction","prompt":"減少一次性塑膠用品屬於綠色行動嗎？請填：是或否。","answer":["是"],"solution":"減少使用可降低資源消耗和垃圾量。","verified":true}]}]}]};
+    const STORAGE_KEY = "bobo_science_graduation_run_20260524_v1";
+    const state = loadState();
+    let activeRunId = "run01";
+    let filter = "all";
+    let unitFilter = "all";
+    const grid = document.getElementById("grid");
+    const reportBox = document.getElementById("reportBox");
+    const unitHints = {
+      "3-1 生物生長的環境":"先判斷環境壓力：缺水、寒冷、鹽分變化、陽光或食物關係。",
+      "3-2 人類活動對環境的影響":"先找人類行為，再判斷造成污染、棲地破壞或外來種問題。",
+      "3-3 珍惜自然資源":"先分清可再生/非再生，再看節能、標章或發電方式。",
+      "3 綜合素養":"先讀情境中的證據，再判斷原因和結果。"
+    };
+    function loadState(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; } }
+    function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function run(){ return BANK.runs[0]; }
+    function questions(){ return run().questions; }
+    function key(id){ return activeRunId + ":" + id; }
+    function get(id){ return state[key(id)] || {}; }
+    function set(id, value){ state[key(id)] = value; saveState(); }
+    function normalize(v){ return String(v).trim().replace(/\s+/g,"").replace("％","%").toUpperCase(); }
+    function ok(q, v){ const got=normalize(v); return q.answer.some(a => normalize(a) === got); }
+    function label(level){ return level === "basic" ? "基礎" : level === "challenge" ? "挑戰" : "再練"; }
+    function isRetryItem(q){ const item=get(q.id); return !!item.tainted || (item.checked && (!item.correct || item.hinted || item.shown)); }
+    function retryReasonFor(st){ return st.retryReason || (st.shown ? "看詳解/答案" : st.hinted ? "看提示" : "答錯"); }
+    function activeItems(){
+      if(filter === "retry"){
+        const items = [];
+        questions().forEach(q => {
+          if(isRetryItem(q) && (unitFilter === "all" || q.unit === unitFilter)){
+            items.push({...q, retryStage:"original", retrySource:q.id});
+            q.retry_variants.forEach((v, i) => items.push({...v, id:v.id, unit:q.unit, level:"retry", question_type_id:q.question_type_id, trap:q.trap, hint:q.hint, retryStage:"variant" + (i+1), retrySource:q.id}));
+          }
+        });
+        return items;
+      }
+      return questions();
+    }
+    function itemKey(q){ return q.retryStage ? q.retrySource + ":" + q.id : q.id; }
+    function itemState(q){ return get(itemKey(q)); }
+    function setItemState(q, value){ set(itemKey(q), value); }
+    function renderRunStatus(){ document.getElementById("runStatus").textContent = "目前練習：" + run().label + "｜自然第 3 單元混合練習"; }
+    function renderUnits(){
+      if(filter !== "retry"){ unitFilter = "all"; document.getElementById("unitTabs").innerHTML = ""; return; }
+      const units = [...new Set(questions().map(q => q.unit))];
+      document.getElementById("unitTabs").innerHTML = '<button class="unit-tab ' + (unitFilter==="all"?"active":"") + '" data-unit="all">全部單元</button>' + units.map(u => '<button class="unit-tab ' + (unitFilter===u?"active":"") + '" data-unit="' + escapeHtml(u) + '">' + escapeHtml(u.replace("生物生長的環境","生物環境").replace("人類活動對環境的影響","環境影響").replace("珍惜自然資源","自然資源")) + '</button>').join("");
+      document.querySelectorAll(".unit-tab").forEach(btn => btn.addEventListener("click", () => { unitFilter=btn.dataset.unit; reportBox.classList.remove("show"); renderAll(false); }));
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function hintFor(q){ return q.hint || unitHints[q.unit] || "先圈出題目關鍵字，再排除不合理選項。"; }
+    function solutionFor(q){ return "答案：" + q.answer[0] + "\n\n" + (q.solution || ""); }
+    function syncRetryModeButton(){ const btn=document.getElementById("retryMode"); btn.textContent = filter === "retry" ? "回本回 24 題" : "再練"; btn.classList.toggle("active", filter === "retry"); }
+    function renderAll(refreshTabs=true){ syncRetryModeButton(); if(refreshTabs){renderRunStatus(); renderUnits();} renderQuestions(); updateStats(); }
+    function renderQuestions(){
+      const items = activeItems();
+      grid.innerHTML = items.length ? "" : '<article class="q"><div class="body"><p class="prompt">目前沒有再練項目。</p></div></article>';
+      items.forEach((q, idx) => {
+        const st = itemState(q);
+        const article = document.createElement("article");
+        article.className = "q";
+        article.dataset.id = q.id;
+        article.innerHTML = '<div class="qhead"><span class="badge ' + q.level + '">' + label(q.level) + '</span><span class="qnum">' + run().label + " · " + (idx+1) + (q.retryStage ? " · " + (q.retryStage==="original"?"原錯題":q.retryStage==="variant1"?"補洞1":"補洞2") : "") + '</span></div>' +
+          '<div class="body"><p class="unit">' + escapeHtml(q.unit || "") + '</p><p class="prompt">' + escapeHtml(q.prompt) + '</p><input autocomplete="off" value="' + escapeHtml(st.value || "") + '" aria-label="答案"></div>' +
+          '<div class="actions"><button data-action="check">檢查</button>' + (q.retryStage ? "" : '<button data-action="hint">提示</button><button data-action="show">看答案</button>') + '<span class="result"></span></div>' +
+          '<div class="hint-panel">提示：' + escapeHtml(hintFor(q)) + '</div>' +
+          '<details><summary>詳解 / 看完整解法</summary><div class="solution">' + escapeHtml(solutionFor(q)) + '</div><div class="trap">容易錯的地方：' + escapeHtml(q.trap || "") + '</div></details>';
+        const input = article.querySelector("input");
+        const result = article.querySelector(".result");
+        const details = article.querySelector("details");
+        const hintPanel = article.querySelector(".hint-panel");
+        if(st.checked) mark(article, st);
+        if(st.hinted && hintPanel) hintPanel.classList.add("show");
+        input.addEventListener("input", () => { const current=itemState(q); const next={...current, value:input.value, checked:false, correct:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
+        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); mark(article,next); updateStats(); });
+        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,next); updateStats(); });
+        const hintBtn = article.querySelector('[data-action="hint"]');
+        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); });
+        const showBtn = article.querySelector('[data-action="show"]');
+        if(showBtn) showBtn.addEventListener("click", () => { input.value=q.answer[0]; const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); details.open=true; mark(article,next); updateStats(); });
+        grid.appendChild(article);
+      });
+    }
+    function mark(article, st){ const el=article.querySelector(".result"); if(st.tainted || st.shown || st.hinted){el.textContent=retryReasonFor(st) + "，這題會進再練。"; el.className="result no"; return;} el.textContent=st.correct?"答對":"再想想，答案不會直接顯示；需要時可看詳解。"; el.className="result " + (st.correct?"ok":"no"); }
+    function updateStats(){
+      let done=0, clean=0, retry=0;
+      questions().forEach(q => { const st=get(q.id); if(st.value && st.value.trim()) done++; if(st.checked && st.correct && !st.hinted && !st.shown && !st.tainted) clean++; if(isRetryItem(q)) retry++; });
+      document.getElementById("doneCount").textContent=done; document.getElementById("correctCount").textContent=clean; document.getElementById("retryCount").textContent=retry; document.getElementById("totalCount").textContent=questions().length; document.getElementById("progressText").textContent=run().label + "：精熟 " + clean + " / " + questions().length + "，再練 " + retry + " 題"; document.getElementById("progressBar").style.width=Math.round(clean/questions().length*100) + "%";
+    }
+    document.getElementById("retryMode").addEventListener("click", () => { filter = filter === "retry" ? "all" : "retry"; reportBox.classList.remove("show"); renderAll(true); });
+    document.getElementById("checkAll").addEventListener("click", () => document.querySelectorAll(".q[data-id]").forEach(card => card.querySelector('[data-action="check"]')?.click()));
+    document.getElementById("resetRun").addEventListener("click", () => {
+      if(!confirm("確定清除本回填寫內容嗎？看過提示、詳解或答錯的紀錄會保留，不能用重來躲過再練。")) return;
+      Object.keys(state).filter(k => k.startsWith(activeRunId + ":")).forEach(k => {
+        const item = state[k];
+        const isRetryDetail = k.split(":").length > 2;
+        if(isRetryDetail){ delete state[k]; return; }
+        if(item && (item.tainted || item.hinted || item.shown || item.retryReason)){
+          state[k] = {tainted:true, hinted:!!item.hinted, shown:!!item.shown, retryReason:item.retryReason || retryReasonFor(item)};
+        } else {
+          delete state[k];
+        }
+      });
+      saveState(); reportBox.classList.remove("show"); renderAll();
+    });
+    document.getElementById("printPage").addEventListener("click", () => window.print());
+    document.getElementById("reportBtn").addEventListener("click", () => { reportBox.textContent = buildReport(); reportBox.classList.toggle("show"); });
+    function buildReport(){
+      const lines=["Bobo 自然畢業考練習回報", "回合：" + run().label, "時間：" + new Date().toLocaleString("zh-TW"), ""];
+      [...new Set(questions().map(q => q.unit))].forEach(unit => {
+        const qs=questions().filter(q => q.unit===unit);
+        const clean=qs.filter(q => {const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown && !st.tainted;}).length;
+        const retry=qs.filter(q => isRetryItem(q)).length;
+        lines.push(unit + "：精熟 " + clean + "/" + qs.length + "，再練 " + retry);
+      });
+      const retryItems=questions().filter(q => isRetryItem(q)).map(q => {const st=get(q.id); return "- " + q.unit + "｜" + retryReasonFor(st) + "｜" + q.prompt;});
+      lines.push("", "待補洞：", retryItems.join("\n") || "目前沒有待補洞題。", "", "再練規則：每題會安排原錯題 + 補洞題 1 + 補洞題 2。");
+      return lines.join("\n");
+    }
+    renderAll();
+  </script>
+</body>
+</html>
