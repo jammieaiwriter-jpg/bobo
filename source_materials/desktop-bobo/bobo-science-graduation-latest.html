@@ -32,6 +32,8 @@
     .progress { display:grid; gap:8px; color:var(--muted); font-size:14px; margin-bottom:18px; }
     .bar { height:10px; border-radius:99px; background:#e7edf5; overflow:hidden; }
     .bar span { display:block; width:0; height:100%; background:linear-gradient(90deg,var(--green),var(--blue)); }
+    .activity { display:none; margin:0 0 14px; padding:10px 12px; border:1px solid #b9d7ff; border-radius:8px; background:#f2f7ff; color:#1747b8; font-weight:800; line-height:1.55; }
+    .activity.show { display:block; }
     .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
     .q { background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); display:grid; grid-template-rows:auto 1fr auto auto; min-height:292px; overflow:hidden; }
     .qhead { display:flex; justify-content:space-between; gap:10px; padding:14px 14px 0; }
@@ -44,8 +46,9 @@
     .body { padding:12px 14px 14px; }
     .unit { margin:0 0 8px; color:var(--blue); font-weight:800; font-size:14px; }
     .prompt { margin:0 0 14px; line-height:1.65; font-size:17px; }
-    input { width:min(100%, 340px); height:42px; border:1px solid #b9c5d6; border-radius:8px; padding:8px 11px; font-size:17px; }
-    input:focus { outline:3px solid rgba(37,99,235,.18); border-color:var(--blue); }
+    .choices { display:grid; gap:8px; }
+    .choice { width:100%; min-height:42px; justify-content:flex-start; text-align:left; border-color:#b9c5d6; background:#fff; color:#1f2937; font-size:16px; line-height:1.45; }
+    .choice.selected { border-color:var(--blue); background:#eaf2ff; color:#1747b8; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
     .actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:0 14px 14px; }
     .result { min-height:22px; font-size:14px; font-weight:800; }
     .ok { color:var(--green); }
@@ -82,6 +85,7 @@
     <section class="unitbar" id="unitTabs"></section>
     <section class="stats"><div class="stat"><b id="doneCount">0</b><span>已作答</span></div><div class="stat"><b id="correctCount">0</b><span>精熟</span></div><div class="stat"><b id="retryCount">0</b><span>再練項目</span></div><div class="stat"><b id="totalCount">24</b><span>本回題數</span></div></section>
     <section class="progress"><div id="progressText">完成 0 / 24 題</div><div class="bar"><span id="progressBar"></span></div></section>
+    <section class="activity" id="activityNotice"></section>
     <section class="grid" id="grid"></section>
     <pre class="report" id="reportBox"></pre>
     <p class="note">題庫依課綱、考古題題型矩陣與配題規劃預先生產。第 1-8 回為高信心題型，第 9-12 回為已驗證變化題。網址可加 #run05 方便家長測試指定回合。</p>
@@ -115,8 +119,128 @@
     function key(id){ return keyFor(activeRunId, id); }
     function get(id){ return state[key(id)] || {}; }
     function set(id, value){ state[key(id)] = value; saveState(); }
+    function globalMetaKey(name){ return "_global:" + name; }
+    function globalMeta(name){ return state[globalMetaKey(name)] || null; }
+    function setGlobalMeta(name, value){ state[globalMetaKey(name)] = value; saveState(); }
+    function metaKey(name){ return activeRunId + ":_meta:" + name; }
+    function meta(name){ return state[metaKey(name)] || null; }
+    function setMeta(name, value){ state[metaKey(name)] = value; saveState(); }
+    function todayKey(){ return new Date().toLocaleDateString("sv-SE", {timeZone:"Asia/Taipei"}); }
+    function activityStatsForToday(){
+      const log = globalMeta("activity_log") || [];
+      const today = todayKey();
+      const items = log.filter(item => item.day === today);
+      return {
+        items,
+        wrong: items.filter(item => item.action === "檢查答案：答錯").length,
+        hint: items.filter(item => item.action === "看提示").length,
+        shown: items.filter(item => item.action === "看答案" || item.action === "打開詳解").length
+      };
+    }
+    function recordActivity(action, q){
+      const log = globalMeta("activity_log") || [];
+      const now = new Date();
+      log.push({
+        day: todayKey(),
+        time: now.toLocaleString("zh-TW", {timeZone:"Asia/Taipei"}),
+        run: run().label,
+        action,
+        unit: q ? (q.unit || "再練題") : "",
+        questionId: q ? q.id : ""
+      });
+      setGlobalMeta("activity_log", log.slice(-80));
+      updateActivityNotice();
+    }
+    function updateActivityNotice(){
+      const box = document.getElementById("activityNotice");
+      const stat = activityStatsForToday();
+      if(!stat.items.length){ box.textContent = ""; box.classList.remove("show"); return; }
+      const last = stat.items[stat.items.length - 1];
+      box.textContent = "通知紀錄：Bobo 今天有反應。最後動作：" + last.run + "｜" + last.action + "｜" + last.time + "；今日答錯 " + stat.wrong + "、看提示 " + stat.hint + "、看答案/詳解 " + stat.shown + "。";
+      box.classList.add("show");
+    }
+    function notifyRunAttempted(s){
+      const attempted = questions().filter(q => !!get(q.id).checked).length;
+      if(attempted < questions().length || meta("run_attempted_recorded")) return;
+      setMeta("run_attempted_recorded", true);
+      recordActivity("完成本回主題目：精熟 " + s.clean + "/" + s.total + "，再練 " + s.retry, null);
+    }
     function normalize(v){ return String(v).trim().replace(/\s+/g,"").replace("％","%").toUpperCase(); }
     function ok(q, v){ const got=normalize(v); return q.answer.some(a => normalize(a) === got); }
+    const fallbackChoices = {
+      boolean:["是","否"],
+      trueFalse:["正確","錯誤"],
+      can:["可以","不可以"],
+      trend:["增加","減少"],
+      quality:["越好","越差"],
+      habitats:["沙漠","草原","熱帶雨林","極地","河口溼地","高山","森林"],
+      roles:["生產者","消費者","分解者"],
+      resources:["煤","石油","天然氣","陽光","風","水","鐵礦","銅礦","生物資源"],
+      pollution:["空氣汙染","水汙染","土壤汙染","海洋汙染"],
+      labels:["環保標章","節能標章","碳標籤","回收標誌"],
+      mixed:["外來入侵種","棲地破壞","節能減碳","水汙染","空氣汙染","資源回收","保育類","地層下陷與土壤鹽化"]
+    };
+    function uniqueOptions(items){
+      const seen = new Set();
+      return items.map(v => String(v || "").trim()).filter(v => {
+        if(!v || seen.has(normalize(v))) return false;
+        seen.add(normalize(v));
+        return true;
+      });
+    }
+    function explicitChoicesFromPrompt(prompt){
+      const text = String(prompt || "");
+      const options = [];
+      const fill = text.match(/請填[:：]([^。？?]+)/);
+      if(fill){
+        fill[1].split(/[、,，或和]/).map(v => v.trim()).filter(Boolean).forEach(v => options.push(v));
+      }
+      const letterRe = /(?:^|[，、。；\s])([A-D])\s*([^A-D，、。；？?]+)/g;
+      let m;
+      while((m = letterRe.exec(text))){
+        options.push(m[1]);
+        if(m[2]) options.push(m[2].trim());
+      }
+      return uniqueOptions(options);
+    }
+    function fallbackFor(q){
+      const text = q.prompt || "";
+      if(/是或否|是嗎|有助於|可以幫助/.test(text)) return fallbackChoices.boolean;
+      if(/正確或錯誤|正確嗎|敘述正確/.test(text)) return fallbackChoices.trueFalse;
+      if(/可以或不可以|可以直接|可以任意/.test(text)) return fallbackChoices.can;
+      if(/增加還是減少|應增加|應減少/.test(text)) return fallbackChoices.trend;
+      if(/越好還是越差|空氣品質/.test(text)) return fallbackChoices.quality;
+      if(/沙漠|草原|熱帶雨林|極地|河口溼地|高山|森林|環境/.test(text)) return fallbackChoices.habitats;
+      if(/生產者|消費者|分解者|食物鏈/.test(text)) return fallbackChoices.roles;
+      if(/可再生|非再生|石油|煤|天然氣|陽光|風|水|礦/.test(text)) return fallbackChoices.resources;
+      if(/污染|汙染|廢水|AQI|PM2\.5/.test(text)) return fallbackChoices.pollution;
+      if(/標章|標示|標籤|回收/.test(text)) return fallbackChoices.labels;
+      return [];
+    }
+    function bankDistractorsFor(q){
+      return uniqueOptions(questions()
+        .filter(item => item.id !== q.id && (item.question_type_id === q.question_type_id || item.unit === q.unit))
+        .flatMap(item => item.answer || [])
+        .filter(a => !ok(q, a)));
+    }
+    function stableShuffle(items, seedText){
+      let seed = String(seedText || "").split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+      return [...items].map((value, idx) => {
+        seed = (seed * 9301 + 49297 + idx) % 233280;
+        return {value, sort: seed};
+      }).sort((a, b) => a.sort - b.sort).map(item => item.value);
+    }
+    function choiceOptions(q){
+      const correct = uniqueOptions(q.answer || []);
+      const fromPrompt = explicitChoicesFromPrompt(q.prompt).filter(v => !/至少填一項|正確或錯誤/.test(v));
+      const pool = uniqueOptions([...fromPrompt, ...fallbackFor(q), ...bankDistractorsFor(q), ...fallbackChoices.mixed]).filter(v => !correct.some(a => normalize(a) === normalize(v)));
+      const wanted = Math.min(4, Math.max(2, correct.length + 3));
+      const choices = uniqueOptions([...correct, ...pool.slice(0, Math.max(0, wanted - correct.length))]).slice(0, Math.max(wanted, correct.length));
+      return stableShuffle(choices, q.id);
+    }
+    function choicesHtml(q, selected){
+      return '<div class="choices" role="radiogroup" aria-label="答案選項">' + choiceOptions(q).map(opt => '<button type="button" class="choice' + (normalize(opt) === normalize(selected || "") ? " selected" : "") + '" data-choice="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</button>').join("") + '</div>';
+    }
     function label(level){ return level === "basic" ? "基礎" : level === "challenge" ? "挑戰" : "再練"; }
     function isRetryItem(q){ const item=get(q.id); return !!item.tainted || (item.checked && (!item.correct || item.hinted || item.shown)); }
     function retryReasonFor(st){ return st.retryReason || (st.shown ? "看詳解/答案" : st.hinted ? "看提示" : "答錯"); }
@@ -194,23 +318,22 @@
         article.className = "q";
         article.dataset.id = q.id;
         article.innerHTML = '<div class="qhead"><span class="badge ' + q.level + '">' + label(q.level) + '</span><span class="qnum">' + run().label + " · " + (idx+1) + (q.retryStage ? " · " + (q.retryStage==="original"?"原錯題":q.retryStage==="variant1"?"補洞1":"補洞2") : "") + '</span></div>' +
-          '<div class="body"><p class="unit">' + escapeHtml(q.unit || "") + '</p><p class="prompt">' + escapeHtml(q.prompt) + '</p><input autocomplete="off" value="' + escapeHtml(st.value || "") + '" aria-label="答案"></div>' +
+          '<div class="body"><p class="unit">' + escapeHtml(q.unit || "") + '</p><p class="prompt">' + escapeHtml(q.prompt) + '</p>' + choicesHtml(q, st.value) + '</div>' +
           '<div class="actions"><button data-action="check">檢查</button>' + (q.retryStage ? "" : '<button data-action="hint">提示</button><button data-action="show">看答案</button>') + '<span class="result"></span></div>' +
           '<div class="hint-panel">提示：' + escapeHtml(hintFor(q)) + '</div>' +
           '<details><summary>詳解 / 看完整解法</summary><div class="solution">' + escapeHtml(solutionFor(q)) + '</div><div class="trap">容易錯的地方：' + escapeHtml(q.trap || "") + '</div></details>';
-        const input = article.querySelector("input");
         const result = article.querySelector(".result");
         const details = article.querySelector("details");
         const hintPanel = article.querySelector(".hint-panel");
         if(st.checked) mark(article, st);
         if(st.hinted && hintPanel) hintPanel.classList.add("show");
-        input.addEventListener("input", () => { const current=itemState(q); const next={...current, value:input.value, checked:false, correct:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
-        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
-        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
+        article.querySelectorAll(".choice").forEach(btn => btn.addEventListener("click", () => { const current=itemState(q); const next={...current, value:btn.dataset.choice, checked:false, correct:false}; setItemState(q,next); article.querySelectorAll(".choice").forEach(item => item.classList.toggle("selected", item === btn)); result.textContent=""; result.className="result"; updateStats(); }));
+        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const value=current.value || ""; const correct=ok(q,value); const next={...current, value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); recordActivity(correct ? "檢查答案：答對" : "檢查答案：答錯", q); mark(article,next); updateStats(); renderRunTabs(); });
+        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); recordActivity("打開詳解", q); mark(article,next); updateStats(); renderRunTabs(); });
         const hintBtn = article.querySelector('[data-action="hint"]');
-        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); renderRunTabs(); });
+        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); recordActivity("看提示", q); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); renderRunTabs(); });
         const showBtn = article.querySelector('[data-action="show"]');
-        if(showBtn) showBtn.addEventListener("click", () => { input.value=q.answer[0]; const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); details.open=true; mark(article,next); updateStats(); renderRunTabs(); });
+        if(showBtn) showBtn.addEventListener("click", () => { const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); recordActivity("看答案", q); article.querySelectorAll(".choice").forEach(item => item.classList.toggle("selected", normalize(item.dataset.choice) === normalize(q.answer[0]))); details.open=true; mark(article,next); updateStats(); renderRunTabs(); });
         grid.appendChild(article);
       });
     }
@@ -220,6 +343,8 @@
       document.getElementById("doneCount").textContent=s.done; document.getElementById("correctCount").textContent=s.clean; document.getElementById("retryCount").textContent=s.retry; document.getElementById("totalCount").textContent=s.total;
       document.getElementById("progressText").textContent=run().label + "：精熟 " + s.clean + " / " + s.total + "，再練 " + s.retry + " 題";
       document.getElementById("progressBar").style.width=Math.round(s.clean/s.total*100) + "%";
+      updateActivityNotice();
+      notifyRunAttempted(s);
     }
     document.getElementById("prevRun").addEventListener("click", () => { const idx=runIndex(); if(idx>0) switchRun(BANK.runs[idx-1].run_id); });
     document.getElementById("nextRun").addEventListener("click", () => { const idx=runIndex(); if(idx<BANK.runs.length-1) switchRun(BANK.runs[idx+1].run_id); });
@@ -240,11 +365,14 @@
       saveState(); reportBox.classList.remove("show"); renderAll();
     });
     document.getElementById("printPage").addEventListener("click", () => window.print());
-    document.getElementById("reportBtn").addEventListener("click", () => { reportBox.textContent = buildReport(); reportBox.classList.toggle("show"); });
+    document.getElementById("reportBtn").addEventListener("click", () => { recordActivity("產生回報文字", null); reportBox.textContent = buildReport(); reportBox.classList.toggle("show"); });
     function buildReport(){
       const s = runStats(activeRunId);
       const remaining = BANK.runs.filter(r => !runComplete(r.run_id)).length;
+      const activity = activityStatsForToday();
+      const lastActivity = activity.items[activity.items.length - 1];
       const lines=["Bobo 自然畢業考練習回報", "回合：" + run().label + " / 共 " + BANK.run_count + " 回", "時間：" + new Date().toLocaleString("zh-TW"), "本回精熟：" + s.clean + "/" + s.total + "，再練：" + s.retry + "，未完成回數：" + remaining, ""];
+      lines.push("今日通知紀錄：", activity.items.length ? "Bobo 今天有反應。最後動作：" + lastActivity.run + "｜" + lastActivity.action + "｜" + lastActivity.time : "今天尚未留下互動紀錄。", "今日答錯：" + activity.wrong + "，看提示：" + activity.hint + "，看答案/詳解：" + activity.shown, "");
       [...new Set(questions().map(q => q.unit))].forEach(unit => {
         const qs=questions().filter(q => q.unit===unit);
         const clean=qs.filter(q => {const st=get(q.id); return st.checked && st.correct && !st.hinted && !st.shown && !st.tainted;}).length;

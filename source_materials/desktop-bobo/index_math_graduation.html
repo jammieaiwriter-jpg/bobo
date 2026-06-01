@@ -1,22 +1,2702 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="2; url=./bobo-math-graduation-20260528.html">
-  <title>Bobo 數學練習頁安全更新</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bobo 數學畢業考練習</title>
   <style>
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:#f6f8fb;color:#17212b;line-height:1.7}
-    main{max-width:720px;margin:12vh auto;padding:28px;background:#fff;border:1px solid #d9e1ea;border-radius:10px;box-shadow:0 10px 24px rgba(23,33,43,.08)}
-    a{color:#2563eb;font-weight:800}.muted{color:#637083}
+    :root {
+      --ink: #17212b;
+      --muted: #5d6a75;
+      --paper: #fffdf8;
+      --line: #d8e1e6;
+      --teal: #0f8b8d;
+      --green: #4f8f3a;
+      --gold: #d99b25;
+      --rose: #c84f5f;
+      --blue: #2e6f9e;
+      --soft-teal: #e7f5f3;
+      --soft-gold: #fff3d9;
+      --soft-rose: #fdecef;
+      --soft-blue: #edf4fa;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, rgba(255,253,248,.96), rgba(239,246,244,.96)),
+        repeating-linear-gradient(90deg, rgba(15,139,141,.06) 0 1px, transparent 1px 44px);
+    }
+
+    button, input, select { font: inherit; }
+    textarea { font: inherit; }
+
+    .app-shell {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 0 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.65rem, 5vw, 2.6rem);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: var(--teal); }
+    .btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+    .btn.warn { background: var(--soft-rose); border-color: #efb4bd; color: #842b38; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 18px;
+      padding-top: 18px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.84);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 8px 22px rgba(23,33,43,.06);
+    }
+
+    .side {
+      position: sticky;
+      top: 14px;
+      align-self: start;
+    }
+
+    .scope-title {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+    }
+
+    .unit-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .unit-btn {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .unit-btn.active { border-color: var(--teal); background: var(--soft-teal); }
+    .unit-btn .dot { width: 10px; height: 10px; border-radius: 99px; background: var(--teal); }
+    .unit-btn:nth-child(2n) .dot { background: var(--gold); }
+    .unit-btn:nth-child(3n) .dot { background: var(--blue); }
+    .unit-count { color: var(--muted); font-size: .86rem; white-space: nowrap; }
+
+    .progress {
+      margin-top: 14px;
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .bar {
+      height: 10px;
+      background: #edf1f2;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+      transition: width .25s ease;
+    }
+
+    .exam-card {
+      display: grid;
+      gap: 14px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: white;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .question {
+      padding: 18px;
+      background: var(--paper);
+      border: 1px solid #eadfcb;
+      border-radius: 8px;
+    }
+
+    .question h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.22rem, 4vw, 1.72rem);
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .question-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .workbox {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px dashed #bdcbd2;
+      background: white;
+      border-radius: 8px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .coach-thread {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bubble {
+      width: fit-content;
+      max-width: min(92%, 680px);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      line-height: 1.65;
+      background: white;
+    }
+
+    .bubble.coach {
+      border-color: #bcd9dc;
+      background: var(--soft-teal);
+    }
+
+    .bubble.student {
+      justify-self: end;
+      border-color: #c8d8e6;
+      background: var(--soft-blue);
+    }
+
+    .bubble.alert {
+      border-color: #efb4bd;
+      background: var(--soft-rose);
+    }
+
+    .bubble.ok {
+      border-color: #a8d49b;
+      background: #f1faee;
+    }
+
+    .visual {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      overflow: auto;
+    }
+
+    .concept-card {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #bcd9dc;
+      border-radius: 8px;
+      background: var(--soft-teal);
+      line-height: 1.7;
+    }
+
+    .concept-card h2 {
+      margin: 0;
+      font-size: clamp(1.25rem, 4vw, 1.8rem);
+    }
+
+    .concept-card strong { color: #0b6668; }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      line-height: 1.35;
+    }
+
+    .option:hover { border-color: var(--teal); background: var(--soft-teal); }
+    .option.correct { border-color: var(--green); background: #edf7e9; }
+    .option.wrong { border-color: var(--rose); background: var(--soft-rose); }
+
+    .answer-panel {
+      display: grid;
+      grid-column: 1 / -1;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: white;
+    }
+
+    .answer-panel.reply-mode {
+      border-color: #bcd9dc;
+      background: #fbfefd;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: 12px;
+    }
+
+    .answer-field {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .answer-field strong { color: var(--ink); }
+
+    .answer-input,
+    .photo-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .photo-preview {
+      display: none;
+      max-height: 260px;
+      width: 100%;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7faf9;
+    }
+
+    .photo-preview.show { display: block; }
+
+    .answer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .review-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: .94rem;
+      line-height: 1.55;
+    }
+
+    .feedback {
+      display: none;
+      border-radius: 8px;
+      padding: 14px;
+      line-height: 1.7;
+      border: 1px solid var(--line);
+      background: white;
+    }
+
+    .feedback.show { display: block; }
+    .feedback.ok { border-color: #a8d49b; background: #f1faee; }
+    .feedback.bad { border-color: #efb4bd; background: #fff4f5; }
+
+    .explain-title {
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+
+    .step-list {
+      margin: 8px 0 0;
+      padding-left: 1.25rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mini-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .report {
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.65;
+      background: #f7faf9;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--ink);
+    }
+
+    .report.show { display: block; }
+
+    .empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: white;
+    }
+
+    svg { max-width: 100%; height: auto; }
+
+    @media (max-width: 760px) {
+      .app-shell { padding: 14px; }
+      .topbar { display: grid; }
+      .actions { justify-content: flex-start; }
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; }
+      .options { grid-template-columns: 1fr; }
+      .answer-grid { grid-template-columns: 1fr; }
+      .status-row { align-items: flex-start; flex-direction: column; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Bobo 數學練習頁安全更新</h1>
-    <p>舊版頁面已移除公開前端裡的 Telegram Token 設定，正在帶你到新版畢業考練習。</p>
-    <p><a href="./bobo-math-graduation-20260528.html">前往新版 12 回練習</a></p>
-    <p class="muted">新版通知會透過 Worker 轉送，GitHub Pages 不會存放 Bot Token。</p>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Bobo 數學畢業考練習</h1>
+        <p class="subtitle">康軒六下範圍：第 5 單元怎樣解題、第 6 單元圓形圖。先練畢業考常考的解題模型、圓形百分圖、圓形圖應用和可能性。</p>
+        <p class="subtitle"><strong id="versionBadge">最新版載入中</strong></p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="startMixedBtn">開始混合練習</button>
+        <button class="btn" id="wrongBtn">錯題加強</button>
+        <button class="btn" id="tgConfigBtn">通知設定</button>
+        <button class="btn warn" id="resetBtn">清除本機紀錄</button>
+      </div>
+    </header>
+
+    <section class="panel" id="tgConfigPanel" style="display:none; margin-top:12px;">
+      <strong>Telegram 自動回報</strong>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <label>Bot Token <input id="tgToken" type="password" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <label>Chat ID <input id="tgChatId" type="text" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <label>AI 批改網址 <input id="aiEndpoint" type="url" placeholder="https://bobo-math-grader.bobo-math-grader.workers.dev" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:8px;"></label>
+        <button class="btn primary" id="saveTgBtn" type="button">儲存通知設定</button>
+        <span class="subtitle">完成單元、看提示、答錯、照片算式、錯題加強完成都會自動回報。AI 網址留空時，照片會先傳給媽媽人工確認，不會算精熟。</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel side">
+        <h2 class="scope-title">畢業考範圍</h2>
+        <div class="unit-list" id="unitList"></div>
+        <div class="progress">
+          <div id="progressText">完成 0 / 0 題</div>
+          <div class="bar"><span id="progressBar"></span></div>
+          <div id="accuracyText">答對率 0%</div>
+          <div id="wrongText">待加強 0 題</div>
+        </div>
+      </aside>
+
+      <section class="panel exam-card">
+        <div class="status-row">
+          <span class="pill" id="modeLabel">請選一個單元，或開始混合練習</span>
+          <span id="queueLabel">題庫已載入</span>
+        </div>
+
+        <div id="questionArea" class="empty">選擇單元後會從概念卡開始，答錯會立刻留下錯題紀錄。</div>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+
+        <div class="toolbar">
+          <div class="mini-actions">
+            <button class="btn" id="hintBtn" disabled>看提示</button>
+            <button class="btn" id="nextBtn" disabled>下一題</button>
+            <button class="btn" id="reportBtn">產生回報</button>
+          </div>
+          <div class="mini-actions">
+            <button class="btn" id="shuffleBtn">換一輪新題</button>
+          </div>
+        </div>
+
+        <pre class="report" id="reportBox"></pre>
+      </section>
+    </section>
   </main>
+
+  <script>
+    const STORAGE_KEY = "bobo_math_graduation_20260515";
+    const SESSION_KEY = "bobo_math_graduation_active_session_v1";
+    const APP_VERSION = "20260518-varied-all-units";
+    const DEFAULT_AI_ENDPOINT = "https://bobo-math-grader.bobo-math-grader.workers.dev";
+    const CANONICAL_URL = "https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/index_math_graduation.html";
+
+    const UNITS = [
+      { id: "sumdiff", label: "5-1 和差問題", group: "怎樣解題" },
+      { id: "age", label: "5-2 年齡問題", group: "怎樣解題" },
+      { id: "chicken", label: "5-3 假設法問題", group: "怎樣解題" },
+      { id: "combination", label: "5-4 組合問題", group: "怎樣解題" },
+      { id: "percentPie", label: "6-1 圓形百分圖", group: "圓形圖" },
+      { id: "pieChart", label: "6-2 圓形圖", group: "圓形圖" },
+      { id: "pieApply", label: "6-3 圓形圖應用", group: "圓形圖" },
+      { id: "probability", label: "6-4 認識可能性", group: "圓形圖" }
+    ];
+
+    const QUESTION_BANK = [
+      {
+        id: "sumdiff-1",
+        unit: "sumdiff",
+        level: "基礎",
+        title: "哥哥和妹妹共有 86 元，哥哥比妹妹多 18 元。妹妹有多少元？",
+        work: "和差問題：小數 = (和 - 差) ÷ 2。",
+        options: ["34 元", "52 元", "68 元", "43 元"],
+        answer: 0,
+        hint: "先把哥哥多出來的 18 元拿掉，剩下就是兩個妹妹的錢。",
+        steps: ["86 - 18 = 68", "68 ÷ 2 = 34", "妹妹有 34 元。"]
+      },
+      {
+        id: "sumdiff-2",
+        unit: "sumdiff",
+        level: "基礎",
+        title: "兩個數的和是 124，差是 36。較大的數是多少？",
+        work: "和差問題：大數 = (和 + 差) ÷ 2。",
+        options: ["44", "80", "88", "160"],
+        answer: 1,
+        hint: "要求較大數，要把差加回去再平分。",
+        steps: ["124 + 36 = 160", "160 ÷ 2 = 80", "較大的數是 80。"]
+      },
+      {
+        id: "sumdiff-3",
+        unit: "sumdiff",
+        level: "進階",
+        title: "甲、乙兩袋米共有 75 公斤，甲袋比乙袋少 13 公斤。甲袋有多少公斤？",
+        work: "甲比較少，所以甲是小數。",
+        options: ["31 公斤", "44 公斤", "62 公斤", "37.5 公斤"],
+        answer: 0,
+        hint: "小數 = (和 - 差) ÷ 2，題目問比較少的甲。",
+        steps: ["75 - 13 = 62", "62 ÷ 2 = 31", "甲袋有 31 公斤。"]
+      },
+      {
+        id: "sumdiff-4",
+        unit: "sumdiff",
+        level: "進階",
+        title: "兩條繩子共長 208 公分，長繩比短繩多 46 公分。長繩長多少公分？",
+        work: "找長繩：把差加到總和後再平分。",
+        options: ["81 公分", "127 公分", "162 公分", "104 公分"],
+        answer: 1,
+        hint: "長繩 = (208 + 46) ÷ 2。",
+        steps: ["208 + 46 = 254", "254 ÷ 2 = 127", "長繩長 127 公分。"]
+      },
+      {
+        id: "age-1",
+        unit: "age",
+        level: "基礎",
+        title: "媽媽今年 39 歲，Bobo 今年 12 歲。幾年後媽媽的年齡是 Bobo 的 2 倍？",
+        work: "年齡差固定不變，媽媽一直比 Bobo 大 27 歲。",
+        options: ["9 年後", "12 年後", "15 年後", "27 年後"],
+        answer: 2,
+        hint: "當媽媽是 Bobo 的 2 倍時，兩人的差剛好等於那時 Bobo 的年齡。",
+        steps: ["39 - 12 = 27", "那時 Bobo 27 歲", "27 - 12 = 15", "15 年後。"]
+      },
+      {
+        id: "age-2",
+        unit: "age",
+        level: "基礎",
+        title: "爸爸今年 42 歲，小安今年 10 歲。幾年前爸爸的年齡是小安的 5 倍？",
+        work: "往前推 x 年：42 - x = 5 × (10 - x)。",
+        options: ["2 年前", "4 年前", "6 年前", "8 年前"],
+        answer: 0,
+        hint: "可以代入選項檢查：爸爸年齡是不是小孩的 5 倍。",
+        steps: ["2 年前爸爸 40 歲", "2 年前小安 8 歲", "40 ÷ 8 = 5", "所以是 2 年前。"]
+      },
+      {
+        id: "age-3",
+        unit: "age",
+        level: "進階",
+        title: "姐姐今年 18 歲，弟弟今年 10 歲。幾年後兩人的年齡和是 44 歲？",
+        work: "每過 1 年，兩人的年齡和會增加 2 歲。",
+        options: ["6 年後", "8 年後", "10 年後", "16 年後"],
+        answer: 1,
+        hint: "現在年齡和是多少？還差多少？每年會增加 2。",
+        steps: ["18 + 10 = 28", "44 - 28 = 16", "16 ÷ 2 = 8", "8 年後。"]
+      },
+      {
+        id: "age-4",
+        unit: "age",
+        level: "進階",
+        title: "阿姨今年 35 歲，外甥今年 7 歲。幾年後阿姨的年齡是外甥的 3 倍？",
+        work: "年齡差 28 歲固定；3 倍時，差是外甥年齡的 2 倍。",
+        options: ["3 年後", "5 年後", "7 年後", "9 年後"],
+        answer: 2,
+        hint: "3 倍表示大的人比小的人多 2 份。",
+        steps: ["35 - 7 = 28", "28 ÷ 2 = 14", "那時外甥 14 歲", "14 - 7 = 7", "7 年後。"]
+      },
+      {
+        id: "chicken-1",
+        unit: "chicken",
+        level: "基礎",
+        title: "雞和兔共有 16 隻，腳共有 44 隻。兔有幾隻？",
+        work: "全部先當雞，每隻 2 隻腳；多出來的腳每 2 隻代表 1 隻兔。",
+        options: ["4 隻", "6 隻", "10 隻", "12 隻"],
+        answer: 1,
+        hint: "16 隻都當雞會有 32 隻腳，和 44 差多少？",
+        steps: ["16 × 2 = 32", "44 - 32 = 12", "12 ÷ 2 = 6", "兔有 6 隻。"]
+      },
+      {
+        id: "chicken-2",
+        unit: "chicken",
+        level: "基礎",
+        title: "停車場有腳踏車和汽車共 18 輛，輪子共 54 個。汽車有幾輛？",
+        work: "全部先當腳踏車，每輛 2 個輪子；多出的輪子每 2 個代表 1 輛汽車。",
+        options: ["7 輛", "9 輛", "11 輛", "14 輛"],
+        answer: 1,
+        hint: "把汽車想成比腳踏車多 2 個輪子。",
+        steps: ["18 × 2 = 36", "54 - 36 = 18", "18 ÷ 2 = 9", "汽車有 9 輛。"]
+      },
+      {
+        id: "chicken-3",
+        unit: "chicken",
+        level: "進階",
+        title: "雞和兔共有 25 隻，腳共有 70 隻。雞有幾隻？",
+        work: "先求兔，再用總數扣掉兔。",
+        options: ["10 隻", "12 隻", "15 隻", "20 隻"],
+        answer: 2,
+        hint: "全部當雞有 50 隻腳，多出 20 隻腳。",
+        steps: ["25 × 2 = 50", "70 - 50 = 20", "20 ÷ 2 = 10，所以兔 10 隻", "25 - 10 = 15", "雞有 15 隻。"]
+      },
+      {
+        id: "chicken-4",
+        unit: "chicken",
+        level: "進階",
+        title: "小船和大船共 14 艘，小船可坐 4 人，大船可坐 6 人，全部坐滿共 68 人。大船有幾艘？",
+        work: "全部先當小船，每艘 4 人；大船每艘多坐 2 人。",
+        options: ["4 艘", "6 艘", "8 艘", "10 艘"],
+        answer: 1,
+        hint: "14 艘都當小船會坐幾人？和 68 差多少？",
+        steps: ["14 × 4 = 56", "68 - 56 = 12", "12 ÷ 2 = 6", "大船有 6 艘。"]
+      },
+      {
+        id: "combination-1",
+        unit: "combination",
+        level: "基礎",
+        title: "早餐店有 3 種主餐和 4 種飲料。主餐選 1 種、飲料選 1 種，共有幾種搭配？",
+        work: "組合問題：每一種主餐都可以配 4 種飲料。",
+        options: ["7 種", "10 種", "12 種", "24 種"],
+        answer: 2,
+        hint: "3 組，每組都有 4 種飲料。",
+        steps: ["3 × 4 = 12", "共有 12 種搭配。"]
+      },
+      {
+        id: "combination-2",
+        unit: "combination",
+        level: "基礎",
+        title: "有紅、藍、黑 3 色上衣，白、灰 2 色褲子，再配 2 種帽子。共有幾種穿搭？",
+        work: "多階段組合用乘法。",
+        options: ["7 種", "10 種", "12 種", "18 種"],
+        answer: 2,
+        hint: "上衣、褲子、帽子各選一個，所以 3 × 2 × 2。",
+        steps: ["3 × 2 × 2 = 12", "共有 12 種穿搭。"]
+      },
+      {
+        id: "combination-3",
+        unit: "combination",
+        level: "進階",
+        title: "從 A、B、C、D 四人中選 2 人代表班級，不分先後，共有幾種選法？",
+        work: "不分先後時，AB 和 BA 是同一種。",
+        options: ["4 種", "6 種", "8 種", "12 種"],
+        answer: 1,
+        hint: "可列：AB、AC、AD、BC、BD、CD。",
+        steps: ["A 可配 B、C、D：3 種", "B 可再配 C、D：2 種", "C 可再配 D：1 種", "3 + 2 + 1 = 6。"]
+      },
+      {
+        id: "combination-4",
+        unit: "combination",
+        level: "進階",
+        title: "用數字 1、2、3、4 組成沒有重複數字的兩位數，共可組成幾個？",
+        work: "十位有 4 種選擇，個位剩 3 種選擇。",
+        options: ["8 個", "10 個", "12 個", "16 個"],
+        answer: 2,
+        hint: "這題順序不同算不同，例如 12 和 21 不一樣。",
+        steps: ["十位：4 種", "個位：剩 3 種", "4 × 3 = 12。"]
+      },
+      {
+        id: "percentPie-1",
+        unit: "percentPie",
+        level: "基礎",
+        title: "六年甲班有 40 人，喜歡籃球的占 25%。喜歡籃球的有幾人？",
+        work: "百分率 × 全部 = 部分。",
+        visual: "percent25",
+        options: ["10 人", "15 人", "20 人", "25 人"],
+        answer: 0,
+        hint: "25% 就是四分之一。",
+        steps: ["40 × 25% = 40 × 1/4", "40 ÷ 4 = 10", "有 10 人。"]
+      },
+      {
+        id: "percentPie-2",
+        unit: "percentPie",
+        level: "基礎",
+        title: "一本畢業紀念冊共有 120 頁，其中照片頁占 35%。照片頁有幾頁？",
+        work: "35% = 0.35。",
+        options: ["35 頁", "42 頁", "48 頁", "85 頁"],
+        answer: 1,
+        hint: "120 × 0.35，也可以算 120 × 35 ÷ 100。",
+        steps: ["120 × 35 ÷ 100 = 42", "照片頁有 42 頁。"]
+      },
+      {
+        id: "percentPie-3",
+        unit: "percentPie",
+        level: "進階",
+        title: "社團調查共 200 人，美術社占 18%，科學社占 27%。兩社合計有幾人？",
+        work: "先合併百分率，再乘總人數。",
+        options: ["45 人", "54 人", "90 人", "110 人"],
+        answer: 2,
+        hint: "18% + 27% = 45%。",
+        steps: ["18% + 27% = 45%", "200 × 45% = 90", "兩社合計 90 人。"]
+      },
+      {
+        id: "percentPie-4",
+        unit: "percentPie",
+        level: "進階",
+        title: "一個圓形百分圖中，甲項目占 30%。甲項目的圓心角是多少度？",
+        work: "圓形圖全部是 360 度。",
+        options: ["30 度", "90 度", "108 度", "120 度"],
+        answer: 2,
+        hint: "360 × 30%。",
+        steps: ["360 × 30% = 360 × 0.3", "等於 108 度。"]
+      },
+      {
+        id: "pieChart-1",
+        unit: "pieChart",
+        level: "基礎",
+        title: "圓形圖中，某區塊的圓心角是 72 度。這個區塊占全部的百分之幾？",
+        work: "比例 = 圓心角 ÷ 360。",
+        visual: "angle72",
+        options: ["10%", "20%", "25%", "72%"],
+        answer: 1,
+        hint: "72 ÷ 360 = 1/5。",
+        steps: ["72 ÷ 360 = 0.2", "0.2 = 20%。"]
+      },
+      {
+        id: "pieChart-2",
+        unit: "pieChart",
+        level: "基礎",
+        title: "全班 36 人，圓形圖中喜歡閱讀的圓心角是 100 度。最接近有幾人喜歡閱讀？",
+        work: "先求比例，再乘全班人數。",
+        options: ["8 人", "10 人", "12 人", "18 人"],
+        answer: 1,
+        hint: "100 ÷ 360 接近 0.28，36 的 0.28 倍約是 10。",
+        steps: ["100 ÷ 360 ≈ 0.278", "36 × 0.278 ≈ 10", "約 10 人。"]
+      },
+      {
+        id: "pieChart-3",
+        unit: "pieChart",
+        level: "進階",
+        title: "一個圓形圖表示 80 本書的種類，漫畫占 45 度。漫畫有幾本？",
+        work: "45 度是 360 度的 1/8。",
+        options: ["8 本", "10 本", "12 本", "18 本"],
+        answer: 1,
+        hint: "45 ÷ 360 = 1/8。",
+        steps: ["45 ÷ 360 = 1/8", "80 × 1/8 = 10", "漫畫有 10 本。"]
+      },
+      {
+        id: "pieChart-4",
+        unit: "pieChart",
+        level: "進階",
+        title: "某圓形圖中 A 占 90 度，B 占 126 度，C 占剩下的角度。C 占全部的百分之幾？",
+        work: "先求 C 的圓心角，再換成百分率。",
+        options: ["30%", "35%", "40%", "45%"],
+        answer: 2,
+        hint: "C = 360 - 90 - 126。",
+        steps: ["360 - 90 - 126 = 144", "144 ÷ 360 = 0.4", "C 占 40%。"]
+      },
+      {
+        id: "pieApply-1",
+        unit: "pieApply",
+        level: "基礎",
+        title: "六年級 150 人調查通學方式：走路 20%、搭車 50%、騎腳踏車 30%。搭車比走路多幾人？",
+        work: "可以先比較百分率差。",
+        options: ["30 人", "45 人", "60 人", "75 人"],
+        answer: 1,
+        hint: "搭車比走路多 50% - 20% = 30%。",
+        steps: ["50% - 20% = 30%", "150 × 30% = 45", "多 45 人。"]
+      },
+      {
+        id: "pieApply-2",
+        unit: "pieApply",
+        level: "基礎",
+        title: "畢業旅行投票共 120 人，遊樂園 45%、博物館 25%、海邊 30%。投遊樂園的人比海邊多幾人？",
+        work: "比較兩個項目的百分率差。",
+        options: ["12 人", "18 人", "24 人", "54 人"],
+        answer: 1,
+        hint: "45% - 30% = 15%。",
+        steps: ["45% - 30% = 15%", "120 × 15% = 18", "多 18 人。"]
+      },
+      {
+        id: "pieApply-3",
+        unit: "pieApply",
+        level: "進階",
+        title: "某校午餐主食調查中，飯占 54 度，麵占 126 度，其餘是麵包。若調查 200 人，選麵包的有幾人？",
+        work: "先求麵包角度，再換成人數。",
+        options: ["80 人", "90 人", "100 人", "120 人"],
+        answer: 2,
+        hint: "麵包角度 = 360 - 54 - 126。",
+        steps: ["360 - 54 - 126 = 180", "180 ÷ 360 = 50%", "200 × 50% = 100", "麵包 100 人。"]
+      },
+      {
+        id: "pieApply-4",
+        unit: "pieApply",
+        level: "進階",
+        title: "圓形百分圖中，甲占 28%、乙占 37%、丙占其餘。若丙有 70 人，全部共有幾人？",
+        work: "先求丙占幾%，再用部分 ÷ 百分率。",
+        options: ["140 人", "180 人", "200 人", "280 人"],
+        answer: 2,
+        hint: "丙 = 100% - 28% - 37%。",
+        steps: ["100% - 28% - 37% = 35%", "70 ÷ 35% = 200", "全部 200 人。"]
+      },
+      {
+        id: "probability-1",
+        unit: "probability",
+        level: "基礎",
+        title: "袋中有 3 顆紅球、2 顆藍球、5 顆白球。隨機抽 1 顆，抽到白球的可能性是多少？",
+        work: "可能性 = 想要的結果數 ÷ 全部結果數。",
+        options: ["1/5", "1/2", "3/10", "5/3"],
+        answer: 1,
+        hint: "全部有 3 + 2 + 5 = 10 顆，白球 5 顆。",
+        steps: ["全部 10 顆", "白球 5 顆", "5 ÷ 10 = 1/2。"]
+      },
+      {
+        id: "probability-2",
+        unit: "probability",
+        level: "基礎",
+        title: "轉盤分成 8 等分，其中 3 格是藍色。轉到藍色的可能性是多少？",
+        work: "等分轉盤直接看格數。",
+        options: ["3/8", "5/8", "1/3", "8/3"],
+        answer: 0,
+        hint: "全部 8 格，藍色 3 格。",
+        steps: ["藍色 3 格", "全部 8 格", "可能性是 3/8。"]
+      },
+      {
+        id: "probability-3",
+        unit: "probability",
+        level: "進階",
+        title: "盒中有 6 張數字卡：1、2、3、4、5、6。抽到偶數的可能性是多少？",
+        work: "偶數有 2、4、6。",
+        options: ["1/6", "1/3", "1/2", "2/3"],
+        answer: 2,
+        hint: "偶數共有 3 張，全部 6 張。",
+        steps: ["偶數：2、4、6，共 3 張", "全部 6 張", "3/6 = 1/2。"]
+      },
+      {
+        id: "probability-4",
+        unit: "probability",
+        level: "進階",
+        title: "袋中紅球和黃球共有 20 顆。抽到紅球的可能性是 3/5，紅球有幾顆？",
+        work: "總數 × 可能性 = 符合條件的數量。",
+        options: ["8 顆", "10 顆", "12 顆", "15 顆"],
+        answer: 2,
+        hint: "20 的 3/5 是多少？",
+        steps: ["20 × 3/5 = 12", "紅球有 12 顆。"]
+      },
+      {
+        id: "bank-94-locker-pattern",
+        unit: "combination",
+        level: "原題庫",
+        source: "原題庫#94／112六年級學力檢測",
+        title: "火車站有 120 個寄物櫃，號碼依序排成 4 層：第一層 1、5、9、13…；第二層 2、6、10、14…；第三層 3、7、11、15…；第四層 4、8、12、16…。第 95 號在哪一層？",
+        work: "規律題可用除以 4 的餘數判斷層數。",
+        options: ["第一層", "第二層", "第三層", "第四層"],
+        answer: 2,
+        hint: "把 95 除以 4，看餘數是多少；餘 1 是第一層，餘 2 是第二層，餘 3 是第三層，整除是第四層。",
+        steps: ["95 ÷ 4 = 23 餘 3", "餘數 3 對應第三層", "第 95 號在第三層。"]
+      },
+      {
+        id: "bank-118-pattern-blocks",
+        unit: "combination",
+        level: "原題庫",
+        source: "原題庫#118／111六年級學力檢測",
+        title: "晏晏用灰色和白色方塊排出有規律的圖案，依規律推到圖十，需要 90 個白色方塊。這類題目最重要的解題方式是什麼？",
+        work: "原題庫規律題：先找圖號和數量之間的關係，再推到指定圖形。",
+        options: ["只看圖一的白色方塊數", "找每一圖增加多少或建立表格", "把所有選項相加", "只看灰色方塊"],
+        answer: 1,
+        hint: "組合與規律題不是猜答案，要列圖號、數量，找增加量。",
+        steps: ["列出圖一、圖二、圖三、圖四的白色方塊數", "觀察每次增加的數量", "用規律推到圖十。"]
+      },
+      {
+        id: "bank-90-grouping",
+        unit: "combination",
+        level: "原題庫",
+        source: "原題庫#90／111六年級學力檢測",
+        title: "將 36 位男生和 24 位女生分組，男生和男生分組，女生和女生分組，每組人數都一樣多。若要分成最少組，應該每組幾人？",
+        work: "要組數最少，就讓每組人數盡量多；找 36 和 24 的最大公因數。",
+        options: ["6 人", "8 人", "12 人", "24 人"],
+        answer: 2,
+        hint: "36 和 24 都能被同一個最大數整除，這個數就是每組人數。",
+        steps: ["36 和 24 的最大公因數是 12", "男生 36 ÷ 12 = 3 組", "女生 24 ÷ 12 = 2 組", "每組 12 人時，總組數最少。"]
+      },
+      {
+        id: "bank-97-drink-percent",
+        unit: "percentPie",
+        level: "原題庫",
+        source: "原題庫#97／112六年級學力檢測",
+        title: "某飲料新包裝額外免費贈送 20%，也就是新包裝比舊包裝多了 50 c.c.。舊包裝的飲料有多少 c.c.？",
+        work: "多出來的 50 c.c. 是舊包裝的 20%。",
+        options: ["200 c.c.", "250 c.c.", "300 c.c.", "350 c.c."],
+        answer: 1,
+        hint: "把舊包裝看成 100%，50 c.c. 是其中的 20%。",
+        steps: ["50 ÷ 20% = 50 ÷ 0.2", "50 ÷ 0.2 = 250", "舊包裝是 250 c.c.。"]
+      },
+      {
+        id: "bank-201-fraction-percent",
+        unit: "percentPie",
+        level: "原題庫",
+        source: "原題庫#201／自製題庫",
+        title: "班上有 30 位同學，喜歡數學的占 2/5。喜歡數學的有幾位？",
+        work: "2/5 可以想成 40%，也可以直接用總人數乘分率。",
+        options: ["10 位", "12 位", "15 位", "18 位"],
+        answer: 1,
+        hint: "30 × 2/5，先 30 ÷ 5 再 × 2。",
+        steps: ["30 ÷ 5 = 6", "6 × 2 = 12", "喜歡數學的有 12 位。"]
+      },
+      {
+        id: "bank-178-chart-type",
+        unit: "pieChart",
+        level: "原題庫",
+        source: "原題庫#178／自製題庫",
+        title: "下列哪種統計圖最適合用來比較各班的人數？",
+        work: "不同統計圖適合不同目的：比較各組數量通常用長條圖。",
+        options: ["圓形圖", "折線圖", "長條圖", "散佈圖"],
+        answer: 2,
+        hint: "圓形圖常用來看部分占全部；長條圖適合比較不同類別的大小。",
+        steps: ["題目要比較各班人數", "各班是不同類別", "比較類別數量最適合長條圖。"]
+      },
+      {
+        id: "bank-129-circle-proportion",
+        unit: "pieChart",
+        level: "原題庫",
+        source: "原題庫#129／111六年級學力檢測",
+        title: "下列哪一組數量不是成正比？",
+        work: "原題庫的圓形表格題：半徑和直徑成正比，圓周長和半徑成正比；圓面積和直徑不是正比。",
+        options: ["半徑長和直徑長", "圓面積和直徑長", "圓周長和半徑長", "圓弧長和直徑長"],
+        answer: 1,
+        hint: "圓面積和半徑的平方有關，不是直徑變 2 倍，面積也只變 2 倍。",
+        steps: ["直徑 = 半徑 × 2，所以半徑和直徑成正比", "圓周長 = 直徑 × π，也成正比", "圓面積 = π × 半徑 × 半徑", "圓面積和直徑長不是成正比。"]
+      },
+      {
+        id: "bank-107-pi-concept",
+        unit: "pieChart",
+        level: "原題庫",
+        source: "原題庫#107／112六年級學力檢測",
+        title: "甲、乙、丙、丁談論圓周率：甲說圓周率是圓周長與半徑的比值；乙說圓周率是圓周長與直徑的比值；丙說不同圓的圓周率不相同；丁說不同圓的圓周率都相同。哪些人正確？",
+        work: "圓周率 π = 圓周長 ÷ 直徑，而且所有圓的圓周率相同。",
+        options: ["甲、丙", "甲、丁", "乙、丙", "乙、丁"],
+        answer: 3,
+        hint: "圓周率不是除以半徑，是除以直徑。",
+        steps: ["π = 圓周長 ÷ 直徑，所以乙正確", "不同大小的圓，圓周長和直徑的比值都相同，所以丁正確", "答案是乙、丁。"]
+      },
+      {
+        id: "bank-142-drink-application",
+        unit: "pieApply",
+        level: "原題庫",
+        source: "原題庫#142／112六年級學力檢測",
+        title: "新包裝比舊包裝多 20%，而且多了 50 c.c.。如果畫成圓形百分圖，多出來的部分代表舊包裝的幾分之幾？",
+        work: "20% 可以換成分數 20/100。",
+        options: ["1/2", "1/4", "1/5", "1/20"],
+        answer: 2,
+        hint: "20% = 20/100，約分後是多少？",
+        steps: ["20% = 20/100", "20/100 = 1/5", "多出來的部分是舊包裝的 1/5。"]
+      },
+      {
+        id: "bank-150-nutrition-label",
+        unit: "pieApply",
+        level: "原題庫",
+        source: "原題庫#150／112六年級學力檢測",
+        title: "一袋餅乾營養標示類題：若整袋熱量 380 大卡，共約 3.33 份，每份熱量大約是多少大卡？",
+        work: "原題庫營養標示題型：用總量除以份數，並取概數。",
+        options: ["3.8 大卡", "12.7 大卡", "114 大卡", "380 大卡"],
+        answer: 2,
+        hint: "380 ÷ 3.33 大約是多少？",
+        steps: ["380 ÷ 3.33 ≈ 114", "每份熱量約 114 大卡。"]
+      },
+      {
+        id: "bank-155-rounding-stat",
+        unit: "pieApply",
+        level: "原題庫",
+        source: "原題庫#155／112六年級學力檢測",
+        title: "甲、乙、丙、丁各買 10 公斤番茄，平均每公斤價格分別約為 20.5、20.1、21.6、21.5 元。四人都說取概數後是 21 元，下列哪個說法錯誤？",
+        work: "統計與圖表常會搭配概數判讀；要分清楚四捨五入、無條件進入、無條件捨去。",
+        options: ["20.5 用四捨五入可得 21", "20.1 用無條件進入可得 21", "21.6 用無條件捨去可得 21", "21.5 用四捨五入可得 21"],
+        answer: 3,
+        hint: "21.5 四捨五入到整數會進到多少？",
+        steps: ["20.5 四捨五入是 21", "20.1 無條件進入是 21", "21.6 無條件捨去是 21", "21.5 四捨五入是 22，不是 21。"]
+      },
+      {
+        id: "bank-99-distance-time",
+        unit: "probability",
+        level: "原題庫",
+        source: "原題庫#99／112六年級學力檢測",
+        title: "王叔叔原本以時速 3.6 公里走 20 分鐘剛好到公司。今天晚 5 分鐘出門，只剩 15 分鐘，必須以時速多少公里走路才會剛好到？",
+        work: "這不是可能性原題，但可練『條件改變後結果如何變』的判斷，和可能性單元同樣重視條件。",
+        options: ["2.88", "4", "4.8", "5.2"],
+        answer: 2,
+        hint: "先求距離，再用新的時間求速率；15 分鐘是 0.25 小時。",
+        steps: ["20 分鐘 = 1/3 小時", "距離 = 3.6 × 1/3 = 1.2 公里", "15 分鐘 = 0.25 小時", "1.2 ÷ 0.25 = 4.8", "時速要 4.8 公里。"]
+      }
+    ];
+
+    const state = loadState();
+    let currentQueue = [];
+    let currentIndex = -1;
+    let currentQuestion = null;
+    let currentMode = "idle";
+    let answered = false;
+    let currentWrongRecorded = false;
+    let currentHintUsed = false;
+    let currentHintNotified = false;
+    let activeUnitId = "";
+    let sessionCompleteNotified = false;
+    let sessionStats = freshSessionStats();
+    let currentReviewOriginalIds = [];
+    let reviewPasses = {};
+
+    const unitList = document.getElementById("unitList");
+    const questionArea = document.getElementById("questionArea");
+    const optionsEl = document.getElementById("options");
+    const feedbackEl = document.getElementById("feedback");
+    const modeLabel = document.getElementById("modeLabel");
+    const queueLabel = document.getElementById("queueLabel");
+    const hintBtn = document.getElementById("hintBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const reportBox = document.getElementById("reportBox");
+
+    document.getElementById("versionBadge").textContent = `最新版 ${APP_VERSION}｜固定網址`;
+    document.getElementById("startMixedBtn").addEventListener("click", () => startMode("mixed"));
+    document.getElementById("wrongBtn").addEventListener("click", () => startMode("wrong"));
+    document.getElementById("tgConfigBtn").addEventListener("click", toggleTgConfig);
+    document.getElementById("saveTgBtn").addEventListener("click", saveTgConfig);
+    document.getElementById("resetBtn").addEventListener("click", resetProgress);
+    document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+    document.getElementById("hintBtn").addEventListener("click", showHint);
+    document.getElementById("reportBtn").addEventListener("click", showReport);
+    document.getElementById("shuffleBtn").addEventListener("click", () => {
+      if (currentMode === "idle") startMode("mixed");
+      else startMode(currentMode === "unit" ? "unit" : currentMode, activeUnitId);
+    });
+
+    initTgConfig();
+    loadTgConfig();
+    renderUnits();
+    updateProgress();
+    restoreActiveSession();
+
+    function freshSessionStats() {
+      return {
+        startedAt: Date.now(),
+        answered: 0,
+        cleanCorrect: 0,
+        hintedCorrect: 0,
+        firstWrong: 0,
+        reviewed: 0,
+        mistakeLines: []
+      };
+    }
+
+    function initTgConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      const fixedConfig = {
+        token: config.token || "",
+        chatid: config.chatid || "",
+        aiEndpoint: config.aiEndpoint || DEFAULT_AI_ENDPOINT
+      };
+      localStorage.setItem("bobo_tg_config", JSON.stringify(fixedConfig));
+      document.getElementById("aiEndpoint").value = fixedConfig.aiEndpoint;
+    }
+
+    function toggleTgConfig() {
+      const panel = document.getElementById("tgConfigPanel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    function saveTgConfig() {
+      const config = {
+        token: document.getElementById("tgToken").value.trim(),
+        chatid: document.getElementById("tgChatId").value.trim(),
+        aiEndpoint: document.getElementById("aiEndpoint").value.trim()
+      };
+      localStorage.setItem("bobo_tg_config", JSON.stringify(config));
+      sendTgMessage("Bobo 數學通知設定已更新。");
+      alert("已儲存 Telegram 通知設定。");
+    }
+
+    function loadTgConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (config.token) document.getElementById("tgToken").value = config.token;
+      if (config.chatid) document.getElementById("tgChatId").value = config.chatid;
+      document.getElementById("aiEndpoint").value = config.aiEndpoint || DEFAULT_AI_ENDPOINT;
+    }
+
+    function aiEndpointConfig() {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      const endpoint = (config.aiEndpoint || DEFAULT_AI_ENDPOINT).trim();
+      if (!config.aiEndpoint) {
+        config.aiEndpoint = endpoint;
+        localStorage.setItem("bobo_tg_config", JSON.stringify(config));
+      }
+      return endpoint;
+    }
+
+    async function sendTgMessage(text) {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (!config.token || !config.chatid) return;
+      try {
+        await fetch(`https://api.telegram.org/bot${config.token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: config.chatid, text })
+        });
+      } catch (error) {
+        console.warn("Telegram notification failed", error);
+      }
+    }
+
+    async function sendTgPhoto(dataUrl, caption) {
+      const config = JSON.parse(localStorage.getItem("bobo_tg_config") || "{}");
+      if (!config.token || !config.chatid || !dataUrl) return;
+      try {
+        const blob = await fetch(dataUrl).then(response => response.blob());
+        const form = new FormData();
+        form.append("chat_id", config.chatid);
+        form.append("caption", caption.slice(0, 1000));
+        form.append("photo", blob, "bobo-math-work.jpg");
+        await fetch(`https://api.telegram.org/bot${config.token}/sendPhoto`, {
+          method: "POST",
+          body: form
+        });
+      } catch (error) {
+        console.warn("Telegram photo notification failed", error);
+      }
+    }
+
+    function notifyMathEvent(kind, q, detail = "") {
+      const unit = q ? unitInfo(q.unit) : unitInfo(activeUnitId);
+      const label = unit.label || modeLabel.textContent;
+      const prefix = {
+        hint: "提示使用",
+        wrong: "答錯紀錄",
+        needsReview: "待加強紀錄",
+        hintedCorrect: "提示後答對",
+        complete: "練習完成"
+      }[kind] || "數學紀錄";
+      const title = q ? `\n題目：${q.title}` : "";
+      const answer = q && q.options ? `\n正解：${q.options[q.answer]}` : "";
+      sendTgMessage(`Bobo 數學${prefix}\n版本：${APP_VERSION}\n單元：${label}${title}${answer}${detail ? `\n${detail}` : ""}`);
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        return {
+          attempts: saved.attempts || {},
+          wrong: saved.wrong || {},
+          completed: saved.completed || {},
+          history: saved.history || {}
+        };
+      } catch (error) {
+        return { attempts: {}, wrong: {}, completed: {}, history: {} };
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function reviewPassesForStorage() {
+      return Object.fromEntries(Object.entries(reviewPasses).map(([id, progress]) => [
+        id,
+        {
+          original: Boolean(progress.original),
+          variations: [...progress.variations]
+        }
+      ]));
+    }
+
+    function reviewPassesFromStorage(saved = {}) {
+      return Object.fromEntries(Object.entries(saved).map(([id, progress]) => [
+        id,
+        {
+          original: Boolean(progress.original),
+          variations: new Set(progress.variations || [])
+        }
+      ]));
+    }
+
+    function saveActiveSession() {
+      if (currentMode === "idle" || currentIndex < 0 || currentIndex >= currentQueue.length) return;
+      localStorage.setItem(SESSION_KEY, JSON.stringify({
+        savedAt: Date.now(),
+        mode: currentMode,
+        activeUnitId,
+        currentIndex,
+        currentQueue,
+        answered,
+        currentWrongRecorded,
+        currentHintUsed,
+        currentHintNotified,
+        sessionCompleteNotified,
+        sessionStats,
+        currentReviewOriginalIds,
+        reviewPasses: reviewPassesForStorage()
+      }));
+    }
+
+    function clearActiveSession() {
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    function restoreActiveSession() {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+      } catch {
+        clearActiveSession();
+        return false;
+      }
+      if (!saved || !Array.isArray(saved.currentQueue) || saved.currentQueue.length === 0) return false;
+      if (saved.currentIndex < 0 || saved.currentIndex >= saved.currentQueue.length) {
+        clearActiveSession();
+        return false;
+      }
+
+      currentMode = saved.mode || "mixed";
+      activeUnitId = saved.activeUnitId || "";
+      currentQueue = saved.currentQueue;
+      currentIndex = saved.currentIndex;
+      answered = Boolean(saved.answered);
+      currentWrongRecorded = Boolean(saved.currentWrongRecorded);
+      currentHintUsed = Boolean(saved.currentHintUsed);
+      currentHintNotified = Boolean(saved.currentHintNotified);
+      sessionCompleteNotified = Boolean(saved.sessionCompleteNotified);
+      sessionStats = saved.sessionStats || freshSessionStats();
+      currentReviewOriginalIds = saved.currentReviewOriginalIds || [];
+      reviewPasses = reviewPassesFromStorage(saved.reviewPasses || {});
+      currentQuestion = currentQueue[currentIndex];
+
+      modeLabel.textContent = currentMode === "unit"
+        ? unitInfo(activeUnitId).label
+        : (currentMode === "wrong" ? "錯題加強" : "畢業考混合練習");
+      renderUnits(currentMode === "unit" ? activeUnitId : "");
+      renderQuestion(currentQuestion);
+      queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
+      hintBtn.disabled = answered || currentQuestion.type === "concept";
+      nextBtn.disabled = currentQuestion.type === "concept" ? false : !answered;
+      feedbackEl.className = "feedback show";
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach">已回到上次未完成的進度。</div>
+          <div class="bubble coach">${answered ? "上一題已通過，可以按下一題繼續。" : "從這一題繼續，不用重新抽題。"}</div>
+        </div>
+      `;
+      return true;
+    }
+
+    function byUnit(unitId) {
+      return QUESTION_BANK.filter(q => q.unit === unitId);
+    }
+
+    function questionSnapshot(q) {
+      if (!q) return null;
+      return {
+        id: q.id,
+        unit: q.unit,
+        level: q.level,
+        title: q.title,
+        work: q.work,
+        visual: q.visual,
+        options: q.options,
+        answer: q.answer,
+        hint: q.hint,
+        steps: q.steps
+      };
+    }
+
+    function questionById(id) {
+      const fixed = QUESTION_BANK.find(q => q.id === id);
+      if (fixed) return fixed;
+      const saved = state.history[id] && state.history[id].question;
+      return saved || null;
+    }
+
+    function unitForQuestionId(id) {
+      const q = questionById(id);
+      return (q && q.unit) || (state.history[id] && state.history[id].unit) || "";
+    }
+
+    function unitInfo(unitId) {
+      return UNITS.find(u => u.id === unitId) || { label: "數學觀念", group: "畢業考" };
+    }
+
+    function conceptExplanation(unitId) {
+      const map = {
+        sumdiff: "看到「和、差」時，先判斷問大數或小數。大數用（和＋差）÷2，小數用（和－差）÷2。不要直接把差除以 2 就停住。",
+        age: "年齡問題的核心是「年齡差不變」。幾年後兩個人都一起加，幾年前兩個人都一起減，可以用代入或差量關係檢查。",
+        chicken: "假設法問題先全部假設成每份數量比較少的那一種，再看總量多出多少。多出的量除以兩種物件的差，就能找出比較大的那一種有幾個。",
+        combination: "組合問題先看「順序算不算不同」。每一階段都要選一個時用乘法；不分先後選兩個人時，要避免 AB、BA 重複算。",
+        percentPie: "圓形百分圖把全部看成 100%。求部分就用全部 × 百分率；求圓心角就用 360 度 × 百分率。",
+        pieChart: "圓形圖把一整個圓看成 360 度。角度 ÷ 360 可以換成比例，再乘總量就能求人數或數量。",
+        pieApply: "圓形圖應用題常先比較百分率或角度差，再乘總量。遇到「其餘」要先用全部扣掉已知部分。",
+        probability: "可能性 = 符合條件的結果數 ÷ 全部結果數。先數清楚總共有幾個，再數想要的結果有幾個。"
+      };
+      return map[unitId] || "先看懂題目在問哪個量，再決定用哪個模型。";
+    }
+
+    function conceptDiagram(unitId) {
+      const diagrams = {
+        sumdiff: `<svg viewBox="0 0 320 130" role="img" aria-label="和差問題圖解"><rect x="28" y="28" width="210" height="28" rx="6" fill="#0f8b8d"/><rect x="28" y="78" width="146" height="28" rx="6" fill="#d99b25"/><line x1="174" y1="92" x2="238" y2="42" stroke="#c84f5f" stroke-width="3"/><text x="246" y="47" font-size="15">差</text><text x="118" y="22" font-size="15">大數</text><text x="92" y="122" font-size="15">小數</text></svg>`,
+        age: `<svg viewBox="0 0 320 130" role="img" aria-label="年齡差固定"><line x1="40" y1="45" x2="280" y2="45" stroke="#0f8b8d" stroke-width="8" stroke-linecap="round"/><line x1="80" y1="86" x2="280" y2="86" stroke="#d99b25" stroke-width="8" stroke-linecap="round"/><line x1="80" y1="20" x2="80" y2="106" stroke="#c84f5f" stroke-width="3"/><line x1="280" y1="20" x2="280" y2="106" stroke="#c84f5f" stroke-width="3"/><text x="120" y="28" font-size="15">幾年前/後一起移動</text><text x="132" y="120" font-size="15">年齡差不變</text></svg>`,
+        chicken: `<svg viewBox="0 0 320 130" role="img" aria-label="假設法差額模型"><text x="28" y="34" font-size="16">全部先當小份量</text><circle cx="70" cy="70" r="18" fill="#d99b25"/><circle cx="130" cy="70" r="18" fill="#d99b25"/><circle cx="190" cy="70" r="18" fill="#d99b25"/><path d="M230 70h48" stroke="#c84f5f" stroke-width="4"/><text x="220" y="102" font-size="15">多出的量 ÷ 差額</text></svg>`,
+        combination: `<svg viewBox="0 0 320 130" role="img" aria-label="組合樹狀圖"><circle cx="55" cy="65" r="16" fill="#0f8b8d"/><circle cx="155" cy="35" r="16" fill="#d99b25"/><circle cx="155" cy="95" r="16" fill="#d99b25"/><circle cx="255" cy="20" r="14" fill="#2e6f9e"/><circle cx="255" cy="50" r="14" fill="#2e6f9e"/><circle cx="255" cy="80" r="14" fill="#2e6f9e"/><circle cx="255" cy="110" r="14" fill="#2e6f9e"/><path d="M70 60L140 38M70 70L140 92M170 35L242 20M170 35L242 50M170 95L242 80M170 95L242 110" stroke="#7d8b93" stroke-width="2"/><text x="24" y="118" font-size="15">分階段選，用乘法</text></svg>`,
+        percentPie: `<svg viewBox="0 0 320 130" role="img" aria-label="百分圖"><circle cx="82" cy="66" r="46" fill="#d8e1e6"/><path d="M82 66 L82 20 A46 46 0 0 1 128 66 Z" fill="#0f8b8d"/><text x="160" y="55" font-size="16">100% = 全部</text><text x="160" y="82" font-size="16">部分 = 全部 × 百分率</text></svg>`,
+        pieChart: `<svg viewBox="0 0 320 130" role="img" aria-label="圓形圖角度"><circle cx="82" cy="66" r="46" fill="#d8e1e6"/><path d="M82 66 L82 20 A46 46 0 0 1 128 66 Z" fill="#d99b25"/><text x="58" y="72" font-size="14">360度</text><text x="154" y="58" font-size="16">比例 = 角度 ÷ 360</text><text x="154" y="86" font-size="16">數量 = 全部 × 比例</text></svg>`,
+        pieApply: `<svg viewBox="0 0 320 130" role="img" aria-label="圓形圖應用"><rect x="36" y="28" width="70" height="70" fill="#0f8b8d"/><rect x="126" y="28" width="100" height="70" fill="#d99b25"/><path d="M106 110H226" stroke="#c84f5f" stroke-width="4"/><text x="70" y="122" font-size="15">比較差量，再乘總量</text></svg>`,
+        probability: `<svg viewBox="0 0 320 130" role="img" aria-label="可能性"><circle cx="58" cy="50" r="15" fill="#c84f5f"/><circle cx="98" cy="50" r="15" fill="#c84f5f"/><circle cx="138" cy="50" r="15" fill="#2e6f9e"/><circle cx="178" cy="50" r="15" fill="#d99b25"/><circle cx="218" cy="50" r="15" fill="#d99b25"/><text x="52" y="100" font-size="16">可能性 = 想要的數量 ÷ 全部數量</text></svg>`
+      };
+      return diagrams[unitId] || "";
+    }
+
+    function unitOverviewCard(unitId) {
+      const unit = unitInfo(unitId);
+      return {
+        type: "concept",
+        id: `overview-${unitId}`,
+        unit: unitId,
+        conceptIndex: 1,
+        conceptTotal: 1,
+        title: `${unit.label} 概念卡`,
+        text: conceptExplanation(unitId),
+        cardKind: "單元開始"
+      };
+    }
+
+    function buildMistakeReviewQueue(bank) {
+      const groups = [];
+      const byConcept = new Map();
+      bank.forEach(item => {
+        if (!byConcept.has(item.unit)) {
+          byConcept.set(item.unit, []);
+          groups.push({ unit: item.unit, items: byConcept.get(item.unit) });
+        }
+        byConcept.get(item.unit).push(item);
+      });
+      return groups.flatMap((group, groupIndex) => {
+        const conceptCard = {
+          type: "concept",
+          id: `concept-${group.unit}-${groupIndex}`,
+          unit: group.unit,
+          conceptIndex: groupIndex + 1,
+          conceptTotal: groups.length,
+          title: `${unitInfo(group.unit).label} 觀念加強`,
+          text: conceptExplanation(group.unit),
+          cardKind: "錯題觀念"
+        };
+        const originals = group.items.map(item => ({ ...item, reviewKind: "原錯題" }));
+        const variations = group.items.flatMap(item => generatedVariationQuestions(item).map((v, index) => ({
+          ...v,
+          reviewKind: `變化題 ${index + 1}`,
+          sourceOriginal: item.id
+        })));
+        return [conceptCard, ...originals, ...variations];
+      });
+    }
+
+    function generatedVariationQuestions(item) {
+      const generators = {
+        sumdiff: generateSumdiffVariations,
+        age: generateAgeVariations,
+        chicken: generateChickenVariations,
+        combination: generateCombinationVariations,
+        percentPie: generatePercentPieVariations,
+        pieChart: generatePieChartVariations,
+        pieApply: generatePieApplyVariations,
+        probability: generateProbabilityVariations
+      };
+      const generated = (generators[item.unit] || generateFallbackVariations)(item);
+      return generated.slice(0, 2).map((q, index) => ({
+        ...q,
+        id: `${item.id}-gen-${index + 1}-${Date.now()}`,
+        unit: item.unit,
+        level: "換數字",
+        originalId: item.id
+      }));
+    }
+
+    function mcOptions(answer, offsets = [-12, 8, 16]) {
+      const values = [answer, ...offsets.map(offset => answer + offset).filter(value => value > 0)];
+      return [...new Set(values)].slice(0, 4).map(String);
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function makeOptions(correct, unitText = "", distractors = []) {
+      const base = [correct, ...distractors.filter(value => value !== correct && value > 0)];
+      while (base.length < 4) {
+        const offset = randInt(-9, 12);
+        const value = correct + offset;
+        if (value > 0 && !base.includes(value)) base.push(value);
+      }
+      const options = shuffle(base.slice(0, 4)).map(value => `${value}${unitText}`);
+      return { options, answer: options.indexOf(`${correct}${unitText}`) };
+    }
+
+    function makeFractionOptions(num, den) {
+      const gcd = (a, b) => b ? gcd(b, a % b) : a;
+      const divisor = gcd(num, den);
+      const correct = `${num / divisor}/${den / divisor}`;
+      const candidates = [correct, `${num}/${den}`, `${Math.max(1, num - 1)}/${den}`, `${num}/${den + 1}`];
+      const options = shuffle([...new Set(candidates)]).slice(0, 4);
+      while (options.length < 4) options.push(`${randInt(1, den - 1)}/${den}`);
+      return { options, answer: options.indexOf(correct) };
+    }
+
+    function generatedPracticeQuestion(unitId, serial) {
+      const id = `${unitId}-fresh-${Date.now()}-${serial}-${randInt(1000, 9999)}`;
+      if (unitId === "sumdiff") {
+        const small = randInt(18, 78);
+        const diff = randInt(8, 36);
+        const big = small + diff;
+        const sum = small + big;
+        const askBig = Math.random() > 0.5;
+        const correct = askBig ? big : small;
+        const opts = makeOptions(correct);
+        const templates = [
+          {
+            title: `兩個數的和是 ${sum}，差是 ${diff}。${askBig ? "較大的數" : "較小的數"}是多少？`,
+            unitText: "",
+            smallLabel: "較小的數",
+            bigLabel: "較大的數"
+          },
+          {
+            title: `哥哥和妹妹共有 ${sum} 元，哥哥比妹妹多 ${diff} 元。${askBig ? "哥哥" : "妹妹"}有多少元？`,
+            unitText: " 元",
+            smallLabel: "妹妹",
+            bigLabel: "哥哥"
+          },
+          {
+            title: `兩條彩帶共長 ${sum} 公分，長彩帶比短彩帶多 ${diff} 公分。${askBig ? "長彩帶" : "短彩帶"}長多少公分？`,
+            unitText: " 公分",
+            smallLabel: "短彩帶",
+            bigLabel: "長彩帶"
+          },
+          {
+            title: `甲、乙兩隊共有 ${sum} 人，甲隊比乙隊少 ${diff} 人。${askBig ? "乙隊" : "甲隊"}有幾人？`,
+            unitText: " 人",
+            smallLabel: "甲隊",
+            bigLabel: "乙隊"
+          }
+        ];
+        const t = templates[randInt(0, templates.length - 1)];
+        const label = askBig ? t.bigLabel : t.smallLabel;
+        const namedOpts = makeOptions(correct, t.unitText, [correct - diff, correct + diff, Math.round(sum / 2)]);
+        return {
+          id,
+          unit: unitId,
+          level: "新題",
+          title: t.title,
+          work: "和差問題：先判斷要求大數或小數。",
+          ...namedOpts,
+          hint: `${label}是${askBig ? "大數" : "小數"}，想想要用（和 ${askBig ? "+" : "-"} 差）÷ 2。`,
+          steps: [askBig ? `${sum} + ${diff} = ${sum + diff}` : `${sum} - ${diff} = ${sum - diff}`, `${askBig ? sum + diff : sum - diff} ÷ 2 = ${correct}`, `${label}是 ${correct}${t.unitText}。`]
+        };
+      }
+      if (unitId === "age") {
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const child = randInt(8, 15);
+          const gap = randInt(20, 34);
+          const adult = child + gap;
+          const years = gap - child;
+          const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 5]);
+          return { id, unit: unitId, level: "新題", title: `爸爸今年 ${adult} 歲，小安今年 ${child} 歲。幾年後爸爸年齡是小安的 2 倍？`, work: "年齡差固定，2 倍時差等於小孩那時的年齡。", ...opts, hint: "2 倍時，年齡差剛好等於小安那時的年齡。", steps: [`${adult} - ${child} = ${gap}`, `2 倍時小安是 ${gap} 歲`, `${gap} - ${child} = ${years}`, `${years} 年後。`] };
+        }
+        if (type === 2) {
+          const childPast = randInt(6, 10);
+          const factor = randInt(4, 5);
+          const yearsAgo = randInt(2, 5);
+          const child = childPast + yearsAgo;
+          const adult = childPast * factor + yearsAgo;
+          const opts = makeOptions(yearsAgo, " 年前", [yearsAgo + 2, yearsAgo + 4, Math.max(1, yearsAgo - 1)]);
+          return { id, unit: unitId, level: "新題", title: `叔叔今年 ${adult} 歲，小宇今年 ${child} 歲。幾年前叔叔的年齡是小宇的 ${factor} 倍？`, work: "往前推時，兩人的年齡都同時減少。", ...opts, hint: "可以代入選項檢查：兩人都往前減同樣年數。", steps: [`${yearsAgo} 年前叔叔 ${adult - yearsAgo} 歲`, `${yearsAgo} 年前小宇 ${child - yearsAgo} 歲`, `${adult - yearsAgo} ÷ ${child - yearsAgo} = ${factor}`, `${yearsAgo} 年前。`] };
+        }
+        if (type === 3) {
+          const a = randInt(16, 24);
+          const b = randInt(8, 14);
+          const years = randInt(4, 12);
+          const targetSum = a + b + years * 2;
+          const opts = makeOptions(years, " 年後", [years + 2, years - 2, years + 6]);
+          return { id, unit: unitId, level: "新題", title: `姐姐今年 ${a} 歲，弟弟今年 ${b} 歲。幾年後兩人的年齡和是 ${targetSum} 歲？`, work: "兩人每過 1 年，年齡和增加 2 歲。", ...opts, hint: "先算現在年齡和，再看還差多少。", steps: [`${a} + ${b} = ${a + b}`, `${targetSum} - ${a + b} = ${years * 2}`, `${years * 2} ÷ 2 = ${years}`, `${years} 年後。`] };
+        }
+        const child = randInt(6, 10);
+        const factor = 3;
+        const gap = randInt(18, 30);
+        const adult = child + gap;
+        const targetChild = gap / (factor - 1);
+        const adjustedGap = targetChild % 1 === 0 ? gap : 24;
+        const fixedAdult = child + adjustedGap;
+        const years = adjustedGap / 2 - child;
+        const opts = makeOptions(years, " 年後", [years + 2, years + 4, Math.max(1, years - 2)]);
+        return { id, unit: unitId, level: "新題", title: `阿姨今年 ${fixedAdult} 歲，外甥今年 ${child} 歲。幾年後阿姨的年齡是外甥的 3 倍？`, work: "3 倍時，大的人比小的人多 2 份。", ...opts, hint: "年齡差固定，3 倍時差是小孩年齡的 2 倍。", steps: [`${fixedAdult} - ${child} = ${adjustedGap}`, `${adjustedGap} ÷ 2 = ${adjustedGap / 2}`, `${adjustedGap / 2} - ${child} = ${years}`, `${years} 年後。`] };
+      }
+      if (unitId === "chicken") {
+        const templates = [
+          {
+            smallName: "腳踏車",
+            bigName: "汽車",
+            itemUnit: " 輛",
+            measureName: "輪子",
+            measureUnit: " 個",
+            smallValue: 2,
+            bigValue: 4,
+            bigCount: randInt(5, 16),
+            smallCount: randInt(8, 24)
+          },
+          {
+            smallName: "小船",
+            bigName: "大船",
+            itemUnit: " 艘",
+            measureName: "座位",
+            measureUnit: " 個",
+            smallValue: 4,
+            bigValue: 6,
+            bigCount: randInt(4, 12),
+            smallCount: randInt(7, 18)
+          },
+          {
+            smallName: "兒童票",
+            bigName: "成人票",
+            itemUnit: " 張",
+            measureName: "票款",
+            measureUnit: " 元",
+            smallValue: 50,
+            bigValue: 80,
+            bigCount: randInt(5, 18),
+            smallCount: randInt(8, 22)
+          },
+          {
+            smallName: "小盒鉛筆",
+            bigName: "大盒鉛筆",
+            itemUnit: " 盒",
+            measureName: "鉛筆",
+            measureUnit: " 枝",
+            smallValue: 6,
+            bigValue: 10,
+            bigCount: randInt(4, 12),
+            smallCount: randInt(8, 20)
+          },
+          {
+            smallName: "雙人桌",
+            bigName: "四人桌",
+            itemUnit: " 張",
+            measureName: "座位",
+            measureUnit: " 個",
+            smallValue: 2,
+            bigValue: 4,
+            bigCount: randInt(5, 16),
+            smallCount: randInt(8, 22)
+          }
+        ];
+        const t = templates[randInt(0, templates.length - 1)];
+        const total = t.bigCount + t.smallCount;
+        const measureTotal = t.bigCount * t.bigValue + t.smallCount * t.smallValue;
+        const baseline = total * t.smallValue;
+        const extra = measureTotal - baseline;
+        const diff = t.bigValue - t.smallValue;
+        const opts = makeOptions(t.bigCount, t.itemUnit, [t.bigCount - 2, t.bigCount + 2, t.smallCount]);
+        return {
+          id,
+          unit: unitId,
+          level: "新題",
+          title: `${t.smallName}和${t.bigName}共有 ${total}${t.itemUnit}，${t.measureName}共有 ${measureTotal}${t.measureUnit}。${t.bigName}有幾${t.itemUnit.trim()}？`,
+          work: `全部先當${t.smallName}，每${t.itemUnit.trim()}${t.smallValue}${t.measureUnit}；${t.bigName}每${t.itemUnit.trim()}多 ${diff}${t.measureUnit}。`,
+          ...opts,
+          hint: `${total}${t.itemUnit}都當${t.smallName}會有 ${baseline}${t.measureUnit}，和 ${measureTotal}${t.measureUnit}差多少？`,
+          steps: [`${total} × ${t.smallValue} = ${baseline}`, `${measureTotal} - ${baseline} = ${extra}`, `${extra} ÷ ${diff} = ${t.bigCount}`, `${t.bigName}有 ${t.bigCount}${t.itemUnit}。`]
+        };
+      }
+      if (unitId === "combination") {
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const a = randInt(2, 5), b = randInt(2, 5), c = randInt(2, 4);
+          const correct = a * b * c;
+          const opts = makeOptions(correct, " 種", [a + b + c, a * b, correct + a]);
+          return { id, unit: unitId, level: "新題", title: `有 ${a} 種主餐、${b} 種飲料和 ${c} 種甜點，各選一種，共有幾種搭配？`, work: "每一階段都選一個，用乘法原理。", ...opts, hint: "每個階段都要選一個，階段數相乘。", steps: [`${a} × ${b} × ${c} = ${correct}`, `共有 ${correct} 種搭配。`] };
+        }
+        if (type === 2) {
+          const colors = randInt(3, 5), pants = randInt(2, 4), hats = randInt(2, 3);
+          const correct = colors * pants * hats;
+          const opts = makeOptions(correct, " 種", [colors + pants + hats, colors * pants, correct + hats]);
+          return { id, unit: unitId, level: "新題", title: `有 ${colors} 種上衣、${pants} 種褲子、${hats} 種帽子，各選一件，共有幾種穿搭？`, work: "穿搭是多階段選擇，用乘法原理。", ...opts, hint: "上衣選完，每一種上衣都能配每一種褲子和帽子。", steps: [`${colors} × ${pants} × ${hats} = ${correct}`, `共有 ${correct} 種穿搭。`] };
+        }
+        if (type === 3) {
+          const n = randInt(5, 8);
+          const correct = n * (n - 1) / 2;
+          const opts = makeOptions(correct, " 種", [n * 2, n * (n - 1), correct - 2]);
+          return { id, unit: unitId, level: "新題", title: `從 ${n} 位同學中選 2 人當代表，不分先後，共有幾種選法？`, work: "不分先後時，AB 和 BA 是同一種。", ...opts, hint: "可想成第一人配後面的人數：依序少 1。", steps: [`${n - 1} + ${n - 2} + ... + 1 = ${correct}`, `共有 ${correct} 種選法。`] };
+        }
+        const digits = randInt(4, 6);
+        const correct = digits * (digits - 1);
+        const opts = makeOptions(correct, " 個", [digits + digits - 1, digits * digits, correct - digits]);
+        return { id, unit: unitId, level: "新題", title: `用 ${digits} 個不同數字組成沒有重複數字的兩位數，共可組成幾個？`, work: "十位先選，個位不能重複。", ...opts, hint: "十位有幾種？個位剩幾種？", steps: [`十位：${digits} 種`, `個位：剩 ${digits - 1} 種`, `${digits} × ${digits - 1} = ${correct}`] };
+      }
+      if (unitId === "percentPie") {
+        const type = randInt(1, 4);
+        const percents = [15, 20, 25, 30, 35, 40, 45];
+        const percent = percents[randInt(0, percents.length - 1)];
+        if (type === 1) {
+          const total = randInt(8, 18) * 20;
+          const correct = total * percent / 100;
+          const opts = makeOptions(correct, " 人", [correct + 8, correct - 8, Math.round(total / 2)]);
+          return { id, unit: unitId, level: "新題", title: `六年級共有 ${total} 人，參加合唱團的占 ${percent}%。參加的有幾人？`, work: "全部 × 百分率 = 部分。", ...opts, hint: "把百分率換成小數或分數，再乘全部。", steps: [`${total} × ${percent}% = ${total} × ${percent / 100}`, `= ${correct}`, `有 ${correct} 人。`] };
+        }
+        if (type === 2) {
+          const total = randInt(8, 16) * 25;
+          const part = total * percent / 100;
+          const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(part / total * 10)]);
+          return { id, unit: unitId, level: "新題", title: `一本相簿共有 ${total} 張照片，其中風景照有 ${part} 張。風景照占全部的百分之幾？`, work: "部分 ÷ 全部 = 百分率。", ...opts, hint: "用風景照張數除以全部張數。", steps: [`${part} ÷ ${total} = ${percent / 100}`, `= ${percent}%。`] };
+        }
+        if (type === 3) {
+          const correct = 360 * percent / 100;
+          const opts = makeOptions(correct, " 度", [correct + 18, correct - 18, percent]);
+          return { id, unit: unitId, level: "新題", title: `圓形百分圖中，某項目占 ${percent}%。它的圓心角是多少度？`, work: "圓形圖全部是 360 度。", ...opts, hint: "用 360 度乘百分率。", steps: [`360 × ${percent}% = 360 × ${percent / 100}`, `= ${correct} 度。`] };
+        }
+        const total = randInt(6, 12) * 50;
+        const p1 = [20, 25, 30, 35][randInt(0, 3)];
+        const p2 = [15, 20, 25][randInt(0, 2)];
+        const correct = total * (p1 + p2) / 100;
+        const opts = makeOptions(correct, " 人", [total * p1 / 100, total * p2 / 100, correct + 10]);
+        return { id, unit: unitId, level: "新題", title: `社團調查共 ${total} 人，美術社占 ${p1}%，科學社占 ${p2}%。兩社合計有幾人？`, work: "先合併百分率，再乘總人數。", ...opts, hint: "先把兩個百分率相加。", steps: [`${p1}% + ${p2}% = ${p1 + p2}%`, `${total} × ${p1 + p2}% = ${correct}`, `兩社合計 ${correct} 人。`] };
+      }
+      if (unitId === "pieChart") {
+        const angles = [45, 60, 72, 90, 120, 135, 144, 180];
+        const type = randInt(1, 4);
+        const angle = angles[randInt(0, angles.length - 1)];
+        const percent = angle / 360 * 100;
+        if (type === 1) {
+          const opts = makeOptions(percent, "%", [percent + 5, percent - 5, Math.round(percent * 2)]);
+          return { id, unit: unitId, level: "新題", title: `圓形圖中，某區塊圓心角是 ${angle} 度。這個區塊占全部的百分之幾？`, work: "比例 = 角度 ÷ 360，再換成百分率。", ...opts, hint: "整個圓是 360 度。", steps: [`${angle} ÷ 360 = ${percent / 100}`, `= ${percent}%。`] };
+        }
+        if (type === 2) {
+          const total = randInt(6, 16) * 12;
+          const correct = Math.round(total * angle / 360);
+          const opts = makeOptions(correct, " 人", [correct + 6, correct - 6, Math.round(total / 2)]);
+          return { id, unit: unitId, level: "新題", title: `一個圓形圖表示 ${total} 人的活動選擇，閱讀區塊是 ${angle} 度。選閱讀的約有幾人？`, work: "先把角度換成比例，再乘總人數。", ...opts, hint: "角度 ÷ 360 是這一區占全部的比例。", steps: [`${angle} ÷ 360 = ${angle / 360}`, `${total} × ${angle / 360} ≈ ${correct}`, `約 ${correct} 人。`] };
+        }
+        if (type === 3) {
+          const p = [20, 25, 30, 35, 40][randInt(0, 4)];
+          const correct = 360 * p / 100;
+          const opts = makeOptions(correct, " 度", [correct + 18, correct - 18, p]);
+          return { id, unit: unitId, level: "新題", title: `圓形圖中，某項目占全部的 ${p}%。圓心角是多少度？`, work: "百分率乘 360 度。", ...opts, hint: "全部圓心角是 360 度。", steps: [`360 × ${p}% = ${correct}`, `圓心角是 ${correct} 度。`] };
+        }
+        const a = [54, 72, 90][randInt(0, 2)];
+        const b = [90, 108, 126][randInt(0, 2)];
+        const c = 360 - a - b;
+        const correct = c / 360 * 100;
+        const opts = makeOptions(correct, "%", [correct + 5, correct - 5, Math.round(c / 10)]);
+        return { id, unit: unitId, level: "新題", title: `某圓形圖中 A 占 ${a} 度，B 占 ${b} 度，C 占剩下的角度。C 占全部的百分之幾？`, work: "先求剩下的圓心角，再換成百分率。", ...opts, hint: "先用 360 減掉已知角度。", steps: [`360 - ${a} - ${b} = ${c}`, `${c} ÷ 360 = ${correct / 100}`, `C 占 ${correct}%。`] };
+      }
+      if (unitId === "pieApply") {
+        const type = randInt(1, 4);
+        if (type === 1) {
+          const total = randInt(8, 16) * 30;
+          const p1 = [35, 40, 45, 50][randInt(0, 3)];
+          const p2 = [15, 20, 25, 30][randInt(0, 3)];
+          const diff = p1 - p2;
+          const correct = total * diff / 100;
+          const opts = makeOptions(correct, " 人", [correct + 12, correct - 12, total * p2 / 100]);
+          return { id, unit: unitId, level: "新題", title: `全校 ${total} 人投票，甲活動占 ${p1}%，乙活動占 ${p2}%。甲比乙多幾人？`, work: "先比較百分率差，再乘總人數。", ...opts, hint: "先比較百分率，不要先分別算兩邊也可以。", steps: [`${p1}% - ${p2}% = ${diff}%`, `${total} × ${diff}% = ${correct}`, `多 ${correct} 人。`] };
+        }
+        if (type === 2) {
+          const p1 = [22, 28, 30][randInt(0, 2)];
+          const p2 = [33, 37, 40][randInt(0, 2)];
+          const remain = 100 - p1 - p2;
+          const whole = randInt(6, 12) * 50;
+          const part = whole * remain / 100;
+          const opts = makeOptions(whole, " 人", [part, whole - part, whole + 50]);
+          return { id, unit: unitId, level: "新題", title: `圓形百分圖中，甲占 ${p1}%，乙占 ${p2}%，丙占其餘。若丙有 ${part} 人，全部共有幾人？`, work: "先求丙占幾%，再用部分 ÷ 百分率。", ...opts, hint: "丙是剩下的百分率。", steps: [`100% - ${p1}% - ${p2}% = ${remain}%`, `${part} ÷ ${remain}% = ${whole}`, `全部 ${whole} 人。`] };
+        }
+        if (type === 3) {
+          const total = randInt(8, 16) * 25;
+          const p = [20, 25, 30, 35][randInt(0, 3)];
+          const other = total * (100 - p) / 100;
+          const opts = makeOptions(other, " 人", [total * p / 100, other + 10, total]);
+          return { id, unit: unitId, level: "新題", title: `畢業旅行投票共 ${total} 人，去博物館占 ${p}%，其餘選遊樂園。選遊樂園的有幾人？`, work: "先求剩下百分率，再乘總人數。", ...opts, hint: "其餘就是 100% 減掉已知百分率。", steps: [`100% - ${p}% = ${100 - p}%`, `${total} × ${100 - p}% = ${other}`, `選遊樂園 ${other} 人。`] };
+        }
+        const servings = [2, 2.5, 4][randInt(0, 2)];
+        const each = randInt(8, 18) * 10;
+        const totalHeat = each * servings;
+        const opts = makeOptions(each, " 大卡", [Math.round(totalHeat), each + 20, Math.max(10, each - 20)]);
+        return { id, unit: unitId, level: "新題", title: `一袋點心整袋熱量 ${totalHeat} 大卡，共 ${servings} 份。每份熱量是多少大卡？`, work: "圖表應用常要從標示資料找總量和份數。", ...opts, hint: "總熱量除以份數。", steps: [`${totalHeat} ÷ ${servings} = ${each}`, `每份 ${each} 大卡。`] };
+      }
+      const type = randInt(1, 4);
+      if (type === 1) {
+        const total = randInt(8, 16);
+        const target = randInt(2, total - 2);
+        const frac = makeFractionOptions(target, total);
+        return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，其中紅球 ${target} 顆。隨機抽 1 顆，抽到紅球的可能性是多少？`, work: "可能性 = 符合條件的數量 ÷ 全部數量。", ...frac, hint: "先數全部，再數符合條件的。", steps: [`紅球 ${target} 顆，全部 ${total} 顆`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      if (type === 2) {
+        const total = [8, 10, 12][randInt(0, 2)];
+        const target = randInt(2, total - 2);
+        const frac = makeFractionOptions(target, total);
+        return { id, unit: "probability", level: "新題", title: `轉盤分成 ${total} 等分，其中 ${target} 格是黃色。轉到黃色的可能性是多少？`, work: "等分轉盤直接看格數。", ...frac, hint: "黃色格數除以全部格數。", steps: [`黃色 ${target} 格，全部 ${total} 格`, `可能性是 ${target}/${total}`, `約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      if (type === 3) {
+        const max = randInt(6, 10);
+        const evens = Math.floor(max / 2);
+        const frac = makeFractionOptions(evens, max);
+        return { id, unit: "probability", level: "新題", title: `盒中有數字卡 1 到 ${max}。隨機抽 1 張，抽到偶數的可能性是多少？`, work: "先列出符合條件的結果。", ...frac, hint: "偶數有哪些？全部有幾張？", steps: [`偶數共有 ${evens} 張`, `全部 ${max} 張`, `可能性是 ${evens}/${max}，約分後是 ${frac.options[frac.answer]}。`] };
+      }
+      const total = [20, 30][randInt(0, 1)];
+      const numerator = [2, 3, 4][randInt(0, 2)];
+      const denominator = [5, 10][randInt(0, 1)];
+      const target = total * numerator / denominator;
+      const opts = makeOptions(target, " 顆", [target + 2, target - 2, total - target]);
+      return { id, unit: "probability", level: "新題", title: `袋中共有 ${total} 顆球，抽到紅球的可能性是 ${numerator}/${denominator}。紅球有幾顆？`, work: "總數 × 可能性 = 符合條件的數量。", ...opts, hint: "把可能性看成紅球占全部的比例。", steps: [`${total} × ${numerator}/${denominator} = ${target}`, `紅球有 ${target} 顆。`] };
+    }
+
+    function generatedPracticeQuestions(unitId, count = 8) {
+      return Array.from({ length: count }, (_, index) => generatedPracticeQuestion(unitId, index + 1));
+    }
+
+    function practiceBankForUnit(unitId) {
+      return [...byUnit(unitId), ...generatedPracticeQuestions(unitId, 8)];
+    }
+
+    function generateSumdiffVariations() {
+      return [
+        {
+          title: "甲、乙兩數的和是 156，甲比乙多 28。乙是多少？",
+          work: "和差問題換數字：小數 = (和 - 差) ÷ 2。",
+          options: mcOptions(64, [-14, 14, 28]),
+          answer: 0,
+          hint: "先把多出來的 28 拿掉，再平分。",
+          steps: ["156 - 28 = 128", "128 ÷ 2 = 64", "乙是 64。"]
+        },
+        {
+          title: "兩條彩帶共長 93 公分，紅彩帶比藍彩帶少 17 公分。藍彩帶長多少公分？",
+          work: "要求比較長的藍彩帶，用（和 + 差）÷ 2。",
+          options: mcOptions(55, [-17, 10, 19]),
+          answer: 0,
+          hint: "藍彩帶是大數。",
+          steps: ["93 + 17 = 110", "110 ÷ 2 = 55", "藍彩帶長 55 公分。"]
+        }
+      ];
+    }
+
+    function generateAgeVariations() {
+      return [
+        {
+          title: "爸爸今年 44 歲，小宇今年 11 歲。幾年後爸爸年齡是小宇的 2 倍？",
+          work: "年齡差固定，爸爸比小宇大 33 歲。",
+          options: ["11 年後", "22 年後", "33 年後", "44 年後"],
+          answer: 1,
+          hint: "2 倍時，兩人的年齡差剛好等於小宇那時的年齡。",
+          steps: ["44 - 11 = 33", "那時小宇 33 歲", "33 - 11 = 22", "22 年後。"]
+        },
+        {
+          title: "姐姐今年 17 歲，妹妹今年 9 歲。幾年後兩人的年齡和是 42 歲？",
+          work: "兩人每過 1 年，年齡和增加 2。",
+          options: ["6 年後", "8 年後", "10 年後", "16 年後"],
+          answer: 1,
+          hint: "現在年齡和是 26，還差 16。",
+          steps: ["17 + 9 = 26", "42 - 26 = 16", "16 ÷ 2 = 8", "8 年後。"]
+        }
+      ];
+    }
+
+    function generateChickenVariations() {
+      return [
+        {
+          title: "小船和大船共有 18 艘，小船可坐 4 人，大船可坐 6 人，全部坐滿共有 92 個座位。大船有幾艘？",
+          work: "全部先當小船，每艘 4 個座位；大船每艘多 2 個座位。",
+          options: ["8 艘", "10 艘", "12 艘", "14 艘"],
+          answer: 1,
+          hint: "18 艘都當小船會有 72 個座位。",
+          steps: ["18 × 4 = 72", "92 - 72 = 20", "20 ÷ 2 = 10", "大船有 10 艘。"]
+        },
+        {
+          title: "腳踏車和汽車共有 24 輛，輪子共有 70 個。汽車有幾輛？",
+          work: "全部先當腳踏車，每輛 2 輪；汽車每輛多 2 輪。",
+          options: ["9 輛", "11 輛", "13 輛", "15 輛"],
+          answer: 1,
+          hint: "24 輛都當腳踏車會有 48 個輪子。",
+          steps: ["24 × 2 = 48", "70 - 48 = 22", "22 ÷ 2 = 11", "汽車有 11 輛。"]
+        },
+        {
+          title: "兒童票和成人票共有 30 張，兒童票每張 50 元，成人票每張 80 元，總票款 1950 元。成人票有幾張？",
+          work: "全部先當兒童票，每張 50 元；成人票每張多 30 元。",
+          options: ["12 張", "15 張", "18 張", "21 張"],
+          answer: 1,
+          hint: "30 張都當兒童票會是 1500 元。",
+          steps: ["30 × 50 = 1500", "1950 - 1500 = 450", "450 ÷ 30 = 15", "成人票有 15 張。"]
+        }
+      ];
+    }
+
+    function generateCombinationVariations() {
+      return [
+        {
+          title: "有 4 種主餐、3 種飲料和 2 種甜點，各選一種，共有幾種搭配？",
+          work: "分階段組合，每一階段都要選一種時用乘法。",
+          options: ["9 種", "12 種", "24 種", "36 種"],
+          answer: 2,
+          hint: "4 × 3 × 2。",
+          steps: ["4 × 3 × 2 = 24", "共有 24 種搭配。"]
+        },
+        {
+          title: "從 A、B、C、D、E 五人中選 2 人，不分先後，共有幾種選法？",
+          work: "不分先後，AB 和 BA 只算一種。",
+          options: ["8 種", "10 種", "15 種", "20 種"],
+          answer: 1,
+          hint: "可以列：AB、AC、AD、AE、BC、BD、BE、CD、CE、DE。",
+          steps: ["第一人可配 4 種", "第二個起依序是 3、2、1 種", "4 + 3 + 2 + 1 = 10。"]
+        }
+      ];
+    }
+
+    function generatePercentPieVariations() {
+      return [
+        {
+          title: "六年級共有 160 人，參加合唱團的占 35%。參加合唱團的有幾人？",
+          work: "全部 × 百分率 = 部分。",
+          options: ["48 人", "56 人", "64 人", "72 人"],
+          answer: 1,
+          hint: "160 × 35%。",
+          steps: ["160 × 35% = 160 × 0.35", "等於 56", "有 56 人。"]
+        },
+        {
+          title: "圓形百分圖中，某項目占 15%。它的圓心角是多少度？",
+          work: "圓形圖全部是 360 度。",
+          options: ["45 度", "54 度", "72 度", "90 度"],
+          answer: 1,
+          hint: "360 × 15%。",
+          steps: ["360 × 15% = 360 × 0.15", "等於 54 度。"]
+        }
+      ];
+    }
+
+    function generatePieChartVariations() {
+      return [
+        {
+          title: "圓形圖中，某區塊圓心角是 90 度。這個區塊占全部的百分之幾？",
+          work: "比例 = 圓心角 ÷ 360。",
+          options: ["20%", "25%", "30%", "40%"],
+          answer: 1,
+          hint: "90 ÷ 360 = 1/4。",
+          steps: ["90 ÷ 360 = 1/4", "1/4 = 25%。"]
+        },
+        {
+          title: "一個圓形圖表示 120 人的活動選擇，閱讀區塊是 60 度。選閱讀的有幾人？",
+          work: "先把角度換成比例，再乘總人數。",
+          options: ["15 人", "20 人", "24 人", "30 人"],
+          answer: 1,
+          hint: "60 ÷ 360 = 1/6。",
+          steps: ["60 ÷ 360 = 1/6", "120 × 1/6 = 20", "選閱讀的有 20 人。"]
+        }
+      ];
+    }
+
+    function generatePieApplyVariations() {
+      return [
+        {
+          title: "全校 240 人投票：戶外教學占 45%，校內活動占 30%。戶外教學比校內活動多幾人？",
+          work: "先比較百分率差，再乘總人數。",
+          options: ["24 人", "30 人", "36 人", "45 人"],
+          answer: 2,
+          hint: "45% - 30% = 15%。",
+          steps: ["45% - 30% = 15%", "240 × 15% = 36", "多 36 人。"]
+        },
+        {
+          title: "圓形百分圖中，甲占 22%、乙占 33%，丙占其餘。若丙有 90 人，全部共有幾人？",
+          work: "先求丙占幾%，再用部分 ÷ 百分率。",
+          options: ["180 人", "200 人", "220 人", "240 人"],
+          answer: 1,
+          hint: "丙 = 100% - 22% - 33%。",
+          steps: ["100% - 22% - 33% = 45%", "90 ÷ 45% = 200", "全部 200 人。"]
+        }
+      ];
+    }
+
+    function generateProbabilityVariations() {
+      return [
+        {
+          title: "袋中有 4 顆紅球、3 顆藍球、5 顆白球。隨機抽 1 顆，抽到紅球的可能性是多少？",
+          work: "可能性 = 符合條件的數量 ÷ 全部數量。",
+          options: ["1/4", "1/3", "5/12", "2/3"],
+          answer: 1,
+          hint: "全部有 12 顆，紅球 4 顆。",
+          steps: ["4 + 3 + 5 = 12", "紅球 4 顆", "4/12 = 1/3。"]
+        },
+        {
+          title: "轉盤分成 10 等分，其中 6 格是黃色。轉到黃色的可能性是多少？",
+          work: "等分轉盤直接看格數。",
+          options: ["3/5", "2/5", "1/6", "6/4"],
+          answer: 0,
+          hint: "6/10 可以約分。",
+          steps: ["黃色 6 格，全部 10 格", "6/10 = 3/5", "可能性是 3/5。"]
+        }
+      ];
+    }
+
+    function generateFallbackVariations(item) {
+      return byUnit(item.unit)
+        .filter(q => q.id !== item.id)
+        .slice(0, 2);
+    }
+
+    function renderUnits(activeId = "") {
+      unitList.innerHTML = "";
+      UNITS.forEach(unit => {
+        const count = byUnit(unit.id).length;
+        const roundCount = practiceBankForUnit(unit.id).length;
+        const btn = document.createElement("button");
+        btn.className = "unit-btn" + (activeId === unit.id ? " active" : "");
+        btn.innerHTML = `<span class="dot"></span><span>${unit.label}<br><small>${unit.group}</small></span><span class="unit-count">${roundCount} 題/輪</span>`;
+        btn.addEventListener("click", () => startMode("unit", unit.id));
+        unitList.appendChild(btn);
+      });
+    }
+
+    function startMode(mode, unitId = "") {
+      clearActiveSession();
+      const pendingWrongIds = Object.keys(state.wrong).filter(id => state.wrong[id]);
+      const forcedWrongReview = mode !== "wrong" && pendingWrongIds.length > 0;
+      if (forcedWrongReview) {
+        mode = "wrong";
+        unitId = "";
+      }
+      currentMode = mode;
+      activeUnitId = unitId;
+      sessionStats = freshSessionStats();
+      sessionCompleteNotified = false;
+      currentReviewOriginalIds = [];
+      reviewPasses = {};
+      reportBox.classList.remove("show");
+      feedbackEl.className = "feedback";
+      feedbackEl.innerHTML = "";
+      answered = false;
+      currentWrongRecorded = false;
+      currentHintUsed = false;
+      currentHintNotified = false;
+
+      if (mode === "unit") {
+        currentQueue = [unitOverviewCard(unitId), ...shuffle(practiceBankForUnit(unitId))];
+        modeLabel.textContent = unitInfo(unitId).label;
+        renderUnits(unitId);
+      } else if (mode === "wrong") {
+        activeUnitId = "wrong";
+        const wrongIds = Object.keys(state.wrong).filter(id => state.wrong[id]);
+        currentReviewOriginalIds = wrongIds;
+        reviewPasses = Object.fromEntries(wrongIds.map(id => [id, { original: false, variations: new Set() }]));
+        currentQueue = buildMistakeReviewQueue(wrongIds.map(questionById).filter(Boolean));
+        modeLabel.textContent = "錯題加強";
+        renderUnits();
+      } else {
+        activeUnitId = "mixed";
+        currentQueue = UNITS.flatMap(unit => [unitOverviewCard(unit.id), ...shuffle(practiceBankForUnit(unit.id))]);
+        modeLabel.textContent = "畢業考混合練習";
+        renderUnits();
+      }
+
+      currentIndex = -1;
+      if (currentQueue.length === 0) {
+        questionArea.className = "empty";
+        questionArea.textContent = mode === "wrong" ? "目前沒有待加強錯題。可以先做混合練習。" : "這個範圍目前沒有題目。";
+        optionsEl.innerHTML = "";
+        hintBtn.disabled = true;
+        nextBtn.disabled = true;
+        queueLabel.textContent = "0 題";
+        return;
+      }
+      nextQuestion();
+      if (forcedWrongReview) {
+        feedbackEl.className = "feedback show";
+        feedbackEl.innerHTML = `
+          <div class="coach-thread">
+            <div class="bubble coach alert">先完成上次留下的錯題加強，才能開始新的練習。</div>
+            <div class="bubble coach">規則是：原錯題通過後，還要完成兩題變化題。</div>
+          </div>
+        `;
+      }
+    }
+
+    function nextQuestion() {
+      currentIndex += 1;
+      if (currentIndex >= currentQueue.length) {
+        finalizeMistakeReview();
+        clearActiveSession();
+        const remainingReviewIds = currentMode === "wrong"
+          ? currentReviewOriginalIds.filter(id => state.wrong[id])
+          : [];
+        if (remainingReviewIds.length > 0) {
+          questionArea.className = "empty";
+          questionArea.innerHTML = `
+            <div class="coach-thread">
+              <div class="bubble coach alert">錯題加強還沒通過，不能算完成。</div>
+              <div class="bubble coach">還有 ${remainingReviewIds.length} 題待加強。原錯題和兩題變化題都通過，才會清掉。</div>
+            </div>
+          `;
+          optionsEl.innerHTML = `<button class="btn primary" id="retryWrongBtn" type="button">再練一次錯題加強</button>`;
+          document.getElementById("retryWrongBtn").addEventListener("click", () => startMode("wrong"));
+          feedbackEl.className = "feedback show";
+          feedbackEl.innerHTML = "這一輪有題目沒有真正學會，請再練一次。";
+          hintBtn.disabled = true;
+          nextBtn.disabled = true;
+          queueLabel.textContent = `仍待加強 ${remainingReviewIds.length} 題`;
+          updateProgress();
+          sendTgMessage(
+            `Bobo 數學錯題加強未完成\n` +
+            `版本：${APP_VERSION}\n` +
+            `仍待加強：${remainingReviewIds.length} 題\n` +
+            `本輪未提示答對：${sessionStats.cleanCorrect}\n` +
+            `本輪新增待加強：${sessionStats.firstWrong}\n` +
+            `需要再練一次，不能算完成。`
+          );
+          return;
+        }
+        const pendingUnitWrongIds = currentMode === "unit"
+          ? Object.keys(state.wrong).filter(id => state.wrong[id] && unitForQuestionId(id) === activeUnitId)
+          : [];
+        if (pendingUnitWrongIds.length > 0) {
+          questionArea.className = "empty";
+          questionArea.innerHTML = `
+            <div class="coach-thread">
+              <div class="bubble coach alert">這個小單元還不能結束，先把錯題學會。</div>
+              <div class="bubble coach">${unitInfo(activeUnitId).label} 有 ${pendingUnitWrongIds.length} 題待加強。接下來會先看觀念卡，再練原錯題和兩題變化題。</div>
+            </div>
+          `;
+          optionsEl.innerHTML = `<button class="btn primary" id="startUnitWrongBtn" type="button">開始錯題加強</button>`;
+          document.getElementById("startUnitWrongBtn").addEventListener("click", () => startMode("wrong"));
+          feedbackEl.className = "feedback show";
+          feedbackEl.innerHTML = "完成錯題加強後，這個單元才會算真正結束。";
+          hintBtn.disabled = true;
+          nextBtn.disabled = true;
+          queueLabel.textContent = `待加強 ${pendingUnitWrongIds.length} 題`;
+          updateProgress();
+          sendTgMessage(`Bobo 數學單元待加強\n版本：${APP_VERSION}\n單元：${unitInfo(activeUnitId).label}\n待加強：${pendingUnitWrongIds.length} 題\n已提示先做錯題加強，完成後才算結束。`);
+          return;
+        }
+        questionArea.className = "empty";
+        questionArea.innerHTML = "這一輪完成了。可以產生回報，或再換一輪順序。";
+        optionsEl.innerHTML = "";
+        feedbackEl.className = "feedback";
+        hintBtn.disabled = true;
+        nextBtn.disabled = true;
+        queueLabel.textContent = `完成 ${currentQueue.length} 題`;
+        updateProgress();
+        notifySessionComplete();
+        return;
+      }
+
+      currentQuestion = currentQueue[currentIndex];
+      answered = false;
+      currentWrongRecorded = false;
+      currentHintUsed = false;
+      currentHintNotified = false;
+      renderQuestion(currentQuestion);
+      queueLabel.textContent = `${currentIndex + 1} / ${currentQueue.length}`;
+      hintBtn.disabled = currentQuestion.type === "concept";
+      nextBtn.disabled = currentQuestion.type !== "concept";
+      saveActiveSession();
+    }
+
+    function renderQuestion(q) {
+      if (q.type === "concept") {
+        const unit = unitInfo(q.unit);
+        questionArea.className = "question";
+        questionArea.innerHTML = `
+          <div class="question-meta">
+            <span class="pill">${q.cardKind || "概念卡"}</span>
+            <span class="pill">${unit.group}</span>
+            <span class="pill">觀念 ${q.conceptIndex} / ${q.conceptTotal}</span>
+          </div>
+          <div class="concept-card">
+            ${conceptDiagram(q.unit)}
+            <h2>${q.title}</h2>
+            <div><strong>先看懂再作答：</strong>${q.text}</div>
+          </div>
+        `;
+        optionsEl.innerHTML = "";
+        feedbackEl.className = "feedback show";
+        feedbackEl.innerHTML = "看完概念卡後，按「下一題」開始練習。";
+        return;
+      }
+
+      const unit = unitInfo(q.unit);
+      questionArea.className = "question";
+      questionArea.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach">Bobo，這題先不要猜。你在紙上列式或畫圖，填最後答案，再拍照給我看。</div>
+        </div>
+        <div class="question-meta">
+          <span class="pill">${unit.label}</span>
+          <span class="pill">${q.level}</span>
+          ${q.source ? `<span class="pill">${q.source}</span>` : ""}
+          ${q.reviewKind ? `<span class="pill">${q.reviewKind}</span>` : ""}
+        </div>
+        <h2>${q.title}</h2>
+        <div class="workbox">${q.work}</div>
+        ${renderVisual(q.visual)}
+      `;
+
+      optionsEl.innerHTML = `
+        <div class="answer-panel reply-mode">
+          <div class="answer-grid">
+            <label class="answer-field">
+              <strong>回覆答案</strong>
+              <input class="answer-input" id="studentAnswer" type="text" inputmode="decimal" autocomplete="off" placeholder="只填最後答案，例如 12 種">
+            </label>
+            <label class="answer-field">
+              <strong>拍算式給我看</strong>
+              <input class="photo-input" id="workPhotoInput" type="file" accept="image/*" capture="environment">
+            </label>
+          </div>
+          <img class="photo-preview" id="workPhotoPreview" alt="算式照片預覽">
+          <div class="answer-actions">
+            <p class="review-note">我會看最後答案，也會看照片裡的算式。看提示後答對仍會保留待加強。</p>
+            <button class="btn primary" id="submitWorkBtn" type="button">送出給 AI 批改</button>
+          </div>
+        </div>
+      `;
+      document.getElementById("workPhotoInput").addEventListener("change", previewWorkPhoto);
+      document.getElementById("submitWorkBtn").addEventListener("click", submitWrittenWork);
+
+      feedbackEl.className = "feedback";
+      feedbackEl.innerHTML = "";
+    }
+
+    function previewWorkPhoto(event) {
+      const file = event.target.files && event.target.files[0];
+      const preview = document.getElementById("workPhotoPreview");
+      if (!file || !preview) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.src = reader.result;
+        preview.classList.add("show");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderVisual(type) {
+      if (type === "percent25") {
+        return `<div class="visual">${pieSvg([25, 75], ["#0f8b8d", "#d8e1e6"], ["25%", "75%"])}</div>`;
+      }
+      if (type === "angle72") {
+        return `<div class="visual">${pieSvg([20, 80], ["#d99b25", "#d8e1e6"], ["72度", "其餘"])}</div>`;
+      }
+      return "";
+    }
+
+    function pieSvg(values, colors, labels) {
+      let start = -90;
+      const slices = values.map((value, i) => {
+        const angle = value / 100 * 360;
+        const path = describeArc(100, 100, 82, start, start + angle);
+        const mid = start + angle / 2;
+        const labelPoint = polarToCartesian(100, 100, 48, mid);
+        start += angle;
+        return `<path d="${path}" fill="${colors[i]}" stroke="#fff" stroke-width="2"></path>
+          <text x="${labelPoint.x}" y="${labelPoint.y}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-weight="700" fill="#17212b">${labels[i]}</text>`;
+      }).join("");
+      return `<svg viewBox="0 0 200 200" width="220" role="img" aria-label="圓形圖">${slices}<circle cx="100" cy="100" r="82" fill="none" stroke="#aebbc2" stroke-width="1"></circle></svg>`;
+    }
+
+    function polarToCartesian(cx, cy, r, angle) {
+      const rad = angle * Math.PI / 180;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function describeArc(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, endAngle);
+      const end = polarToCartesian(cx, cy, r, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 0 ${end.x} ${end.y} Z`;
+    }
+
+    function chooseAnswer(index, btn) {
+      if (answered || !currentQuestion) return;
+
+      const q = currentQuestion;
+      const ok = index === q.answer;
+      state.attempts[q.id] = state.attempts[q.id] || { tries: 0, correct: 0, unit: q.unit };
+      state.attempts[q.id].tries += 1;
+      if (ok) {
+        answered = true;
+        sessionStats.answered += 1;
+        if (!currentHintUsed) {
+          sessionStats.cleanCorrect += 1;
+          state.attempts[q.id].correct += 1;
+          state.completed[q.id] = true;
+          recordReviewPass(q);
+        } else if (!q.originalId) {
+          sessionStats.hintedCorrect += 1;
+          state.wrong[q.id] = true;
+          state.history[q.id] = {
+            id: q.id,
+            unit: q.unit,
+            title: q.title,
+            correct: q.options[q.answer],
+            missedAt: new Date().toISOString(),
+            status: "hint_used",
+            question: questionSnapshot(q)
+          };
+          notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
+        }
+        [...optionsEl.children].forEach((optionEl, optionIndex) => {
+          optionEl.disabled = true;
+          if (optionIndex === q.answer) optionEl.classList.add("correct");
+        });
+        feedbackEl.className = "feedback show ok";
+        feedbackEl.innerHTML = `
+          <p class="explain-title">${currentHintUsed ? "提示後答對，先留在待加強" : "答對了"}</p>
+          ${currentHintUsed ? "<div>這題有看提示，所以不算精熟；之後錯題加強會再練一次。</div>" : ""}
+          <div>答案：${q.options[q.answer]}</div>
+          <ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol>
+        `;
+        hintBtn.disabled = true;
+        nextBtn.disabled = false;
+      } else {
+        if (!currentWrongRecorded && !q.originalId) {
+          sessionStats.firstWrong += 1;
+          state.wrong[q.id] = true;
+          state.history[q.id] = {
+            id: q.id,
+            unit: q.unit,
+            title: q.title,
+            correct: q.options[q.answer],
+            missedAt: new Date().toISOString(),
+            status: "active",
+            question: questionSnapshot(q)
+          };
+          const line = `${unitInfo(q.unit).label}：${q.title}\nBobo答：${q.options[index]}；正解：${q.options[q.answer]}`;
+          sessionStats.mistakeLines.push(line);
+          notifyMathEvent("wrong", q, `Bobo答：${q.options[index]}\n已立刻加入待加強。`);
+          currentWrongRecorded = true;
+        }
+        btn.classList.add("wrong");
+        btn.disabled = true;
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `
+          <p class="explain-title">先記成待加強，這題再試一次</p>
+          <div>${safeHint(q)}</div>
+        `;
+        hintBtn.disabled = false;
+        nextBtn.disabled = true;
+      }
+      saveState();
+      saveActiveSession();
+      updateProgress();
+      if (ok && currentIndex >= currentQueue.length - 1) notifySessionComplete();
+    }
+
+    function expectedAnswer(q) {
+      return q && q.options ? q.options[q.answer] : "";
+    }
+
+    function normalizeAnswerText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/百分之/g, "")
+        .replace(/[，,。．\s]/g, "")
+        .replace(/(大卡|公分|公斤|分鐘|小時|人|元|度|頁|位|種|隻|輛|艘|顆|本|張|格|層|球|個|cc|c\.c\.)/g, "")
+        .replace(/％/g, "%");
+    }
+
+    function answerNumber(value) {
+      const text = normalizeAnswerText(value);
+      const fraction = text.match(/(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)/);
+      if (fraction && Number(fraction[2]) !== 0) return Number(fraction[1]) / Number(fraction[2]);
+      const percent = text.match(/(-?\d+(?:\.\d+)?)%/);
+      if (percent) return Number(percent[1]);
+      const number = text.match(/-?\d+(?:\.\d+)?/);
+      return number ? Number(number[0]) : NaN;
+    }
+
+    function typedAnswerMatches(q, value) {
+      const expected = expectedAnswer(q);
+      const normalizedExpected = normalizeAnswerText(expected);
+      const normalizedValue = normalizeAnswerText(value);
+      if (normalizedExpected && normalizedExpected === normalizedValue) return true;
+      const expectedNumber = answerNumber(expected);
+      const answerValue = answerNumber(value);
+      if (!Number.isFinite(expectedNumber) || !Number.isFinite(answerValue)) return false;
+      return Math.abs(expectedNumber - answerValue) < 0.001;
+    }
+
+    function safeHint(q) {
+      const map = {
+        sumdiff: "先把「和」與「差」標出來，畫兩條線段比較長短；不要先猜答案。",
+        age: "先找兩人的年齡差，年齡差不會隨時間改變；再看題目問的是現在、幾年前或幾年後。",
+        chicken: "先假設全部都是同一種，再用每一隻腳數或輪數的差去調整。",
+        combination: "先分清楚是「每階段各選一個」還是「兩兩配對」；可以畫空格、表格或樹狀圖。",
+        percentPie: "先確認全部是多少，再把百分率換成分數或小數來算部分量。",
+        pieChart: "圓形圖一整圈是 360 度；先找每個扇形占整體的幾分之幾。",
+        pieApply: "先把圓形圖中的百分率或角度補齊，再比較題目問的兩個部分。",
+        probability: "先數全部可能有幾個，再數符合條件的有幾個，用「符合 / 全部」來想。"
+      };
+      return map[q.unit] || "先畫圖或列式，把已知條件整理好，再一步一步算。";
+    }
+
+    function readWorkPhoto() {
+      const input = document.getElementById("workPhotoInput");
+      const file = input && input.files && input.files[0];
+      if (!file) return Promise.resolve("");
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const dataUrl = String(reader.result || "");
+            resolve(file.type && file.type.startsWith("image/") ? await compressWorkPhoto(dataUrl) : dataUrl);
+          } catch {
+            resolve(String(reader.result || ""));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function compressWorkPhoto(dataUrl) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxSide = 1400;
+          const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+          if (!scale || scale >= 1) {
+            resolve(dataUrl);
+            return;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+      });
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function gradeWithAi(q, studentAnswer, imageDataUrl) {
+      const endpoint = aiEndpointConfig();
+      if (!endpoint) return null;
+      const payload = {
+        questionId: q.id,
+        unit: unitInfo(q.unit).label,
+        title: q.title,
+        prompt: q.work,
+        expectedAnswer: expectedAnswer(q),
+        expectedSteps: q.steps,
+        studentAnswer,
+        imageDataUrl
+      };
+      let lastError = null;
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        try {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
+            body: JSON.stringify(payload)
+          });
+          clearTimeout(timeoutId);
+          if (response.ok) return response.json();
+          let detail = "";
+          try {
+            const errorPayload = await response.json();
+            detail = errorPayload && (errorPayload.message || errorPayload.error || errorPayload.detail);
+            if (typeof detail !== "string") detail = "";
+          } catch {
+            detail = "";
+          }
+          lastError = new Error(`AI 批改失敗：${response.status}${detail ? `（${detail}）` : ""}`);
+          if (response.status < 500 && response.status !== 429) throw lastError;
+        } catch (error) {
+          clearTimeout(timeoutId);
+          lastError = error;
+        }
+        if (attempt < 2) await wait(600);
+      }
+      throw new Error(`AI 批改連線失敗：${lastError && lastError.message ? lastError.message : "請稍後重試"}`);
+    }
+
+    function markQuestionNeedsReview(q, status, extraLine = "") {
+      if (currentWrongRecorded || q.originalId) return;
+      sessionStats.firstWrong += 1;
+      state.wrong[q.id] = true;
+      state.history[q.id] = {
+        id: q.id,
+        unit: q.unit,
+        title: q.title,
+        correct: expectedAnswer(q),
+        missedAt: new Date().toISOString(),
+        status,
+        question: questionSnapshot(q)
+      };
+      const line = `${unitInfo(q.unit).label}：${q.title}\n${extraLine || `正解：${expectedAnswer(q)}`}`;
+      sessionStats.mistakeLines.push(line);
+      currentWrongRecorded = true;
+    }
+
+    function recordReviewPass(q) {
+      if (currentMode !== "wrong") return;
+      const originalId = q.sourceOriginal || q.originalId || q.id;
+      const progress = reviewPasses[originalId];
+      if (!progress) return;
+      if (q.originalId || q.sourceOriginal) progress.variations.add(q.id);
+      else progress.original = true;
+    }
+
+    function finalizeMistakeReview() {
+      if (currentMode !== "wrong") return;
+      let learned = 0;
+      currentReviewOriginalIds.forEach(id => {
+        const progress = reviewPasses[id];
+        if (progress && progress.original && progress.variations.size >= 2) {
+          delete state.wrong[id];
+          if (state.history[id]) state.history[id].status = "learned";
+          learned += 1;
+        } else if (state.history[id]) {
+          state.history[id].status = "needs_review";
+        }
+      });
+      if (learned > 0) {
+        sessionStats.reviewed += learned;
+        saveState();
+      }
+    }
+
+    async function submitWrittenWork() {
+      if (answered || !currentQuestion || currentQuestion.type === "concept") return;
+      const q = currentQuestion;
+      const answerInput = document.getElementById("studentAnswer");
+      const submitBtn = document.getElementById("submitWorkBtn");
+      const studentAnswer = answerInput ? answerInput.value.trim() : "";
+      if (!studentAnswer) {
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `<div class="coach-thread"><div class="bubble alert">你還沒填最後答案。先把答案寫上，再拍照送出。</div></div>`;
+        return;
+      }
+
+      const imageDataUrl = await readWorkPhoto();
+      if (!imageDataUrl) {
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `<div class="coach-thread"><div class="bubble alert">要先拍算式照片。只填答案不算通過，我要看你怎麼想。</div></div>`;
+        return;
+      }
+      const aiEndpointReady = Boolean(aiEndpointConfig());
+
+      submitBtn.disabled = true;
+      feedbackEl.className = "feedback show";
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble student">我的答案：${studentAnswer}<br>已上傳算式照片。</div>
+          <div class="bubble coach">收到，我正在看答案和算式。</div>
+        </div>
+      `;
+
+      let aiResult = null;
+      let aiError = "";
+      try {
+        aiResult = await gradeWithAi(q, studentAnswer, imageDataUrl);
+      } catch (error) {
+        aiError = error.message || "AI 批改暫時失敗";
+      }
+
+      const typedOk = typedAnswerMatches(q, studentAnswer);
+      const hasAi = Boolean(aiResult);
+      const aiAnswerOk = hasAi ? Boolean(aiResult.correct) : false;
+      const workOk = hasAi ? Boolean(aiResult.workOk) : false;
+      const answerOk = typedOk || aiAnswerOk;
+      const aiAnswerDisagreed = hasAi && typedOk && !aiAnswerOk;
+      const parentReviewPass = !hasAi && typedOk && !currentHintUsed;
+      const reviewReason = !answerOk
+        ? "最後答案不符合正解"
+        : (!workOk ? (hasAi ? "答案正確，但算式照片未通過" : "答案正確，算式照片待媽媽確認") : "需要再確認");
+      const canMaster = hasAi && answerOk && workOk && !currentHintUsed;
+      const parentReplyInstruction = !hasAi
+        ? "媽媽請直接回覆這張照片：OK 或 重做。Bobo 先繼續下一題。"
+        : "";
+      const caption = [
+        "Bobo 數學算式照片",
+        `單元：${unitInfo(q.unit).label}`,
+        `題目：${q.title}`,
+        `Bobo答案：${studentAnswer}`,
+        `正解：${expectedAnswer(q)}`,
+        `答案核對：${answerOk ? "最後答案正確" : "最後答案不符"}`,
+        hasAi ? `算式判斷：${workOk ? "通過" : "需補強"}` : (typedOk ? "算式判斷：AI 暫時失敗，最後答案已先核對正確，待媽媽確認照片" : (aiEndpointReady ? "算式判斷：AI 連線失敗，待媽媽確認" : "算式判斷：未設定，待媽媽確認")),
+        aiAnswerDisagreed ? "注意：AI 對最後答案的判讀和輸入答案不一致，已以欄位輸入答案為準。" : "",
+        aiResult && aiResult.feedback ? `回饋：${aiResult.feedback}` : "",
+        currentHintUsed ? "注意：本題看過提示，不算精熟。" : "",
+        parentReplyInstruction,
+        aiError ? `AI錯誤：${aiError}` : ""
+      ].filter(Boolean).join("\n");
+      await sendTgPhoto(imageDataUrl, caption);
+
+      state.attempts[q.id] = state.attempts[q.id] || { tries: 0, correct: 0, unit: q.unit };
+      state.attempts[q.id].tries += 1;
+
+      if (canMaster || parentReviewPass) {
+        answered = true;
+        sessionStats.answered += 1;
+        if (canMaster) sessionStats.cleanCorrect += 1;
+        state.attempts[q.id].correct += 1;
+        state.completed[q.id] = true;
+        if (canMaster) recordReviewPass(q);
+        if (parentReviewPass) {
+          notifyMathEvent("needsReview", q, `Bobo答：${studentAnswer}\n最後答案正確；AI 批改暫時失敗，照片已送出待媽媽確認。媽媽可直接回覆照片：OK 或 重做。這題先不列入待加強。`);
+        }
+        feedbackEl.className = "feedback show ok";
+        feedbackEl.innerHTML = `
+          <div class="coach-thread">
+            <div class="bubble student">我的答案：${studentAnswer}</div>
+            <div class="bubble coach ok">${canMaster ? `通過。答案是 ${expectedAnswer(q)}。${aiResult.feedback ? `<br>${aiResult.feedback}` : ""}` : `最後答案正確：${expectedAnswer(q)}。照片已送給媽媽確認，可以先繼續下一題；這題先不列入待加強。`}</div>
+            <div class="bubble coach">這題的標準整理：<ol class="step-list">${q.steps.map(step => `<li>${step}</li>`).join("")}</ol></div>
+          </div>
+        `;
+        hintBtn.disabled = true;
+        nextBtn.disabled = false;
+      } else {
+        answered = !hasAi;
+        if (currentHintUsed && answerOk && workOk) {
+          sessionStats.answered += 1;
+          sessionStats.hintedCorrect += 1;
+          markQuestionNeedsReview(q, "hint_used", `Bobo看提示後答對；正解：${expectedAnswer(q)}`);
+          notifyMathEvent("hintedCorrect", q, "這題看過提示，因此不算精熟，已保留待加強。");
+        } else {
+          markQuestionNeedsReview(q, hasAi ? "active" : "parent_review", `Bobo答：${studentAnswer}；正解：${expectedAnswer(q)}；原因：${reviewReason}`);
+          notifyMathEvent(
+            answerOk ? "needsReview" : "wrong",
+            q,
+            hasAi
+              ? `Bobo答：${studentAnswer}\n原因：${reviewReason}\nAI回饋：${(aiResult && aiResult.feedback) || "需要再檢查算式。"}\n已立刻加入待加強。`
+              : `Bobo答：${studentAnswer}\n${aiEndpointReady ? `AI 批改連線失敗：${aiError || "請稍後重試"}` : "AI 批改網址尚未設定"}，照片已送出待媽媽確認；媽媽可直接回覆照片：OK 或 重做。`
+          );
+        }
+        feedbackEl.className = "feedback show bad";
+        feedbackEl.innerHTML = `
+          <div class="coach-thread">
+            <div class="bubble student">我的答案：${studentAnswer}</div>
+            <div class="bubble coach alert">${hasAi ? (answerOk ? "答案對，但算式照片還不能算通過，請補清楚再拍一次。" : "這題先不通過，請修正後再拍一次。") : (aiEndpointReady ? "AI 批改連線失敗，照片已送給媽媽確認；你可以先繼續下一題。" : "照片已送給媽媽確認；你可以先繼續下一題。")}</div>
+            <div class="bubble coach">${hasAi ? ((aiResult && aiResult.feedback) || safeHint(q)) : "媽媽會在 Telegram 照片上回覆 OK 或重做；我先把這題記錄好。"}</div>
+            <div class="bubble coach">小提示：${safeHint(q)}</div>
+          </div>
+        `;
+        hintBtn.disabled = false;
+        nextBtn.disabled = !answered;
+      }
+
+      submitBtn.disabled = false;
+      saveState();
+      saveActiveSession();
+      updateProgress();
+      if (answered && currentIndex >= currentQueue.length - 1) notifySessionComplete();
+    }
+
+    function showHint() {
+      if (!currentQuestion || answered || currentQuestion.type === "concept") return;
+      currentHintUsed = true;
+      if (!currentHintNotified) {
+        notifyMathEvent("hint", currentQuestion, "Bobo 按了提示，這題即使答對也不算精熟。");
+        currentHintNotified = true;
+      }
+      feedbackEl.className = "feedback show";
+      feedbackEl.innerHTML = `
+        <div class="coach-thread">
+          <div class="bubble coach alert">你按了提示，這題就算後來答對，也會留在待加強。</div>
+          <div class="bubble coach">提示：${safeHint(currentQuestion)}</div>
+        </div>
+      `;
+      saveActiveSession();
+    }
+
+    function notifySessionComplete() {
+      if (sessionCompleteNotified) return;
+      sessionCompleteNotified = true;
+      const totalPractice = currentQueue.filter(item => item.type !== "concept").length;
+      const duration = Math.round((Date.now() - sessionStats.startedAt) / 1000);
+      const wrongCount = Object.keys(state.wrong).filter(id => state.wrong[id]).length;
+      const mistakeText = sessionStats.mistakeLines.length
+        ? `\n\n待加強紀錄：\n${sessionStats.mistakeLines.map((line, index) => `${index + 1}. ${line}`).join("\n")}`
+        : "";
+      const label = currentMode === "unit"
+        ? unitInfo(activeUnitId).label
+        : (currentMode === "wrong" ? "錯題加強" : "畢業考混合練習");
+      sendTgMessage(
+        `Bobo 數學練習完成\n` +
+        `版本：${APP_VERSION}\n` +
+        `範圍：${label}\n` +
+        `耗時：${duration} 秒\n` +
+        `本輪題數：${totalPractice}\n` +
+        `未提示答對：${sessionStats.cleanCorrect}\n` +
+        `提示後答對：${sessionStats.hintedCorrect}\n` +
+        `新增待加強：${sessionStats.firstWrong}\n` +
+        `錯題加強完成：${sessionStats.reviewed}\n` +
+        `目前待加強：${wrongCount} 題` +
+        mistakeText
+      );
+    }
+
+    function updateProgress() {
+      const total = QUESTION_BANK.length;
+      const attempts = Object.values(state.attempts);
+      const completed = QUESTION_BANK.filter(q => state.completed[q.id]).length;
+      const tries = attempts.reduce((sum, item) => sum + item.tries, 0);
+      const correct = attempts.reduce((sum, item) => sum + item.correct, 0);
+      const wrongCount = Object.keys(state.wrong).filter(id => state.wrong[id]).length;
+      const rate = tries ? Math.round(correct / tries * 100) : 0;
+      document.getElementById("progressText").textContent = `完成 ${completed} / ${total} 題`;
+      document.getElementById("progressBar").style.width = `${Math.round(completed / total * 100)}%`;
+      document.getElementById("accuracyText").textContent = `答對率 ${rate}%`;
+      document.getElementById("wrongText").textContent = `待加強 ${wrongCount} 題`;
+    }
+
+    function showReport() {
+      const unitLines = UNITS.map(unit => {
+        const questions = byUnit(unit.id);
+        const done = questions.filter(q => state.completed[q.id]).length;
+        const wrong = questions.filter(q => state.wrong[q.id]).length;
+        return `${unit.label}：完成 ${done}/${questions.length}，待加強 ${wrong}`;
+      });
+      const wrongItems = QUESTION_BANK
+        .filter(q => state.wrong[q.id])
+        .map(q => `- ${UNITS.find(u => u.id === q.unit).label}：${q.title}`)
+        .join("\n") || "目前沒有錯題。";
+
+      reportBox.textContent = [
+        "Bobo 數學畢業考練習回報",
+        `版本：${APP_VERSION}`,
+        `固定網址：${CANONICAL_URL}`,
+        `時間：${new Date().toLocaleString("zh-TW")}`,
+        "",
+        "範圍：康軒六下第 5 單元怎樣解題、第 6 單元圓形圖",
+        "",
+        unitLines.join("\n"),
+        "",
+        "待加強題目：",
+        wrongItems
+      ].join("\n");
+      reportBox.classList.add("show");
+    }
+
+    function resetProgress() {
+      const ok = confirm("確定要清除這台裝置上的畢業考練習紀錄嗎？");
+      if (!ok) return;
+      localStorage.removeItem(STORAGE_KEY);
+      clearActiveSession();
+      location.reload();
+    }
+
+    function shuffle(items) {
+      for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+      }
+      return items;
+    }
+  </script>
 </body>
 </html>

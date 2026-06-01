@@ -44,8 +44,9 @@
     .body { padding:12px 14px 14px; }
     .unit { margin:0 0 8px; color:var(--blue); font-weight:800; font-size:14px; }
     .prompt { margin:0 0 14px; line-height:1.65; font-size:17px; }
-    input { width:min(100%, 340px); height:42px; border:1px solid #b9c5d6; border-radius:8px; padding:8px 11px; font-size:17px; }
-    input:focus { outline:3px solid rgba(37,99,235,.18); border-color:var(--blue); }
+    .choices { display:grid; gap:8px; }
+    .choice { width:100%; min-height:42px; justify-content:flex-start; text-align:left; border-color:#b9c5d6; background:#fff; color:#1f2937; font-size:16px; line-height:1.45; }
+    .choice.selected { border-color:var(--blue); background:#eaf2ff; color:#1747b8; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
     .actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:0 14px 14px; }
     .result { min-height:22px; font-size:14px; font-weight:800; }
     .ok { color:var(--green); }
@@ -117,6 +118,80 @@
     function set(id, value){ state[key(id)] = value; saveState(); }
     function normalize(v){ return String(v).trim().replace(/\s+/g,"").replace("％","%").toUpperCase(); }
     function ok(q, v){ const got=normalize(v); return q.answer.some(a => normalize(a) === got); }
+    const fallbackChoices = {
+      boolean:["是","否"],
+      trueFalse:["正確","錯誤"],
+      can:["可以","不可以"],
+      trend:["增加","減少"],
+      quality:["越好","越差"],
+      habitats:["沙漠","草原","熱帶雨林","極地","河口溼地","高山","森林"],
+      roles:["生產者","消費者","分解者"],
+      resources:["煤","石油","天然氣","陽光","風","水","鐵礦","銅礦","生物資源"],
+      pollution:["空氣汙染","水汙染","土壤汙染","海洋汙染"],
+      labels:["環保標章","節能標章","碳標籤","回收標誌"],
+      mixed:["外來入侵種","棲地破壞","節能減碳","水汙染","空氣汙染","資源回收","保育類","地層下陷與土壤鹽化"]
+    };
+    function uniqueOptions(items){
+      const seen = new Set();
+      return items.map(v => String(v || "").trim()).filter(v => {
+        if(!v || seen.has(normalize(v))) return false;
+        seen.add(normalize(v));
+        return true;
+      });
+    }
+    function explicitChoicesFromPrompt(prompt){
+      const text = String(prompt || "");
+      const options = [];
+      const fill = text.match(/請填[:：]([^。？?]+)/);
+      if(fill){
+        fill[1].split(/[、,，或和]/).map(v => v.trim()).filter(Boolean).forEach(v => options.push(v));
+      }
+      const letterRe = /(?:^|[，、。；\s])([A-D])\s*([^A-D，、。；？?]+)/g;
+      let m;
+      while((m = letterRe.exec(text))){
+        options.push(m[1]);
+        if(m[2]) options.push(m[2].trim());
+      }
+      return uniqueOptions(options);
+    }
+    function fallbackFor(q){
+      const text = q.prompt || "";
+      if(/是或否|是嗎|有助於|可以幫助/.test(text)) return fallbackChoices.boolean;
+      if(/正確或錯誤|正確嗎|敘述正確/.test(text)) return fallbackChoices.trueFalse;
+      if(/可以或不可以|可以直接|可以任意/.test(text)) return fallbackChoices.can;
+      if(/增加還是減少|應增加|應減少/.test(text)) return fallbackChoices.trend;
+      if(/越好還是越差|空氣品質/.test(text)) return fallbackChoices.quality;
+      if(/沙漠|草原|熱帶雨林|極地|河口溼地|高山|森林|環境/.test(text)) return fallbackChoices.habitats;
+      if(/生產者|消費者|分解者|食物鏈/.test(text)) return fallbackChoices.roles;
+      if(/可再生|非再生|石油|煤|天然氣|陽光|風|水|礦/.test(text)) return fallbackChoices.resources;
+      if(/污染|汙染|廢水|AQI|PM2\.5/.test(text)) return fallbackChoices.pollution;
+      if(/標章|標示|標籤|回收/.test(text)) return fallbackChoices.labels;
+      return [];
+    }
+    function bankDistractorsFor(q){
+      return uniqueOptions(questions()
+        .filter(item => item.id !== q.id && (item.question_type_id === q.question_type_id || item.unit === q.unit))
+        .flatMap(item => item.answer || [])
+        .filter(a => !ok(q, a)));
+    }
+    function stableShuffle(items, seedText){
+      let seed = String(seedText || "").split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+      return [...items].map((value, idx) => {
+        seed = (seed * 9301 + 49297 + idx) % 233280;
+        return {value, sort: seed};
+      }).sort((a, b) => a.sort - b.sort).map(item => item.value);
+    }
+    function choiceOptions(q){
+      const correct = uniqueOptions(q.answer || []);
+      const fromPrompt = explicitChoicesFromPrompt(q.prompt).filter(v => !/至少填一項|正確或錯誤/.test(v));
+      const pool = uniqueOptions([...fromPrompt, ...fallbackFor(q), ...bankDistractorsFor(q), ...fallbackChoices.mixed]).filter(v => !correct.some(a => normalize(a) === normalize(v)));
+      const wanted = Math.min(4, Math.max(2, correct.length + 3));
+      const choices = uniqueOptions([...correct, ...pool.slice(0, Math.max(0, wanted - correct.length))]).slice(0, Math.max(wanted, correct.length));
+      return stableShuffle(choices, q.id);
+    }
+    function choicesHtml(q, selected){
+      return '<div class="choices" role="radiogroup" aria-label="答案選項">' + choiceOptions(q).map(opt => '<button type="button" class="choice' + (normalize(opt) === normalize(selected || "") ? " selected" : "") + '" data-choice="' + escapeHtml(opt) + '">' + escapeHtml(opt) + '</button>').join("") + '</div>';
+    }
     function label(level){ return level === "basic" ? "基礎" : level === "challenge" ? "挑戰" : "再練"; }
     function isRetryItem(q){ const item=get(q.id); return !!item.tainted || (item.checked && (!item.correct || item.hinted || item.shown)); }
     function retryReasonFor(st){ return st.retryReason || (st.shown ? "看詳解/答案" : st.hinted ? "看提示" : "答錯"); }
@@ -194,23 +269,22 @@
         article.className = "q";
         article.dataset.id = q.id;
         article.innerHTML = '<div class="qhead"><span class="badge ' + q.level + '">' + label(q.level) + '</span><span class="qnum">' + run().label + " · " + (idx+1) + (q.retryStage ? " · " + (q.retryStage==="original"?"原錯題":q.retryStage==="variant1"?"補洞1":"補洞2") : "") + '</span></div>' +
-          '<div class="body"><p class="unit">' + escapeHtml(q.unit || "") + '</p><p class="prompt">' + escapeHtml(q.prompt) + '</p><input autocomplete="off" value="' + escapeHtml(st.value || "") + '" aria-label="答案"></div>' +
+          '<div class="body"><p class="unit">' + escapeHtml(q.unit || "") + '</p><p class="prompt">' + escapeHtml(q.prompt) + '</p>' + choicesHtml(q, st.value) + '</div>' +
           '<div class="actions"><button data-action="check">檢查</button>' + (q.retryStage ? "" : '<button data-action="hint">提示</button><button data-action="show">看答案</button>') + '<span class="result"></span></div>' +
           '<div class="hint-panel">提示：' + escapeHtml(hintFor(q)) + '</div>' +
           '<details><summary>詳解 / 看完整解法</summary><div class="solution">' + escapeHtml(solutionFor(q)) + '</div><div class="trap">容易錯的地方：' + escapeHtml(q.trap || "") + '</div></details>';
-        const input = article.querySelector("input");
         const result = article.querySelector(".result");
         const details = article.querySelector("details");
         const hintPanel = article.querySelector(".hint-panel");
         if(st.checked) mark(article, st);
         if(st.hinted && hintPanel) hintPanel.classList.add("show");
-        input.addEventListener("input", () => { const current=itemState(q); const next={...current, value:input.value, checked:false, correct:false}; setItemState(q,next); result.textContent=""; result.className="result"; updateStats(); });
-        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const correct=ok(q,input.value); const next={...current, value:input.value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
-        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, value:input.value, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
+        article.querySelectorAll(".choice").forEach(btn => btn.addEventListener("click", () => { const current=itemState(q); const next={...current, value:btn.dataset.choice, checked:false, correct:false}; setItemState(q,next); article.querySelectorAll(".choice").forEach(item => item.classList.toggle("selected", item === btn)); result.textContent=""; result.className="result"; updateStats(); }));
+        article.querySelector('[data-action="check"]').addEventListener("click", () => { const current=itemState(q); const value=current.value || ""; const correct=ok(q,value); const next={...current, value, checked:true, correct}; if(!correct){ next.tainted=true; next.retryReason=next.retryReason || "答錯"; } setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
+        details.addEventListener("toggle", () => { if(!details.open) return; const current=itemState(q); if(current.shown) return; const next={...current, shown:true, hinted:true, tainted:true, retryReason:current.retryReason || "看詳解/答案", checked:current.checked || false, correct:current.correct || false}; setItemState(q,next); mark(article,next); updateStats(); renderRunTabs(); });
         const hintBtn = article.querySelector('[data-action="hint"]');
-        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), value:input.value, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); renderRunTabs(); });
+        if(hintBtn) hintBtn.addEventListener("click", () => { const next={...itemState(q), hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看提示"}; setItemState(q,next); hintPanel.classList.add("show"); result.textContent="看過提示，這題會進再練。"; result.className="result no"; updateStats(); renderRunTabs(); });
         const showBtn = article.querySelector('[data-action="show"]');
-        if(showBtn) showBtn.addEventListener("click", () => { input.value=q.answer[0]; const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); details.open=true; mark(article,next); updateStats(); renderRunTabs(); });
+        if(showBtn) showBtn.addEventListener("click", () => { const next={...itemState(q), value:q.answer[0], checked:true, correct:false, shown:true, hinted:true, tainted:true, retryReason:itemState(q).retryReason || "看答案"}; setItemState(q,next); article.querySelectorAll(".choice").forEach(item => item.classList.toggle("selected", normalize(item.dataset.choice) === normalize(q.answer[0]))); details.open=true; mark(article,next); updateStats(); renderRunTabs(); });
         grid.appendChild(article);
       });
     }

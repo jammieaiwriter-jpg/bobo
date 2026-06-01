@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>🍎 Apple 智慧數學冒險</title>
+    <script>
+    /**
+     * Minified by jsDelivr using Terser v5.37.0.
+     * Original file: /npm/canvas-confetti@1.6.0/dist/confetti.browser.js
+     */
+    !function(t,e){!function t(e,n,a,i){var o=!!(e.Worker&&e.Blob&&e.Promise&&e.OffscreenCanvas&&e.OffscreenCanvasRenderingContext2D&&e.HTMLCanvasElement&&e.HTMLCanvasElement.prototype.transferControlToOffscreen&&e.URL&&e.URL.createObjectURL);function r(){}function l(t){var a=n.exports.Promise,i=void 0!==a?a:e.Promise;return"function"==typeof i?new i(t):(t(r,r),null)}var c,s,u,h,f,d,m,g,b,v=(u=Math.floor(1e3/60),h={},f=0,"function"==typeof requestAnimationFrame&&"function"==typeof cancelAnimationFrame?(c=function(t){var e=Math.random();return h[e]=requestAnimationFrame((function n(a){f===a||f+u-1<a?(f=a,delete h[e],t()):h[e]=requestAnimationFrame(n)})),e},s=function(t){h[t]&&cancelAnimationFrame(h[t])}):(c=function(t){return setTimeout(t,u)},s=function(t){return clearTimeout(t)}),{frame:c,cancel:s}),M=(g={},function(){if(d)return d;if(!a&&o){var e=["var CONFETTI, SIZE = {}, module = {};","("+t.toString()+")(this, module, true, SIZE);","onmessage = function(msg) {","  if (msg.data.options) {","    CONFETTI(msg.data.options).then(function () {","      if (msg.data.callback) {","        postMessage({ callback: msg.data.callback });","      }","    });","  } else if (msg.data.reset) {","    CONFETTI && CONFETTI.reset();","  } else if (msg.data.resize) {","    SIZE.width = msg.data.resize.width;","    SIZE.height = msg.data.resize.height;","  } else if (msg.data.canvas) {","    SIZE.width = msg.data.canvas.width;","    SIZE.height = msg.data.canvas.height;","    CONFETTI = module.exports.create(msg.data.canvas);","  }","}"].join("\n");try{d=new Worker(URL.createObjectURL(new Blob([e])))}catch(t){return void 0!==typeof console&&"function"==typeof console.warn&&console.warn("🎊 Could not load worker",t),null}!function(t){function e(e,n){t.postMessage({options:e||{},callback:n})}t.init=function(e){var n=e.transferControlToOffscreen();t.postMessage({canvas:n},[n])},t.fire=function(n,a,i){if(m)return e(n,null),m;var o=Math.random().toString(36).slice(2);return m=l((function(a){function r(e){e.data.callback===o&&(delete g[o],t.removeEventListener("message",r),m=null,i(),a())}t.addEventListener("message",r),e(n,o),g[o]=r.bind(null,{data:{callback:o}})}))},t.reset=function(){for(var e in t.postMessage({reset:!0}),g)g[e](),delete g[e]}}(d)}return d}),p={particleCount:50,angle:90,spread:45,startVelocity:45,decay:.9,gravity:1,drift:0,ticks:200,x:.5,y:.5,shapes:["square","circle"],zIndex:100,colors:["#26ccff","#a25afd","#ff5e7e","#88ff5a","#fcff42","#ffa62d","#ff36ff"],disableForReducedMotion:!1,scalar:1};function y(t,e,n){return function(t,e){return e?e(t):t}(t&&null!=t[e]?t[e]:p[e],n)}function w(t){return t<0?0:Math.floor(t)}function x(t){return parseInt(t,16)}function C(t){return t.map(T)}function T(t){var e=String(t).replace(/[^0-9a-f]/gi,"");return e.length<6&&(e=e[0]+e[0]+e[1]+e[1]+e[2]+e[2]),{r:x(e.substring(0,2)),g:x(e.substring(2,4)),b:x(e.substring(4,6))}}function I(t){t.width=document.documentElement.clientWidth,t.height=document.documentElement.clientHeight}function k(t){var e=t.getBoundingClientRect();t.width=e.width,t.height=e.height}function E(t,e,n,o,r){var c,s,u=e.slice(),h=t.getContext("2d"),f=l((function(e){function l(){c=s=null,h.clearRect(0,0,o.width,o.height),r(),e()}c=v.frame((function e(){!a||o.width===i.width&&o.height===i.height||(o.width=t.width=i.width,o.height=t.height=i.height),o.width||o.height||(n(t),o.width=t.width,o.height=t.height),h.clearRect(0,0,o.width,o.height),u=u.filter((function(t){return function(t,e){e.x+=Math.cos(e.angle2D)*e.velocity+e.drift,e.y+=Math.sin(e.angle2D)*e.velocity+e.gravity,e.wobble+=e.wobbleSpeed,e.velocity*=e.decay,e.tiltAngle+=.1,e.tiltSin=Math.sin(e.tiltAngle),e.tiltCos=Math.cos(e.tiltAngle),e.random=Math.random()+2,e.wobbleX=e.x+10*e.scalar*Math.cos(e.wobble),e.wobbleY=e.y+10*e.scalar*Math.sin(e.wobble);var n=e.tick++/e.totalTicks,a=e.x+e.random*e.tiltCos,i=e.y+e.random*e.tiltSin,o=e.wobbleX+e.random*e.tiltCos,r=e.wobbleY+e.random*e.tiltSin;if(t.fillStyle="rgba("+e.color.r+", "+e.color.g+", "+e.color.b+", "+(1-n)+")",t.beginPath(),"circle"===e.shape)t.ellipse?t.ellipse(e.x,e.y,Math.abs(o-a)*e.ovalScalar,Math.abs(r-i)*e.ovalScalar,Math.PI/10*e.wobble,0,2*Math.PI):function(t,e,n,a,i,o,r,l,c){t.save(),t.translate(e,n),t.rotate(o),t.scale(a,i),t.arc(0,0,1,r,l,c),t.restore()}(t,e.x,e.y,Math.abs(o-a)*e.ovalScalar,Math.abs(r-i)*e.ovalScalar,Math.PI/10*e.wobble,0,2*Math.PI);else if("star"===e.shape)for(var l=Math.PI/2*3,c=4*e.scalar,s=8*e.scalar,u=e.x,h=e.y,f=5,d=Math.PI/f;f--;)u=e.x+Math.cos(l)*s,h=e.y+Math.sin(l)*s,t.lineTo(u,h),l+=d,u=e.x+Math.cos(l)*c,h=e.y+Math.sin(l)*c,t.lineTo(u,h),l+=d;else t.moveTo(Math.floor(e.x),Math.floor(e.y)),t.lineTo(Math.floor(e.wobbleX),Math.floor(i)),t.lineTo(Math.floor(o),Math.floor(r)),t.lineTo(Math.floor(a),Math.floor(e.wobbleY));return t.closePath(),t.fill(),e.tick<e.totalTicks}(h,t)})),u.length?c=v.frame(e):l()})),s=l}));return{addFettis:function(t){return u=u.concat(t),f},canvas:t,promise:f,reset:function(){c&&v.cancel(c),s&&s()}}}function S(t,n){var a,i=!t,r=!!y(n||{},"resize"),c=y(n,"disableForReducedMotion",Boolean),s=o&&!!y(n||{},"useWorker")?M():null,u=i?I:k,h=!(!t||!s)&&!!t.__confetti_initialized,f="function"==typeof matchMedia&&matchMedia("(prefers-reduced-motion)").matches;function d(e,n,i){for(var o,r,l,c,s,h=y(e,"particleCount",w),f=y(e,"angle",Number),d=y(e,"spread",Number),m=y(e,"startVelocity",Number),g=y(e,"decay",Number),b=y(e,"gravity",Number),v=y(e,"drift",Number),M=y(e,"colors",C),p=y(e,"ticks",Number),x=y(e,"shapes"),T=y(e,"scalar"),I=function(t){var e=y(t,"origin",Object);return e.x=y(e,"x",Number),e.y=y(e,"y",Number),e}(e),k=h,S=[],F=t.width*I.x,N=t.height*I.y;k--;)S.push((o={x:F,y:N,angle:f,spread:d,startVelocity:m,color:M[k%M.length],shape:x[(c=0,s=x.length,Math.floor(Math.random()*(s-c))+c)],ticks:p,decay:g,gravity:b,drift:v,scalar:T},r=void 0,l=void 0,r=o.angle*(Math.PI/180),l=o.spread*(Math.PI/180),{x:o.x,y:o.y,wobble:10*Math.random(),wobbleSpeed:Math.min(.11,.1*Math.random()+.05),velocity:.5*o.startVelocity+Math.random()*o.startVelocity,angle2D:-r+(.5*l-Math.random()*l),tiltAngle:(.5*Math.random()+.25)*Math.PI,color:o.color,shape:o.shape,tick:0,totalTicks:o.ticks,decay:o.decay,drift:o.drift,random:Math.random()+2,tiltSin:0,tiltCos:0,wobbleX:0,wobbleY:0,gravity:3*o.gravity,ovalScalar:.6,scalar:o.scalar}));return a?a.addFettis(S):(a=E(t,S,u,n,i)).promise}function m(n){var o=c||y(n,"disableForReducedMotion",Boolean),m=y(n,"zIndex",Number);if(o&&f)return l((function(t){t()}));i&&a?t=a.canvas:i&&!t&&(t=function(t){var e=document.createElement("canvas");return e.style.position="fixed",e.style.top="0px",e.style.left="0px",e.style.pointerEvents="none",e.style.zIndex=t,e}(m),document.body.appendChild(t)),r&&!h&&u(t);var g={width:t.width,height:t.height};function b(){if(s){var e={getBoundingClientRect:function(){if(!i)return t.getBoundingClientRect()}};return u(e),void s.postMessage({resize:{width:e.width,height:e.height}})}g.width=g.height=null}function v(){a=null,r&&e.removeEventListener("resize",b),i&&t&&(document.body.removeChild(t),t=null,h=!1)}return s&&!h&&s.init(t),h=!0,s&&(t.__confetti_initialized=!0),r&&e.addEventListener("resize",b,!1),s?s.fire(n,g,v):d(n,g,v)}return m.reset=function(){s&&s.reset(),a&&a.reset()},m}function F(){return b||(b=S(null,{useWorker:!0,resize:!0})),b}n.exports=function(){return F().apply(this,arguments)},n.exports.reset=function(){F().reset()},n.exports.create=S}(function(){return void 0!==t?t:"undefined"!=typeof self?self:this||{}}(),e,!1),t.confetti=e.exports}(window,{});
+    </script>
+    <style>
+        :root { --primary: #FF6B6B; --secondary: #4ECDC4; --accent: #FFE66D; --bg: #F0F4F8; --text: #2F3E46; --success: #6BCB77; }
+        body { font-family: 'Chalkboard SE', 'Microsoft JhengHei', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; touch-action: manipulation; }
+        #game-container { width: 100%; max-width: 500px; padding: 15px; box-sizing: border-box; text-align: center; }
+        
+        .zy-word { display: inline-flex; flex-direction: column; align-items: center; vertical-align: bottom; margin: 0 2px; line-height: 1.1; }
+        .zy-top { font-size: 0.75rem; color: #888; height: 0.9rem; font-weight: normal; font-family: sans-serif; }
+        .zy-bottom { font-size: 1.6rem; font-weight: bold; }
+        
+        .mission-panel { display: flex; flex-direction: column; gap: 12px; margin: 15px 0; }
+        .mission-item { background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--secondary); display: flex; align-items: center; justify-content: space-between; text-align: left; cursor: pointer; box-shadow: 0 4px 0 var(--secondary); }
+        .mission-item:active { transform: translateY(2px); box-shadow: none; }
+        .mission-item.mastered { border-color: var(--success); opacity: 0.8; box-shadow: 0 4px 0 var(--success); }
+        .check-box { width: 35px; height: 35px; border: 2px solid var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .mission-item.mastered .check-box { background: var(--success); color: white; border-color: var(--success); }
+
+        .game-screen { display: none; }
+        .game-screen.active { display: block; }
+        
+        .question-box { background: white; border-radius: 30px; padding: 25px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .opt-btn { background: var(--secondary); color: white; border: none; border-radius: 18px; padding: 18px; font-size: 1.6rem; cursor: pointer; box-shadow: 0 5px 0 #369a93; min-height: 60px; }
+        .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+        /* SVG 題型按鈕：圖形＋文字排列，背景較淺 */
+        .opt-btn svg { border-radius: 6px; display: block; }
+        .opt-btn.svg-btn { background: white; color: var(--text); box-shadow: 0 5px 0 #ccc; border: 2px solid var(--secondary); padding: 8px; font-size: 1rem; }
+        
+        #reward-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--accent); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #reward-screen.active { display: flex; animation: bounceIn 0.8s; }
+        
+        .medal-bar { font-size: 0.8rem; margin-top: 3px; color: #aaa; }
+        .voice-btn { background: white; border: 2px solid var(--secondary); border-radius: 20px; padding: 8px 20px; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
+        
+        /* 強化版時鐘樣式：包含數字 */
+        .clock { width: 160px; height: 160px; border: 8px solid #333; border-radius: 50%; position: relative; background: white; margin: 10px auto; }
+        .clock-num { position: absolute; font-size: 1.1rem; font-weight: bold; width: 20px; height: 20px; text-align: center; line-height: 20px; }
+        .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; border-radius: 10px; }
+        .hour-hand { width: 8px; height: 40px; background: #333; margin-left: -4px; z-index: 2; }
+        .min-hand { width: 5px; height: 60px; background: var(--primary); margin-left: -2.5px; z-index: 1; }
+        .clock-center { position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; background: #333; border-radius: 50%; transform: translate(-50%, -50%); z-index: 3; }
+
+        .coin-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+        .coin { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 3px solid; }
+        .coin-10 { background: #FFD700; border-color: #DAA520; }
+        .coin-5 { background: #C0C0C0; border-color: #808080; }
+        .coin-1 { background: #CD7F32; border-color: #8B4513; color: white; }
+
+        /* 新增教學畫面樣式 */
+        #teaching-screen { display: none; background: white; border-radius: 30px; padding: 30px; margin: 15px 0; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: center; }
+        #teaching-screen.active { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .teaching-content { font-size: 1.4rem; line-height: 1.6; color: var(--text); }
+        .start-btn { background: var(--success); color: white; border: none; border-radius: 20px; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 0 #4a9d53; margin-top: 20px; }
+        .start-btn:active { transform: translateY(4px); box-shadow: none; }
+        .mastered-tag { background: #FFD700; color: #8B4513; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="menu" class="game-screen active">
+        <h1 id="title-area"></h1>
+        <p id="sub-area"></p>
+        <div id="mastery-info" style="font-size: 0.9rem; color: #666;"></div>
+        <div class="mission-panel" id="mission-list"></div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
+            <button onclick="downloadReport()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📥 下載學習報表</button>
+            <button onclick="exportGameMistakes()" style="border:1px solid #FF6B6B; background:white; color:#FF6B6B; padding:5px 10px; border-radius:10px; font-size:0.8rem;">📤 匯出遊戲錯題</button>
+        </div>
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
+            <button onclick="previewUnit('space')" style="border:1px solid #4ECDC4; background:white; color:#4ECDC4; padding:5px 10px; border-radius:10px; font-size:0.75rem;">🔍 預覽空間題</button>
+            <button onclick="previewUnit('coin')" style="border:1px solid #4ECDC4; background:white; color:#4ECDC4; padding:5px 10px; border-radius:10px; font-size:0.75rem;">🔍 預覽錢幣題</button>
+            <button onclick="previewUnit('jump')" style="border:1px solid #4ECDC4; background:white; color:#4ECDC4; padding:5px 10px; border-radius:10px; font-size:0.75rem;">🔍 預覽跳數題</button>
+            <button onclick="resetData()" style="border:none; background:none; color:#ccc; font-size:0.7rem;">清除紀錄</button>
+            <button onclick="location.reload()" style="border:1px solid #ccc; background:white; color:#666; padding:5px 10px; border-radius:10px; font-size:0.75rem;">↺ 重整頁面</button>
+        </div>
+    </div>
+
+    <div id="teaching-screen" class="game-screen">
+        <h2 id="teaching-title" style="color: var(--secondary);"></h2>
+        <div id="teaching-body" class="teaching-content"></div>
+        <button onclick="startChallenge()" class="start-btn" id="start-challenge-btn"></button>
+    </div>
+
+    <div id="game" class="game-screen">
+        <div id="stars" style="font-size: 1.5rem; margin-bottom: 5px;"></div>
+        <h2 id="mode-title" style="color: var(--primary); margin: 0;"></h2>
+        <div id="question" class="question-box"></div>
+        <div id="options" class="options-grid"></div>
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+            <button onclick="speakCurrentQuestion()" class="voice-btn">🔊 <span id="speak-btn-text"></span></button>
+            <button onclick="showHint()" class="voice-btn" id="hint-btn">💡 <span id="hint-btn-text">提示</span></button>
+            <button onclick="skipQuestion()" class="voice-btn" id="skip-btn" style="color:#aaa; border-color:#ddd;">⏭ 換題</button>
+        </div>
+        <button onclick="goHome()" id="stop-btn" style="margin-top:15px; border:none; background:none; color:#bbb;"></button>
+    </div>
+</div>
+
+<div id="reward-screen">
+    <h1 style="font-size: 5rem;">📺</h1>
+    <h2 id="reward-title"></h2>
+    <div style="background:white; padding:25px; border-radius:25px; text-align:center;">
+        <p id="reward-text" style="font-size: 1.5rem; margin:0;"></p>
+    </div>
+    <button class="opt-btn" style="margin-top:30px; background:white; color:var(--text); padding: 15px 40px;" onclick="resetRoundAndReload()" id="next-day-btn"></button>
+</div>
+
+<script>
+    function zy(zi, py) {
+        return `<span class="zy-word"><span class="zy-top">${py||''}</span><span class="zy-bottom">${zi}</span></span>`;
+    }
+
+    // teaching 改為陣列，才能用 Math.random()*length 正確隨機取值
+    // hints 是「每題生成時綁定」的提示，跟題目內容相關，由 generateQuestion() 設定
+    let currentHints = ["再想想看喔！", "仔細看一下題目！", "快要對了，加油！"];
+
+    const ALL_UNITS = [
+        {
+            id: 'coin',
+            title: '💰 '+zy('金','ㄐㄧㄣ')+zy('幣','ㄅㄧˋ')+zy('小','ㄒㄧㄠˇ')+zy('管','ㄍㄨㄢˇ')+zy('家','ㄐㄧㄚ'),
+            text: '總共有幾元呢？',
+            teaching: [
+                "Apple看這裡！錢幣有大有小，顏色也不一樣喔！金色大的是 10 元，銀色的是 5 元，小小的是 1 元。",
+                "數錢的祕訣：先把 10 元全部數完，再接著數 5 元和 1 元，這樣最快喔！",
+                "偷偷告訴妳，10 元有幾個就是幾十，例如兩個 10 元就是 20，再加上後面的錢就是答案囉！"
+            ]
+        },
+        {
+            id: 'jump',
+            title: '🐸 '+zy('高','ㄍㄠ')+zy('階','ㄐㄧㄝ')+zy('跳','ㄊㄧㄠˋ')+zy('跳','ㄊㄧㄠˋ')+zy('蛙','ㄨㄚ'),
+            text: '問號裡面要填什麼數字呢？',
+            teaching: [
+                "Apple，小青蛙每次跳的步數都一樣長喔！妳先看看，數字是越來越大還是越來越小？",
+                "試著算算看，把旁邊兩個數字相減，就能找出每次跳了幾步！",
+                "神祕規律：把問號前面的數字，加上（或減掉）跳躍的步數，就是答案囉！"
+            ]
+        },
+        {
+            id: 'reverse',
+            title: '🧠 '+zy('逆','ㄋㄧˋ')+zy('向','ㄒㄧㄤˋ')+zy('大','ㄉㄚˋ')+zy('偵','ㄓㄣ')+zy('探','ㄊㄢˋ'),
+            text: '問號是什麼數字呢？',
+            teaching: [
+                "這是一個數字迷宮！Apple，妳先看等號右邊的數字是多少，把它記起來。",
+                "想像一下：有一個大數字，拿走了一部分，剩下的就是左邊的小數字。所以問號一定比左邊大喔！",
+                "反過來算就對了！如果是「a = ? - b」，那答案就是 a 加上 b！"
+            ]
+        },
+        {
+            id: 'clock',
+            title: '⏰ '+zy('時','ㄕˊ')+zy('間','ㄐㄧㄢ')+zy('小','ㄒㄧㄠˇ')+zy('偵','ㄓㄣ')+zy('探','ㄊㄢˋ'),
+            text: '現在是幾點鐘？',
+            teaching: [
+                "Apple，看時鐘要先看長長的指針在哪裡！長針在 12 就是整點，長針在 6 就是半點（30分）。",
+                "長針決定分鐘，短針決定小時。長針指著 6，就是「點半」！這時候短針停在兩個數字中間，要看比較小的那個喔！",
+                "如果短針在 3 和 4 之間，代表是 3 點多，還沒到 4 點！整點時短針會剛好指著某個數字。"
+            ]
+        },
+        {
+            id: 'even',
+            title: '🔢 '+zy('雙','ㄕㄨㄤ')+zy('數','ㄕㄨˋ')+zy('小','ㄒㄧㄠˇ')+zy('捕','ㄅㄨˇ')+zy('手','ㄕㄡˇ'),
+            text: '哪一個是雙數呢？',
+            teaching: [
+                "雙數就是兩個兩個都有伴，不會落單的數字！Apple，我們一起找找看有沒有孤單的數字？",
+                "記住這個魔法暗號：尾巴（個位數）是 0、2、4、6、8 的，就是雙數！",
+                "只要看最後一個數字就好！是 1、3、5、7、9 的是單數，是 0、2、4、6、8 的是雙數。"
+            ]
+        },
+        {
+            id: 'space',
+            title: '📦 '+zy('空','ㄎㄨㄥ')+zy('間','ㄐㄧㄢ')+zy('小','ㄒㄧㄠˇ')+zy('超','ㄔㄠ')+zy('人','ㄖㄣˊ'),
+            text: '仔細看清楚喔！',
+            teaching: [
+                "Apple，空間題要仔細看形狀的每一個角落！我們先把缺掉的形狀描出來，再去找一樣的選項。",
+                "判斷左右的小技巧：伸出右手比讚，拇指朝右的就是右邊 👍→，換左手就是左邊！",
+                "疊疊樂題目：最上面的東西，我們看得到它的完整形狀；被蓋住的只能看到邊邊。"
+            ]
+        }
+    ];
+
+    let roundState;
+    try {
+        roundState = JSON.parse(localStorage.getItem('apple_math_round')) || null;
+    } catch (e) {
+        console.error("LocalStorage blocked:", e);
+        roundState = null;
+    }
+    
+    if (!roundState) {
+        roundState = {
+            roundUnits: [],
+            completedUnits: [],
+            unitQueue: ALL_UNITS.map(u => u.id),
+            streaks: {},
+            retiredUnits: [],
+            mistakes: [],
+            needsPractice: null,
+            difficulty: {},      // 每個 unit 的難度：1=簡單 2=普通 3=困難
+            recentResults: {}    // 每個 unit 最近10題的答題記錄 (true/false 陣列)
+        };
+    }
+    // 舊存檔補欄位
+    if (!roundState.difficulty) roundState.difficulty = {};
+    if (!roundState.recentResults) roundState.recentResults = {};
+
+    // 取得當前 unit 的難度（1/2/3）
+    function getDiff() {
+        return roundState.difficulty[currentUnit ? currentUnit.id : ''] || 1;
+    }
+
+    // 答題後更新滑動窗口，並自動升降難
+    function updateDifficulty(correct) {
+        const id = currentUnit.id;
+        if (!roundState.recentResults[id]) roundState.recentResults[id] = [];
+        const results = roundState.recentResults[id];
+        results.push(correct);
+        if (results.length > 5) results.shift(); // 只保留最近5題
+        if (results.length >= 5) {
+            const rate = results.filter(Boolean).length / results.length;
+            const cur = roundState.difficulty[id] || 1;
+            let next = cur;
+            if (rate >= 0.8 && cur < 3) { next = cur + 1; roundState.recentResults[id] = []; }
+            else if (rate <= 0.4 && cur > 1) { next = cur - 1; roundState.recentResults[id] = []; }
+            if (next !== cur) {
+                roundState.difficulty[id] = next;
+                const msgs = ['', '題目難度自動調低囉，加油！💪', '題目難度自動升級了！好厲害！🌟', '難度最高了，Apple 好厲害！🏆'];
+                speak(next < cur ? msgs[1] : msgs[2]);
+            }
+        }
+    }
+
+    let currentUnit = null, currentStep = 0, correctAnswer = null, isFirstAttempt = true;
+    let usedHintInCurrentUnit = false, usedHintInCurrentQuestion = false, errorsInCurrentUnit = 0, perfectAnswersInUnit = 0;
+    let hintCountInQuestion = 0; 
+    let isProcessingAnswer = false;
+
+    function safeSaveState() {
+        try {
+            localStorage.setItem('apple_math_round', JSON.stringify(roundState));
+        } catch (e) {
+            console.warn("Could not save state to localStorage:", e);
+        }
+    }
+
+    function initPage() {
+        // iPad 提示：如果是在檔案模式打開，提示使用瀏覽器或特定 App
+        if (window.location.protocol === 'file:' && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            const tip = document.createElement('div');
+            tip.style.cssText = "background:#fff3cd; color:#856404; padding:10px; font-size:0.8rem; border-bottom:1px solid #ffeeba;";
+            tip.innerHTML = "💡 <b>iPad 使用小撇步</b>：如果網頁無法運作，請點擊分享圖示並選擇「在 Safari 中打開」，或使用「Documents」App 開啟此檔案。";
+            document.body.prepend(tip);
+        }
+
+        document.getElementById('title-area').innerHTML = zy('每','ㄇㄟˇ')+zy('日','ㄖˋ')+zy('數','ㄕㄨˋ')+zy('學','ㄒㄩㄝˊ')+zy('冒','ㄇㄠˋ')+zy('險','ㄒㄧㄢˇ');
+        document.getElementById('sub-area').innerHTML = zy('任','ㄖˋ')+zy('選','ㄒㄩㄢˇ')+' 3 '+zy('個','ㄍㄜ˙')+zy('任','ㄖˋ')+zy('務','ㄨˋ')+zy('，')+zy('拿','ㄋㄚˊ')+zy('獎','ㄐㄧㄤˇ')+zy('勵','ㄌㄧˋ');
+        document.getElementById('speak-btn-text').innerHTML = zy('唸','ㄋㄧㄢˋ')+zy('題目','ㄊㄧˊㄇㄨˋ');
+        document.getElementById('hint-btn-text').innerHTML = zy('小','ㄒㄧㄠˇ')+zy('提示','ㄊㄧˊㄕˋ');
+
+        document.getElementById('stop-btn').innerHTML = zy('不','ㄅㄨˋ')+zy('玩','ㄨㄢˊ')+zy('了','ㄌㄜ˙');
+        document.getElementById('reward-title').innerHTML = zy('大','ㄉㄚˋ')+zy('成','ㄔㄥˊ')+zy('功','ㄍㄨㄥ')+'！';
+        document.getElementById('reward-text').innerHTML = zy('獲','ㄏㄨㄛˋ')+zy('得','ㄉㄜˊ')+zy('了','ㄌㄜ˙')+' 15 '+zy('分','ㄈㄣ')+zy('鐘','ㄓㄨㄥ')+zy('平','ㄆㄧㄥˊ')+zy('板','ㄅㄢˇ')+zy('時','ㄕˊ')+zy('間','ㄐㄧㄢ');
+
+        document.getElementById('next-day-btn').innerHTML = zy('下','ㄒㄧㄚˋ')+zy('一','ㄧ')+zy('輪','ㄌㄨㄣˊ')+zy('挑戰','ㄊㄧㄠˇㄓㄢˋ');
+        document.getElementById('start-challenge-btn').innerHTML = zy('開','ㄎㄞ')+zy('始','ㄕˇ')+zy('挑','ㄊㄧㄠˇ')+zy('戰','ㄓㄢˋ');
+
+        // 確保目前顯示的單元包含所有可用單元（解除之前的 3 個限制限制）
+        const availableInQueue = roundState.unitQueue.filter(id => !roundState.retiredUnits.includes(id));
+        const allAvailableShown = availableInQueue.every(id => roundState.roundUnits.includes(id));
+
+        // 如果這輪所有單元都已完成（或第一次進來，或還沒顯示全部單元），才開新一輪
+        const allDone = roundState.completedUnits.length >= 3;
+        if (roundState.roundUnits.length === 0 || allDone || !allAvailableShown) {
+            startNewRound();
+        }
+        renderMissions();
+    }
+
+    function startNewRound() {
+        // 過濾掉已精通的單元
+        const availableInQueue = roundState.unitQueue.filter(id => !roundState.retiredUnits.includes(id));
+        
+        let nextRound = [];
+        
+        // 1. 優先位：如果有需要加強的單元，放第一個
+        if (roundState.needsPractice && !roundState.retiredUnits.includes(roundState.needsPractice)) {
+            nextRound.push(roundState.needsPractice);
+            roundState.needsPractice = null; // 取出後清空
+        }
+        
+        // 2. 顯示所有可挑戰單元（不再限制 3 個）
+        for (let id of availableInQueue) {
+            if (!nextRound.includes(id)) {
+                nextRound.push(id);
+            }
+        }
+        
+        roundState.roundUnits = nextRound;
+        roundState.completedUnits = [];
+        
+        // 3. 達成輪播：將本輪選中的單元移到 Queue 的最後面
+        roundState.unitQueue = roundState.unitQueue.filter(id => !nextRound.includes(id)).concat(nextRound);
+        
+        safeSaveState();
+    }
+
+    function renderMissions() {
+        const list = document.getElementById('mission-list');
+        const unitsToShow = ALL_UNITS.filter(u => roundState.roundUnits.includes(u.id));
+        
+        list.innerHTML = unitsToShow.map(u => {
+            const isMastered = roundState.completedUnits.includes(u.id);
+            const isRetired = roundState.retiredUnits.includes(u.id);
+            const streak = roundState.streaks[u.id] || 0;
+            return `
+            <div class="mission-item ${isMastered?'mastered':''}" onclick="${isMastered?'':'startUnit(\''+u.id+'\')'}">
+                <div>
+                    <div style="font-size:1.3rem">${u.title}${isRetired?'<span class="mastered-tag">已精通</span>':''}</div>
+                    <div class="medal-bar">
+                        ${isMastered ? '🎖️🎖️🎖️' : '⚪⚪⚪'} 
+                        <span style="font-size:0.7rem; color:#999; margin-left:10px;">完美連勝: ${streak}/10</span>
+                    </div>
+                </div>
+                <div class="check-box">${isMastered?'✓':''}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function startUnit(unitId) {
+        currentUnit = ALL_UNITS.find(u => u.id === unitId);
+        errorsInCurrentUnit = 0;
+        perfectAnswersInUnit = 0;
+        usedHintInCurrentUnit = false;
+        
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.add('active');
+        
+        document.getElementById('teaching-title').innerHTML = currentUnit.title;
+        // teaching 現在是陣列，可以正確隨機取值
+        const randomTeaching = currentUnit.teaching[Math.floor(Math.random() * currentUnit.teaching.length)];
+        document.getElementById('teaching-body').innerText = randomTeaching;
+        speak("Apple妳好，" + randomTeaching);
+    }
+
+    function startChallenge() {
+        currentStep = 0;
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerHTML = currentUnit.title;
+        updateStars(); 
+        generateQuestion();
+    }
+
+    function generateQuestion() {
+        isProcessingAnswer = false;
+        isFirstAttempt = true;
+        usedHintInCurrentQuestion = false;
+        hintCountInQuestion = 0;
+        currentHints = ["再想想看喔！", "仔細看一下題目！", "快要對了，加油！"]; // 預設值，各 mode 會覆蓋
+        document.getElementById('hint-btn').disabled = false;
+        const qEl = document.getElementById('question'); const oEl = document.getElementById('options');
+        qEl.innerHTML = '';
+        oEl.innerHTML = '';
+        oEl.style.gridTemplateColumns = '1fr 1fr'; // 每題重置回預設兩欄
+        const mode = currentUnit.id;
+
+        if (mode === 'clock') {
+            const d = getDiff();
+            const diffLabel = ['','🌱簡單','⚡普通','🔥困難'][d];
+            // 難度1：只有整點；難度2：整點+半點；難度3：整點+半點+15/45分（四分點）
+            let h = Math.floor(Math.random()*12)+1;
+            let minType; // 0=整點, 1=半點, 2=15分, 3=45分
+            if (d === 1) minType = 0;
+            else if (d === 2) minType = Math.random() > 0.5 ? 0 : 1;
+            else minType = Math.floor(Math.random()*4);
+            const minDeg = [0, 180, 90, 270][minType];
+            const hourOffset = [0, 15, 7.5, 22.5][minType];
+            const labels = [`${h}點`, `${h}點半`, `${h}點15分`, `${h}點45分`];
+            correctAnswer = labels[minType];
+            currentHints = [
+                `先看長針！長針指著 ${['12','6','3','9'][minType]}，代表${['整點','半點（30分）','15分','45分'][minType]}！`,
+                `再看短針，短針停在哪個數字附近？短針指 ${h} 附近就是 ${h} 點！`,
+                `答案是「${correctAnswer}」！`
+            ];
+            qEl.innerHTML = `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${diffLabel}</div><div class="clock" id="clock-face"></div>`;
+            const face = document.getElementById('clock-face');
+            for(let i=1; i<=12; i++) {
+                let angle = (i * 30) - 90;
+                let x = 70 + 60 * Math.cos(angle * Math.PI / 180);
+                let y = 70 + 60 * Math.sin(angle * Math.PI / 180);
+                face.innerHTML += `<div class="clock-num" style="left:${x}px; top:${y}px">${i}</div>`;
+            }
+            face.innerHTML += `<div class="clock-center"></div><div class="hand hour-hand" style="transform:rotate(${h*30+hourOffset}deg)"></div><div class="hand min-hand" style="transform:rotate(${minDeg}deg)"></div>`;
+            // 選項：正確 + 同一個點的其他分鐘選項（避免太難就選相鄰時）
+            const wrongTimes = d === 1
+                ? [`${h%12+1}點`, `${h===1?12:h-1}點`, '6點']
+                : [`${h}點`, `${h}點半`, `${h}點15分`, `${h}點45分`].filter(x=>x!==correctAnswer);
+            [correctAnswer, ...wrongTimes.slice(0,3)].sort(()=>0.5-Math.random()).forEach(c => createOpt(c,c));
+        } else if (mode === 'coin') {
+            const d = getDiff();
+            // 難度1：只有1元和5元，總額≤20；難度2：加入10元，總額≤35；難度3：全幣值+50元，總額≤60
+            let n50=0, n10=0, n5=0, n1=0;
+            if (d === 1) {
+                n5 = Math.floor(Math.random()*3)+1; n1 = Math.floor(Math.random()*5);
+            } else if (d === 2) {
+                n10 = Math.floor(Math.random()*2)+1; n5 = Math.floor(Math.random()*2)+1; n1 = Math.floor(Math.random()*5);
+            } else {
+                n50 = Math.floor(Math.random()*2); n10 = Math.floor(Math.random()*3); n5 = Math.floor(Math.random()*3)+1; n1 = Math.floor(Math.random()*5);
+            }
+            correctAnswer = n50*50 + n10*10 + n5*5 + n1;
+            const diffLabel = ['','🌱簡單','⚡普通','🔥困難'][d];
+            currentHints = [
+                `先數數看有幾個大硬幣？${n50?`50元有${n50}個=${n50*50}元。`:''}${n10?`10元有${n10}個=${n10*10}元。`:''}`,
+                `再數 5 元硬幣，有 ${n5} 個，${n5}×5 = ${n5*5} 元。`,
+                `最後加 ${n1} 個 1 元！總共是 ${n50*50}+${n10*10}+${n5*5}+${n1} = ${correctAnswer} 元！`
+            ];
+            let html = `<div class="coin-container">` +
+                Array(n50).fill('<div class="coin coin-10" style="background:#c0a000;font-size:0.7rem">50</div>').join('') +
+                Array(n10).fill('<div class="coin coin-10">10</div>').join('') +
+                Array(n5).fill('<div class="coin coin-5">5</div>').join('') +
+                Array(n1).fill('<div class="coin coin-1">1</div>').join('') + `</div>`;
+            qEl.innerHTML = html + `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${diffLabel}</div><div>${zy('總','ㄗㄨㄥˇ')}${zy('共','ㄍㄨㄥˋ')}${zy('幾','ㄐㄧˇ')}${zy('元','ㄩㄢˊ')}？</div>`;
+            generateOptions(correctAnswer);
+        } else if (mode === 'even') {
+            const d = getDiff();
+            const diffLabel = ['','🌱簡單','⚡普通','🔥困難'][d];
+            // 難度1：20以內，選哪個是偶數；難度2：50以內；難度3：100以內，且題型混合（選奇數/選偶數）
+            const maxN = [0, 20, 50, 100][d];
+            const askOdd = d === 3 && Math.random() > 0.5; // 難度3有時問單數
+            let nums, target;
+            for (let tries = 0; tries < 50; tries++) {
+                nums = [0,1,2,3].map(() => Math.floor(Math.random()*maxN)+1);
+                const matches = nums.filter(n => askOdd ? n%2!==0 : n%2===0);
+                if (matches.length === 1) { target = matches[0]; break; }
+            }
+            if (target === undefined) return generateQuestion();
+            correctAnswer = target;
+            currentHints = [
+                `看每個數字的最後一位（個位數），是不是 0、2、4、6、8 其中一個？`,
+                `${nums.map(n=>`${n} 的個位是 ${n%10}，${n%2===0?'是雙數':'是單數'}`).join('；')}`,
+                `${askOdd?'單數':'雙數'}就是答案，是 ${correctAnswer}！`
+            ];
+            const question = askOdd
+                ? `${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}${zy('是','ㄕˋ')}${zy('單','ㄉㄢ')}${zy('數','ㄕㄨˋ')}？`
+                : `${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}${zy('是','ㄕˋ')}${zy('雙','ㄕㄨㄤ')}${zy('數','ㄕㄨˋ')}？`;
+            qEl.innerHTML = `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${diffLabel}</div><div>${question}</div>`;
+            nums.forEach(n => createOpt(n,n));
+        } else if (mode === 'space') {
+            // ═══════════════════════════════════════════════════
+            // 空間題資料庫：從 PDF 提取，全部在這裡管理
+            // 新增題型：積木補合x10 | 重量比較 | 容量比較 | 格子移動
+            // ═══════════════════════════════════════════════════
+
+            // ── 工具函式：畫一個方格積木 SVG ──
+            const C = '#4ECDC4', R = '#FF6B6B', Y = '#FFE66D', G = '#6BCB77', P = '#C77DFF';
+            const cell = (c, r, col, s=28) => `<rect x="${c*30+1}" y="${r*30+1}" width="${s}" height="${s}" fill="${col}" stroke="#fff" stroke-width="2"/>`;
+            const gap  = (c, r) => `<rect x="${c*30+1}" y="${r*30+1}" width="28" height="28" fill="#f0f0f0" stroke="#ccc" stroke-width="1" stroke-dasharray="3"/>`;
+            const mkSVG = (w,h,body) => `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`;
+
+            // ══════════════════════════════
+            // 【題庫A】積木補合（10種，資料驅動）
+            // ══════════════════════════════
+            const PUZZLES = [
+                // ══════════════════════════════════════════════════════════════
+                // 設計原則：ans SVG 畫出「缺口本身的積木形狀」
+                //           wrong 是形狀相近但尺寸/方向不對的干擾項
+                // ══════════════════════════════════════════════════════════════
+
+                // P1: 3×3 缺右下角一格 → 正確:1×1正方形
+                { q: mkSVG(92,92, [0,1,2].flatMap(r=>[0,1,2].map(c=>(r===2&&c===2)?gap(c,r):cell(c,r,C))).join('')),
+                  ans:   mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${C}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${C}" stroke="#fff" stroke-width="2"/>`),   // 橫1×2
+                          mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${C}" stroke="#fff" stroke-width="2"/>`),   // 直1×2
+                          mkSVG(32,32, `<polygon points="16,1 1,31 31,31" fill="${C}"/>`)],                                         // 三角
+                  h:['右下角缺了一格，缺口是什麼形狀？','缺口是1×1的小正方形。','選一個剛好的小正方形補上！'] },
+
+                // P2: L形積木 缺右邊直條2格 → 正確:直1×2長方形
+                { q: mkSVG(92,92, [cell(0,0,R),cell(0,1,R),cell(0,2,R),cell(1,2,R),gap(1,0),gap(1,1)].join('')),
+                  ans:   mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${R}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${R}" stroke="#fff" stroke-width="2"/>`),   // 橫1×2
+                          mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${R}" stroke="#fff" stroke-width="2"/>`),   // 正方形
+                          mkSVG(32,92, `<rect x="1" y="1" width="30" height="90" fill="${R}" stroke="#fff" stroke-width="2"/>`)],  // 直1×3
+                  h:['右邊缺了一直條，是高的還是寬的？','缺口是2格高、1格寬的長條。','選又高又窄的長方形！'] },
+
+                // P3: 2×3 缺右邊整列2格 → 正確:橫2×1長方形（不對，應該是直2格）→ 正確:2格直條
+                { q: mkSVG(62,92, [cell(0,0,Y),cell(0,1,Y),cell(0,2,Y),gap(1,0),gap(1,1),gap(1,2)].join('')),
+                  ans:   mkSVG(32,92, `<rect x="1" y="1" width="30" height="90" fill="${Y}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${Y}" stroke="#fff" stroke-width="2"/>`),   // 橫1×2
+                          mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${Y}" stroke="#fff" stroke-width="2"/>`),   // 直1×2（少一格）
+                          mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${Y}" stroke="#fff" stroke-width="2"/>`)],  // 正方形
+                  h:['右邊整列都是空的，缺口幾格高？','缺口是3格高、1格寬的長直條。','選最高最窄的那個！'] },
+
+                // P4: 2×2 缺右上角 → 正確:1×1正方形
+                { q: mkSVG(62,62, [cell(0,0,G),gap(1,0),cell(0,1,G),cell(1,1,G)].join('')),
+                  ans:   mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(62,62, `<rect x="1" y="1" width="60" height="60" fill="${G}" stroke="#fff" stroke-width="2"/>`)],
+                  h:['2×2的正方形右上角缺了一格。','缺口是1個小正方形。','選1×1正方形補右上角！'] },
+
+                // P5: 橫條3格 缺最左格 → 正確:1×1正方形
+                { q: mkSVG(92,32, [gap(0,0),cell(1,0,P),cell(2,0,P)].join('')),
+                  ans:   mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(32,32, `<polygon points="16,1 1,31 31,31" fill="${P}"/>`)],
+                  h:['橫條左邊缺了一格！','缺口是1個正方形。','選正方形補最左邊！'] },
+
+                // P6: T形 缺底部直條 → 正確:直1×2
+                { q: mkSVG(92,92, [cell(0,0,C),cell(1,0,C),cell(2,0,C),cell(1,1,C),gap(0,1),gap(2,1),gap(1,2),gap(0,2),gap(2,2)].join('')),
+                  ans:   mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${C}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${C}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${C}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(92,32, `<rect x="1" y="1" width="90" height="30" fill="${C}" stroke="#fff" stroke-width="2"/>`)],
+                  h:['T形下面缺了一段，有幾格？','底下缺了2格高的直條。','選2格高、1格寬的直長方形！'] },
+
+                // P7: 3×3 缺右邊整列 → 正確:直1×3（高度3格）
+                { q: mkSVG(92,92, [0,1,2].flatMap(r=>[0,1].map(c=>cell(c,r,R))).concat([0,1,2].map(r=>gap(2,r))).join('')),
+                  ans:   mkSVG(32,92, `<rect x="1" y="1" width="30" height="90" fill="${R}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${R}" stroke="#fff" stroke-width="2"/>`),   // 2格高
+                          mkSVG(62,92, `<rect x="1" y="1" width="60" height="90" fill="${R}" stroke="#fff" stroke-width="2"/>`),   // 2格寬
+                          mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${R}" stroke="#fff" stroke-width="2"/>`)],  // 正方形
+                  h:['右邊整列缺了，有幾格高？','缺口是3格高、1格寬的長條。','選最高那個直條！'] },
+
+                // P8: L形 缺底部橫條2格 → 正確:橫2×1
+                { q: mkSVG(92,62, [cell(0,0,Y),cell(1,0,Y),cell(2,0,Y),cell(0,1,Y),gap(1,1),gap(2,1)].join('')),
+                  ans:   mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${Y}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${Y}" stroke="#fff" stroke-width="2"/>`),   // 1格
+                          mkSVG(92,32, `<rect x="1" y="1" width="90" height="30" fill="${Y}" stroke="#fff" stroke-width="2"/>`),   // 3格寬
+                          mkSVG(62,62, `<rect x="1" y="1" width="60" height="60" fill="${Y}" stroke="#fff" stroke-width="2"/>`)],  // 2×2
+                  h:['底部右邊缺了一橫條，幾格寬？','缺口是1格高、2格寬的橫長方形。','選又矮又寬（2格寬）的那個！'] },
+
+                // P9: 直條3格 缺頂端1格 → 正確:1×1
+                { q: mkSVG(32,92, [gap(0,0),cell(0,1,G),cell(0,2,G)].join('')),
+                  ans:   mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${G}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(32,32, `<polygon points="16,1 1,31 31,31" fill="${G}"/>`)],
+                  h:['直條頂端缺了一格。','缺口是1個小正方形。','選正方形補最上面！'] },
+
+                // P10: 2×2 缺左下角 → 正確:1×1
+                { q: mkSVG(62,62, [cell(0,0,P),cell(1,0,P),gap(0,1),cell(1,1,P)].join('')),
+                  ans:   mkSVG(32,32, `<rect x="1" y="1" width="30" height="30" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                  wrong: [mkSVG(62,62, `<rect x="1" y="1" width="60" height="60" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(62,32, `<rect x="1" y="1" width="60" height="30" fill="${P}" stroke="#fff" stroke-width="2"/>`),
+                          mkSVG(32,62, `<rect x="1" y="1" width="30" height="60" fill="${P}" stroke="#fff" stroke-width="2"/>`)],
+                  h:['2×2左下角缺了一格。','缺口是1個小正方形。','選正方形補左下角！'] },
+            ];
+
+            // ══════════════════════════════
+            // 【題庫B】格子圖形移動（PDF填充題，方向+格子位移）
+            // ══════════════════════════════
+            const GRID_MOVES = (() => {
+                // 產生格子圖案：一個圖案（2×2有色格）在5×5網格中移動
+                const gridSVG = (filledCells, color, size=110) => {
+                    const cs = size/5;
+                    let bg = `<rect width="${size}" height="${size}" fill="white" stroke="#eee" stroke-width="1"/>`;
+                    for(let r=0;r<5;r++) for(let c=0;c<5;c++)
+                        bg += `<rect x="${c*cs+0.5}" y="${r*cs+0.5}" width="${cs-1}" height="${cs-1}" fill="${filledCells.some(([fr,fc])=>fr===r&&fc===c)?color:'white'}" stroke="#ddd" stroke-width="0.5"/>`;
+                    return `<svg width="${size}" height="${size}" style="border:2px solid #eee;border-radius:8px">${bg}</svg>`;
+                };
+                // 圖案：在左上2×2
+                const patterns = [
+                    { cells:[[0,0],[0,1],[1,0],[1,1]], name:'左上2×2', color:C },
+                    { cells:[[0,1],[0,2],[1,1]], name:'L形上方', color:R },
+                    { cells:[[2,2],[2,3],[3,2],[3,3]], name:'中央2×2', color:Y },
+                ];
+                const dirs = [
+                    { name:'往右移一格', dx:0, dc:1, arrow:'→' },
+                    { name:'往左移一格', dx:0, dc:-1, arrow:'←' },
+                    { name:'往下移一格', dx:1, dc:0, arrow:'↓' },
+                    { name:'往上移一格', dx:-1, dc:0, arrow:'↑' },
+                ];
+                const items = [];
+                patterns.forEach(pat => dirs.forEach(dir => {
+                    const moved = pat.cells.map(([r,c])=>[r+dir.dx, c+dir.dc]);
+                    if(moved.every(([r,c])=>r>=0&&r<5&&c>=0&&c<5)) {
+                        // 3個錯誤：反向、90度、不動
+                        const w1 = pat.cells.map(([r,c])=>[r-dir.dx, c-dir.dc]).filter(([r,c])=>r>=0&&r<5&&c>=0&&c<5);
+                        const w2 = pat.cells.map(([r,c])=>[r+dir.dc, c+dir.dx]).filter(([r,c])=>r>=0&&r<5&&c>=0&&c<5);
+                        items.push({ orig:pat.cells, moved, w1:(w1.length===pat.cells.length?w1:moved.map(([r,c])=>[r,Math.min(4,c+1)])), w2:(w2.length===pat.cells.length?w2:pat.cells), color:pat.color, dir, name:pat.name });
+                    }
+                }));
+                return { items, gridSVG };
+            })();
+
+            // ══════════════════════════════
+            // 【題庫C】重量比較（PDF填充題天平）
+            // ══════════════════════════════
+            const WEIGHT_QS = [
+                { left:'🍉', right:'🍎', heavier:'🍉', hint1:'西瓜和蘋果放到天平上！', hint2:'西瓜比蘋果大很多，所以比較重！', hint3:'西瓜比較重，天平會往西瓜那邊下沉！' },
+                { left:'🐘', right:'🐱', heavier:'🐘', hint1:'大象和貓咪比重量！', hint2:'大象是很大的動物，貓咪很小！', hint3:'大象比較重！' },
+                { left:'📚', right:'✏️', heavier:'📚', hint1:'書和鉛筆比重量！', hint2:'一本書比一支鉛筆重很多！', hint3:'書比鉛筆重！' },
+                { left:'🎈', right:'🪨', heavier:'🪨', hint1:'氣球和石頭比重量！', hint2:'氣球裡面是空氣，石頭是實心的！', hint3:'石頭比較重，氣球很輕！' },
+                { left:'🚗', right:'🚲', heavier:'🚗', hint1:'汽車和腳踏車比重量！', hint2:'汽車是金屬做的，比腳踏車大很多！', hint3:'汽車比較重！' },
+                { left:'🍇', right:'🍓', heavier:'🍇', hint1:'一串葡萄和一顆草莓比！', hint2:'一整串葡萄有很多顆，比一顆草莓重！', hint3:'葡萄（一串）比較重！' },
+            ];
+
+            // ══════════════════════════════
+            // 【題庫D】容量比較（PDF填充題容量）
+            // ══════════════════════════════
+            const CAPACITY_QS = [
+                { bigEmoji:'🪣', smallEmoji:'🥛', bigger:'🪣', bigName:'水桶', smallName:'牛奶盒', hint1:'水桶和牛奶盒，哪個裝得比較多？', hint2:'水桶又大又深，牛奶盒很小！', hint3:'水桶裝得多！' },
+                { bigEmoji:'🛁', smallEmoji:'🥤', bigger:'🛁', bigName:'浴缸', smallName:'杯子', hint1:'浴缸和杯子，哪個容量大？', hint2:'浴缸可以裝整個人泡澡！', hint3:'浴缸容量大很多！' },
+                { bigEmoji:'🍶', smallEmoji:'🍵', bigger:'🍶', bigName:'茶壺', smallName:'茶杯', hint1:'茶壺和茶杯，哪個裝得多？', hint2:'茶壺要倒好幾杯茶！', hint3:'茶壺容量比較大！' },
+            ];
+
+            // ═══════════════════════════════════
+            // 決定本題類型（機率分配）
+            // 積木補合40% | 格子移動25% | 圖層疊加13% | 兩圖相加8% | 重量比較5% | 容量比較4% | 鏡像3% | 方位2%
+            // ═══════════════════════════════════
+            const spaceType = Math.random();
+            const spaceDiff = getDiff();
+            const spaceLabel = ['','🌱簡單','⚡普通','🔥困難'][spaceDiff];
+
+            if (spaceType < 0.40) {
+                // 【題型1】積木補合（難度1:前5題, 難度2:全部, 難度3:後5題難題）
+                const pool = spaceDiff === 1 ? PUZZLES.slice(0,5)
+                           : spaceDiff === 3 ? PUZZLES.slice(5)
+                           : PUZZLES;
+                const pz = pool[Math.floor(Math.random()*pool.length)];
+                const opts = [
+                    { svg: pz.ans, label:'A', correct:true },
+                    { svg: pz.wrong[0], label:'B', correct:false },
+                    { svg: pz.wrong[1], label:'C', correct:false },
+                    { svg: pz.wrong[2], label:'D', correct:false },
+                ].sort(()=>0.5-Math.random());
+                correctAnswer = opts.find(o=>o.correct).label;
+                currentHints = pz.h;
+                qEl.innerHTML = `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${spaceLabel}</div><div>${pz.q}</div><div style="font-size:1rem;margin-top:8px">${zy('哪','ㄋㄚˇ')}${zy('一','ㄧ')}${zy('塊','ㄎㄨㄞˋ')}${zy('可','ㄎㄜˇ')}${zy('以','ㄧˇ')}${zy('補','ㄅㄨˇ')}${zy('上','ㄕㄤˋ')}${zy('缺','ㄑㄩㄝ')}${zy('口','ㄎㄡˇ')}？</div>`;
+                oEl.style.gridTemplateColumns = '1fr 1fr';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn svg-btn';
+                    btn.style.cssText = 'padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.9rem;min-height:70px;';
+                    btn.innerHTML = o.svg + `<span>${o.label}</span>`;
+                    btn.onclick = () => checkAnswer(o.label);
+                    oEl.appendChild(btn);
+                });
+
+            } else if (spaceType < 0.65) {
+                // 【題型2】格子圖形移動（PDF 填充題「移動後打✓」）
+                const { items, gridSVG } = GRID_MOVES;
+                const item = items[Math.floor(Math.random()*items.length)];
+                const allOpts = [
+                    { cells: item.moved,  label:'A', correct:true },
+                    { cells: item.w1,     label:'B', correct:false },
+                    { cells: item.w2,     label:'C', correct:false },
+                    { cells: item.orig,   label:'D', correct:false },
+                ].sort(()=>0.5-Math.random());
+                correctAnswer = allOpts.find(o=>o.correct).label;
+                currentHints = [
+                    `圖案要「${item.dir.name}」，往 ${item.dir.arrow} 方向滑！`,
+                    `每個格子都要往 ${item.dir.arrow} 移動一格，形狀不變！`,
+                    `原來的格子往 ${item.dir.arrow} 移一格，就是正確答案了！`
+                ];
+                qEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;justify-content:center">
+                    ${gridSVG(item.orig, item.color, 100)}
+                    <span style="font-size:2.5rem">${item.dir.arrow}</span>
+                </div>
+                <div style="font-size:1rem;margin-top:6px">${zy('移','ㄧˊ')}${zy('動','ㄉㄨㄥˋ')}${zy('後','ㄏㄡˋ')}${zy('變','ㄅㄧㄢˋ')}${zy('成','ㄔㄥˊ')}${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}？</div>`;
+                oEl.style.gridTemplateColumns = '1fr 1fr';
+                allOpts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn svg-btn';
+                    btn.style.cssText = 'padding:6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:0.85rem;';
+                    btn.innerHTML = gridSVG(o.cells, item.color, 90) + `<span>${o.label}</span>`;
+                    btn.onclick = () => checkAnswer(o.label);
+                    oEl.appendChild(btn);
+                });
+
+            } else if (spaceType < 0.78) {
+                // 【題型3】圖層疊加（最上面是哪個形狀）13%
+                // ═══════════════════════════════════════
+                const shapeOpts = [
+                    { name:'三角形', color:'#FF6B6B', svg: (x,y,s)=>`<polygon points="${x+s/2},${y} ${x},${y+s} ${x+s},${y+s}" fill="${'#FF6B6B'}" stroke="white" stroke-width="2"/>` },
+                    { name:'圓形',   color:'#4ECDC4', svg: (x,y,s)=>`<ellipse cx="${x+s/2}" cy="${y+s/2}" rx="${s/2-1}" ry="${s/2-1}" fill="#4ECDC4" stroke="white" stroke-width="2"/>` },
+                    { name:'正方形', color:'#FFE66D', svg: (x,y,s)=>`<rect x="${x+2}" y="${y+2}" width="${s-4}" height="${s-4}" fill="#FFE66D" stroke="white" stroke-width="2"/>` },
+                    { name:'菱形',   color:'#6BCB77', svg: (x,y,s)=>`<polygon points="${x+s/2},${y+2} ${x+s-2},${y+s/2} ${x+s/2},${y+s-2} ${x+2},${y+s/2}" fill="#6BCB77" stroke="white" stroke-width="2"/>` },
+                ];
+                // 隨機選3個不同形狀疊在一起，問最上面（z-index最高=最後畫=最上面）
+                const picked3 = [...shapeOpts].sort(()=>0.5-Math.random()).slice(0,3);
+                const topShape = picked3[2]; // 最後畫的在最上面
+                correctAnswer = topShape.name;
+                currentHints = [
+                    `三個形狀疊在一起！最上面的形狀，你可以看到它最完整，沒有被別人擋住。`,
+                    `最下面的先畫，所以會被後來的形狀蓋住。最上面的形狀是最後畫上去的！`,
+                    `找找看哪個形狀完整露出來、沒有被遮住的？那就是答案「${topShape.name}」！`
+                ];
+                const svgContent = picked3.map((s,i)=>s.svg(20+i*15, 20+i*10, 60)).join('');
+                qEl.innerHTML = `<svg width="160" height="140" style="border:2px solid #eee; border-radius:12px; background:white">${svgContent}</svg>
+                    <div style="font-size:1rem;margin-top:8px">${zy('最','ㄗㄨㄟˋ')}${zy('上','ㄕㄤˋ')}${zy('面','ㄇㄧㄢˋ')}${zy('的','ㄉㄜ˙')}${zy('是','ㄕˋ')}${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}${zy('形','ㄒㄧㄥˊ')}${zy('狀','ㄓㄨㄤˋ')}？</div>`;
+                picked3.sort(()=>0.5-Math.random()).forEach(s => createOpt(s.name, s.name));
+
+            } else if (spaceType < 0.86) {
+                // ═══════════════════════════════════════
+                // 【題型4】兩圖形相加=新圖形（PDF資優填充題）8%
+                // 左邊兩個形狀，選出疊加後的結果
+                // ═══════════════════════════════════════
+                const combos = [
+                    {
+                        label: '大正方形+小正方形',
+                        partA: `<rect x="5" y="5" width="50" height="50" fill="#4ECDC4" stroke="#fff" stroke-width="2"/>`,
+                        partB: `<rect x="20" y="20" width="25" height="25" fill="#FF6B6B" stroke="#fff" stroke-width="2"/>`,
+                        result: `<svg width="60" height="60"><rect x="5" y="5" width="50" height="50" fill="#4ECDC4" stroke="#fff" stroke-width="2"/><rect x="20" y="20" width="25" height="25" fill="#FF6B6B" stroke="#fff" stroke-width="2"/></svg>`,
+                        wrongs: [
+                            `<svg width="60" height="60"><rect x="5" y="5" width="50" height="50" fill="#4ECDC4" stroke="#fff" stroke-width="2"/></svg>`,
+                            `<svg width="60" height="60"><ellipse cx="30" cy="30" rx="28" ry="28" fill="#4ECDC4"/><rect x="20" y="20" width="25" height="25" fill="#FF6B6B" stroke="#fff" stroke-width="2"/></svg>`,
+                            `<svg width="60" height="60"><rect x="20" y="20" width="25" height="25" fill="#FF6B6B" stroke="#fff" stroke-width="2"/></svg>`,
+                        ],
+                        hint1:'左邊兩個形狀合在一起，看誰在前面，誰在後面？',
+                        hint2:'大的形狀先放，小的形狀疊在上面！',
+                        hint3:'大藍正方形+小紅正方形疊在中間，就是答案！'
+                    },
+                    {
+                        label: '圓形+三角形',
+                        partA: `<ellipse cx="30" cy="30" rx="28" ry="28" fill="#FFE66D" stroke="#fff" stroke-width="2"/>`,
+                        partB: `<polygon points="30,5 5,55 55,55" fill="#6BCB77" stroke="#fff" stroke-width="2"/>`,
+                        result: `<svg width="60" height="60"><ellipse cx="30" cy="30" rx="28" ry="28" fill="#FFE66D" stroke="#fff" stroke-width="2"/><polygon points="30,5 5,55 55,55" fill="#6BCB77" stroke="#fff" stroke-width="2"/></svg>`,
+                        wrongs: [
+                            `<svg width="60" height="60"><ellipse cx="30" cy="30" rx="28" ry="28" fill="#FFE66D" stroke="#fff" stroke-width="2"/></svg>`,
+                            `<svg width="60" height="60"><polygon points="30,5 5,55 55,55" fill="#6BCB77" stroke="#fff" stroke-width="2"/><ellipse cx="30" cy="30" rx="28" ry="28" fill="#FFE66D" stroke="#fff" stroke-width="2"/></svg>`,
+                            `<svg width="60" height="60"><polygon points="30,5 5,55 55,55" fill="#6BCB77" stroke="#fff" stroke-width="2"/></svg>`,
+                        ],
+                        hint1:'黃色圓形和綠色三角形疊在一起，先放圓，再放三角！',
+                        hint2:'三角形疊在圓形上面，所以三角形會蓋住圓形的一部分！',
+                        hint3:'找到黃圓裡面有綠三角的那個！'
+                    }
+                ];
+                const combo = combos[Math.floor(Math.random()*combos.length)];
+                correctAnswer = 'A';
+                currentHints = [combo.hint1, combo.hint2, combo.hint3];
+                const allOpts = [
+                    { svg: combo.result, label:'A', correct:true },
+                    ...combo.wrongs.map((w,i)=>({ svg:w, label:String.fromCharCode(66+i), correct:false }))
+                ].sort(()=>0.5-Math.random());
+                correctAnswer = allOpts.find(o=>o.correct).label;
+                qEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;justify-content:center">
+                    <svg width="60" height="60" style="border:2px solid #eee;border-radius:8px;background:white">${combo.partA}</svg>
+                    <span style="font-size:2rem">＋</span>
+                    <svg width="60" height="60" style="border:2px solid #eee;border-radius:8px;background:white">${combo.partB}</svg>
+                    <span style="font-size:2rem">＝</span>
+                    <span style="font-size:2rem">？</span>
+                </div>
+                <div style="font-size:1rem;margin-top:8px">${zy('合','ㄏㄜˊ')}${zy('在','ㄗㄞˋ')}${zy('一','ㄧ')}${zy('起','ㄑㄧˇ')}${zy('會','ㄏㄨㄟˋ')}${zy('變','ㄅㄧㄢˋ')}${zy('成','ㄔㄥˊ')}${zy('什','ㄕˊ')}${zy('麼','ㄇㄜ˙')}？</div>`;
+                oEl.style.gridTemplateColumns = '1fr 1fr';
+                allOpts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn svg-btn';
+                    btn.style.cssText = 'padding:8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:0.9rem;';
+                    btn.innerHTML = o.svg + `<span>${o.label}</span>`;
+                    btn.onclick = () => checkAnswer(o.label);
+                    oEl.appendChild(btn);
+                });
+
+            } else if (spaceType < 0.91) {
+                // ═══════════════════════════════════════
+                // 【題型5】重量比較（哪個比較重？）5%
+                // ═══════════════════════════════════════
+                const wq = WEIGHT_QS[Math.floor(Math.random()*WEIGHT_QS.length)];
+                correctAnswer = wq.heavier;
+                currentHints = [wq.hint1, wq.hint2, wq.hint3];
+                qEl.innerHTML = `<div style="display:flex;align-items:center;gap:16px;justify-content:center;font-size:3.5rem">
+                    <span>${wq.left}</span>
+                    <span style="font-size:1.5rem">⚖️</span>
+                    <span>${wq.right}</span>
+                </div>
+                <div style="font-size:1rem;margin-top:8px">${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}${zy('比','ㄅㄧˇ')}${zy('較','ㄐㄧㄠˋ')}${zy('重','ㄓㄨㄥˋ')}？</div>`;
+                [wq.left, wq.right].sort(()=>0.5-Math.random()).forEach(o => createOpt(o, o));
+
+            } else if (spaceType < 0.95) {
+                // ═══════════════════════════════════════
+                // 【題型6】容量比較（哪個裝得比較多？）4%
+                // ═══════════════════════════════════════
+                const cq = CAPACITY_QS[Math.floor(Math.random()*CAPACITY_QS.length)];
+                correctAnswer = cq.bigger;
+                currentHints = [cq.hint1, cq.hint2, cq.hint3];
+                qEl.innerHTML = `<div style="display:flex;align-items:center;gap:16px;justify-content:center;font-size:3.5rem">
+                    <span>${cq.bigEmoji}</span>
+                    <span style="font-size:1.5rem">vs</span>
+                    <span>${cq.smallEmoji}</span>
+                </div>
+                <div style="font-size:1rem;margin-top:8px">${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}${zy('裝','ㄓㄨㄤ')}${zy('得','ㄉㄜ˙')}${zy('比','ㄅㄧˇ')}${zy('較','ㄐㄧㄠˋ')}${zy('多','ㄉㄨㄛ')}？</div>`;
+                [cq.bigEmoji, cq.smallEmoji].sort(()=>0.5-Math.random()).forEach(o => createOpt(o, o));
+
+            } else if (spaceType < 0.98) {
+                // ═══════════════════════════════════════
+                // 【題型7】鏡像翻轉（PDF資優填充題「左轉後的圖形」）3%
+                // 左右鏡像：一個圖形，選出鏡中樣子
+                // ═══════════════════════════════════════
+                const mirrorItems = [
+                    { name:'箭頭向右', orig:'→', mirror:'←', wrongs:['↑','↓'] },
+                    { name:'箭頭向左', orig:'←', mirror:'→', wrongs:['↑','↓'] },
+                    { name:'大寫 b', orig:'b', mirror:'d', wrongs:['p','q'] },
+                    { name:'大寫 p', orig:'p', mirror:'q', wrongs:['b','d'] },
+                    { name:'拇指右', orig:'👍', mirror:'🤜', wrongs:['✊','✋'] },
+                ];
+                const mi = mirrorItems[Math.floor(Math.random()*mirrorItems.length)];
+                correctAnswer = mi.mirror;
+                currentHints = [
+                    `想像在${mi.orig}前面放一面鏡子，鏡子裡的樣子是左右相反的！`,
+                    `左邊變右邊，右邊變左邊。把「${mi.orig}」左右翻轉看看！`,
+                    `「${mi.orig}」的鏡像是「${mi.mirror}」！`
+                ];
+                qEl.innerHTML = `<div style="display:flex;align-items:center;gap:16px;justify-content:center;font-size:3rem">
+                    <span>${mi.orig}</span>
+                    <span style="font-size:1.5rem">🪞</span>
+                    <span style="font-size:2rem;color:#ccc">？</span>
+                </div>
+                <div style="font-size:1rem;margin-top:8px">${zy('鏡','ㄐㄧㄥˋ')}${zy('子','ㄗ˙')}${zy('裡','ㄌㄧˇ')}${zy('看','ㄎㄢˋ')}${zy('到','ㄉㄠˋ')}${zy('的','ㄉㄜ˙')}${zy('是','ㄕˋ')}${zy('哪','ㄋㄚˇ')}${zy('個','ㄍㄜ˙')}？</div>`;
+                [mi.mirror, ...mi.wrongs, mi.orig].sort(()=>0.5-Math.random()).forEach(o => createOpt(o, o));
+
+            } else {
+                // ═══════════════════════════════════════
+                // 【題型8】方位判斷（升級版：左右＋上下）2%
+                // ═══════════════════════════════════════
+                const posQ = Math.random();
+                if (posQ < 0.5) {
+                    const isRight = Math.random() > 0.5;
+                    correctAnswer = isRight ? '右邊' : '左邊';
+                    currentHints = [
+                        `伸出右手比讚 👍，拇指那邊就是右邊！`,
+                        `箭頭：${isRight?'→ 向右':'← 向左'}。`,
+                        `答案是「${correctAnswer}」！`
+                    ];
+                    qEl.innerHTML = `<div style="font-size:5rem">${isRight?'👉':'👈'}</div>
+                        <div style="font-size:1rem">${zy('這','ㄓㄜˋ')}${zy('是','ㄕˋ')}${zy('哪','ㄋㄚˇ')}${zy('一','ㄧ')}${zy('邊','ㄅㄧㄢ')}？</div>`;
+                    ['左邊','右邊','上面','下面'].sort(()=>0.5-Math.random()).forEach(o=>createOpt(o,o));
+                } else {
+                    const onTop = Math.random() > 0.5;
+                    correctAnswer = onTop ? '上面' : '下面';
+                    const animals = [['🐘','🐱'],['🐶','🐱'],['🦊','🐸'],['🐻','🐰']];
+                    const [a1,a2] = animals[Math.floor(Math.random()*animals.length)];
+                    currentHints = [
+                        `看哪隻動物的位置比較高？高的在「上面」！`,
+                        `${onTop?a1:a2} 在${onTop?'上':'下'}面，${onTop?a2:a1} 在${onTop?'下':'上'}面！`,
+                        `答案是「${correctAnswer}」，${a1} 在 ${a2} 的${correctAnswer}！`
+                    ];
+                    qEl.innerHTML = `<div style="font-size:3rem;line-height:1.6">${onTop?a1+'\n'+a2:a2+'\n'+a1}</div>
+                        <div style="font-size:1rem">${a1}${zy('在','ㄗㄞˋ')}${a2}${zy('的','ㄉㄜ˙')}${zy('哪','ㄋㄚˇ')}${zy('一','ㄧ')}${zy('邊','ㄅㄧㄢ')}？</div>`;
+                    ['上面','下面','左邊','右邊'].sort(()=>0.5-Math.random()).forEach(o=>createOpt(o,o));
+                }
+            }
+        } else if (mode === 'reverse') {
+            const d = getDiff();
+            // 難度1：10以內簡單加法逆算；難度2：20以內，有減法；難度3：三步驟逆算
+            const diffLabel = ['','🌱簡單','⚡普通','🔥困難'][d];
+            let qHtml, hintA, hintB, hintC;
+            if (d === 1) {
+                const a = Math.floor(Math.random()*6)+1, b = Math.floor(Math.random()*6)+1;
+                correctAnswer = a + b;
+                qHtml = `<div style="font-size:2.5rem">${a} = ? − ${b}</div>`;
+                hintA = `等號左邊是 ${a}，右邊是「? 減 ${b}」。`;
+                hintB = `反過來：? = ${a} + ${b}`;
+                hintC = `${a} + ${b} = ${correctAnswer}，答案是 ${correctAnswer}！`;
+            } else if (d === 2) {
+                const type = Math.random() > 0.5;
+                if (type) {
+                    const a = Math.floor(Math.random()*8)+5, b = Math.floor(Math.random()*8)+3;
+                    correctAnswer = a + b;
+                    qHtml = `<div style="font-size:2.5rem">${a} = ? − ${b}</div>`;
+                    hintA = `等號左邊是 ${a}，問號是 ${a} 加上 ${b}！`;
+                    hintB = `${a} + ${b} = ?`;
+                    hintC = `答案是 ${correctAnswer}！`;
+                } else {
+                    const ans = Math.floor(Math.random()*8)+5, b = Math.floor(Math.random()*5)+2;
+                    const a = ans + b;
+                    correctAnswer = ans;
+                    qHtml = `<div style="font-size:2.5rem">${a} − ? = ${ans - ans + b}</div><div style="font-size:1rem;color:#888">${a} − ? = ${b}</div>`;
+                    qHtml = `<div style="font-size:2.5rem">${a} − ? = ${b}</div>`;
+                    hintA = `${a} 減掉問號等於 ${b}，問號比 ${a} 小！`;
+                    hintB = `反過來：? = ${a} − ${b}`;
+                    hintC = `${a} − ${b} = ${correctAnswer}，答案是 ${correctAnswer}！`;
+                }
+            } else {
+                // 三步驟：a + b - c = ?，其中一個是問號
+                const a = Math.floor(Math.random()*8)+5;
+                const b = Math.floor(Math.random()*6)+3;
+                const c = Math.floor(Math.random()*4)+1;
+                const result = a + b - c;
+                correctAnswer = result;
+                qHtml = `<div style="font-size:2rem">${a} + ${b} − ${c} = ?</div>`;
+                hintA = `先算 ${a} + ${b} = ${a+b}`;
+                hintB = `再算 ${a+b} − ${c} = ?`;
+                hintC = `${a+b} − ${c} = ${correctAnswer}！`;
+            }
+            currentHints = [hintA, hintB, hintC];
+            qEl.innerHTML = `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${diffLabel}</div>` + qHtml;
+            generateOptions(correctAnswer);
+        } else if (mode === 'jump') {
+            const d = getDiff();
+            const diffLabel = ['','🌱簡單','⚡普通','🔥困難'][d];
+            // 難度1：+2/+5順數；難度2：加入逆數(-2/-5)/+3；難度3：倍數跳(×2)或大步數+混合
+            let steps, start, s, seq, e;
+            if (d === 1) {
+                steps = [2, 5];
+                s = steps[Math.floor(Math.random()*steps.length)];
+                start = Math.floor(Math.random()*8)+1;
+                seq = [0,1,2,3,4].map(i => start + i*s);
+                e = 1 + Math.floor(Math.random()*2);
+            } else if (d === 2) {
+                steps = [2, 3, 5, -2, -5];
+                s = steps[Math.floor(Math.random()*steps.length)];
+                start = s > 0 ? Math.floor(Math.random()*10)+1 : 25;
+                seq = [0,1,2,3].map(i => start + i*s);
+                e = 1 + Math.floor(Math.random()*2);
+            } else {
+                // 難度3：倍數跳（×2）或大步長±10
+                if (Math.random() > 0.5) {
+                    start = Math.floor(Math.random()*4)+1;
+                    seq = [start, start*2, start*4, start*8];
+                    e = 1 + Math.floor(Math.random()*2);
+                    s = '×2';
+                } else {
+                    steps = [10, -10, 4, -4];
+                    s = steps[Math.floor(Math.random()*steps.length)];
+                    start = s > 0 ? Math.floor(Math.random()*5)+1 : 50;
+                    seq = [0,1,2,3].map(i => start + i*(typeof s==='number'?s:0));
+                    e = 1 + Math.floor(Math.random()*2);
+                }
+            }
+            correctAnswer = seq[e];
+            const dir = (typeof s === 'number' && s < 0) ? '小' : '大';
+            currentHints = [
+                `數字越來越${dir}！${s==='×2'?'每次是前一個的兩倍！':'每次跳的步數都一樣，先找出規律。'}`,
+                `${s==='×2'?'把前面的數字乘以2！':`相鄰兩個數字相差 ${Math.abs(s)}，每次${typeof s==='number'&&s>0?'加':'減'} ${Math.abs(s)}。`}`,
+                `問號前面的數字是 ${seq[e-1]}，${s==='×2'?`${seq[e-1]} × 2 = ${correctAnswer}！`:`${seq[e-1]} ${typeof s==='number'&&s>0?'+':'-'} ${Math.abs(s)} = ${correctAnswer}！`}`
+            ];
+            qEl.innerHTML = `<div style="font-size:0.75rem;color:#888;margin-bottom:4px">${diffLabel}</div><div style="font-size:1.8rem">${seq.map((n,i)=>i==e?'❓':n).join(' ➡ ')}</div>`;
+            generateOptions(correctAnswer);
+        }
+    }
+
+    function createOpt(val, text) {
+        const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerText = text;
+        btn.onclick = () => checkAnswer(val); document.getElementById('options').appendChild(btn);
+    }
+
+    function generateOptions(correct) {
+        let choices = [correct, correct+5, correct-2, correct+10].filter(c => c>=0);
+        [...new Set(choices)].slice(0,4).sort(() => 0.5-Math.random()).forEach(c => createOpt(c,c));
+    }
+
+    function showHint() {
+        usedHintInCurrentUnit = true;
+        usedHintInCurrentQuestion = true;
+        hintCountInQuestion++;
+
+        // 提示現在跟「這一題」綁定，每題有自己的三層提示
+        const hintText = currentHints[Math.min(hintCountInQuestion - 1, currentHints.length - 1)] || "再想想看！";
+        if (hintCountInQuestion >= currentHints.length) {
+            document.getElementById('hint-btn').disabled = true;
+        }
+        
+        const openings = ["偷偷告訴妳喔，", "Apple看這裡，", "悄悄跟妳說，", "這是一個小秘密："];
+        const randomOpening = openings[Math.floor(Math.random() * openings.length)];
+        
+        speak(randomOpening + hintText);
+        
+        const oldHint = document.getElementById('hint-text');
+        if (oldHint) oldHint.remove();
+        
+        const hintDiv = document.createElement('div');
+        hintDiv.id = 'hint-text';
+        hintDiv.style.color = 'var(--secondary)';
+        hintDiv.style.fontSize = '1rem';
+        hintDiv.style.marginTop = '10px';
+        hintDiv.innerHTML = `💡 <span style="font-size:0.8rem">(提示 ${hintCountInQuestion}/3)</span> ${hintText}`;
+        document.getElementById('question').appendChild(hintDiv);
+    }
+
+    function checkAnswer(val) {
+        if (isProcessingAnswer) return;
+        isProcessingAnswer = true;
+
+        if (val == correctAnswer) {
+            if (isFirstAttempt) {
+                currentStep++;
+                updateStars();
+                confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
+                updateDifficulty(true); // ✅ 答對：更新難度窗口
+
+                // 檢查是否為「無錯無提示」的一題
+                if (!usedHintInCurrentQuestion && errorsInCurrentUnit === 0) {
+                    perfectAnswersInUnit++;
+                }
+            }
+
+            speak(["太棒了！", "好厲害喔！", "答對囉！"][Math.floor(Math.random()*3)]);
+            
+            if (currentStep >= 10) {
+                // 單元完成邏輯
+                roundState.completedUnits.push(currentUnit.id);
+                
+                // 檢查是否達成該單元的「完美通關」：5 題全部無錯且無提示
+                if (perfectAnswersInUnit === 10) {
+                    roundState.streaks[currentUnit.id] = (roundState.streaks[currentUnit.id] || 0) + 1;
+                    
+                    // 達成 10 次完美通關，正式撤下單元
+                    if (roundState.streaks[currentUnit.id] >= 10) {
+                        if (!roundState.retiredUnits.includes(currentUnit.id)) {
+                            roundState.retiredUnits.push(currentUnit.id);
+                        }
+                    }
+                    // 完美過關，不需要特別加強練習
+                    roundState.needsPractice = null;
+                } else {
+                    // 只要不完美，就標記為下一次需要優先練習的「插隊單元」
+                    roundState.streaks[currentUnit.id] = 0;
+                    roundState.needsPractice = currentUnit.id;
+                }
+                
+                safeSaveState();
+                if (roundState.completedUnits.length >= 3) {
+                    setTimeout(showReward, 1000);
+                } else {
+                    // 單元完成但還沒滿 3 個，回主選單（不重開新輪）
+                    setTimeout(goHome, 1000);
+                }
+            } else { 
+                document.getElementById('hint-btn').disabled = false;
+                setTimeout(generateQuestion, 1000); 
+            }
+        } else {
+            if (isFirstAttempt) {
+                errorsInCurrentUnit++;
+                roundState.streaks[currentUnit.id] = 0;
+                updateDifficulty(false); // ❌ 答錯：更新難度窗口
+
+                // 紀錄錯誤 (無論有沒有看提示都會紀錄)
+                roundState.mistakes.push({
+                    unit: currentUnit.id,
+                    unitTitle: currentUnit.title.replace(/<[^>]*>/g, '').trim(),
+                    time: new Date().toLocaleString(),
+                    usedHint: usedHintInCurrentQuestion
+                });
+                safeSaveState();
+            }
+            isFirstAttempt = false;
+            currentStep = 0; 
+            updateStars(); 
+            speak(["沒關係，再試一次喔！", "沒關係，我們再想一下！", "沒關係，Apple加油！"][Math.floor(Math.random()*3)]);
+            document.getElementById('question').style.background = '#FFEBEB';
+            setTimeout(() => { 
+                document.getElementById('question').style.background = 'white'; 
+                isProcessingAnswer = false;
+            }, 500);
+        }
+    }
+
+    function skipQuestion() {
+        // 換一題：不計分不算錯，直接換下一題
+        generateQuestion();
+    }
+
+    function previewUnit(unitId) {
+        // 直接跳過教學、跳過計分，進入某個單元預覽題目
+        currentUnit = ALL_UNITS.find(u => u.id === unitId);
+        errorsInCurrentUnit = 0;
+        perfectAnswersInUnit = 0;
+        usedHintInCurrentUnit = false;
+        currentStep = 0;
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('game').classList.add('active');
+        document.getElementById('mode-title').innerHTML = currentUnit.title + ' <span style="font-size:0.7rem;color:#aaa">預覽</span>';
+        updateStars();
+        generateQuestion();
+    }
+
+    function exportGameMistakes() {
+        // 將遊戲錯題記錄匯出為 game-mistakes.json 供 Claude 分析
+        if (!roundState.mistakes || roundState.mistakes.length === 0) return;
+        const json = JSON.stringify(roundState.mistakes, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'game-mistakes.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function downloadReport() {
+        let md = "# 🍎 Apple 數學冒險學習報表\n\n";
+        md += `產生時間：${new Date().toLocaleString()}\n\n`;
+        
+        md += "## 🏆 目前學習進度\n";
+        ALL_UNITS.forEach(u => {
+            const isRetired = roundState.retiredUnits.includes(u.id);
+            const streak = roundState.streaks[u.id] || 0;
+            md += `* ${u.title.replace(/<[^>]*>/g, '').trim()}：${isRetired ? '✅ 已精通' : `進行中 (完美連勝: ${streak}/10)`}\n`;
+        });
+        
+        md += "\n## ❌ 錯誤紀錄回饋\n";
+        if (roundState.mistakes.length === 0) {
+            md += "目前沒有任何錯誤紀錄，表現得太棒了！\n";
+        } else {
+            md += "以下是 Apple 在挑戰過程中答錯的題目（包含「沒看提示」與「看了提示」）：\n\n";
+            const grouped = {};
+            roundState.mistakes.forEach(m => {
+                if (!grouped[m.unitTitle]) grouped[m.unitTitle] = [];
+                grouped[m.unitTitle].push(m);
+            });
+            
+            for (let unit in grouped) {
+                md += `### ${unit}\n`;
+                md += `* 累計答錯：${grouped[unit].length} 次\n`;
+                grouped[unit].forEach(m => {
+                    md += `  - [${m.time}] ${m.usedHint ? '⚠️ 看了提示還是答錯' : '❌ 沒看提示就答錯'}\n`;
+                });
+                md += "\n";
+            }
+        }
+        
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Apple學習報表_${new Date().toLocaleDateString().replace(/\//g, '-')}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function speak(t) { 
+        if(window.speechSynthesis) { 
+            window.speechSynthesis.cancel(); 
+            const u = new SpeechSynthesisUtterance(t); 
+            u.lang='zh-TW'; 
+            u.rate=0.9;
+            u.pitch=1.2;
+            window.speechSynthesis.speak(u); 
+        } 
+    }
+    function speakCurrentQuestion() { 
+        speak(currentUnit.text); 
+    }
+
+    function updateStars() { document.getElementById('stars').innerText = '⭐'.repeat(currentStep) + '⚪'.repeat(10 - currentStep); }
+    function goHome() {
+        isProcessingAnswer = false;
+        document.getElementById('game').classList.remove('active');
+        document.getElementById('teaching-screen').classList.remove('active');
+        document.getElementById('menu').classList.add('active');
+        // 每次回主選單都重新判斷：如果三個單元都完成，自動開新輪
+        const allDone = roundState.completedUnits.length >= 3;
+        if (allDone) {
+            startNewRound();
+        }
+        renderMissions();
+    }
+    function showReward() { document.getElementById('reward-screen').classList.add('active'); confetti({ particleCount: 500, spread: 120 }); speak("大成功！你可以玩平板十五分鐘囉！"); }
+    function resetRoundAndReload() {
+        startNewRound();
+        location.reload();
+    }
+    function resetData() { 
+        if(confirm("確定要清除 Apple 的紀錄嗎？")) { 
+            try {
+                localStorage.clear(); 
+            } catch (e) {}
+            location.reload(); 
+        } 
+    }
+
+    window.onload = initPage;
+</script>
+
+</body>
+</html>

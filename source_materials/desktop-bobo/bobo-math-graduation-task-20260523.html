@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bobo 數學畢業考任務</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18212f;
+      --muted: #5f6b7a;
+      --line: #d9e0e9;
+      --paper: #ffffff;
+      --bg: #f6f8fb;
+      --blue: #2563eb;
+      --green: #0f9f6e;
+      --coral: #e25b45;
+      --amber: #b7791f;
+      --shadow: 0 10px 28px rgba(24, 33, 47, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .wrap {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      min-height: 138px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: 24px 0;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .donut {
+      width: 134px;
+      height: 134px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #fff 0 38%, transparent 39%),
+        conic-gradient(var(--blue) 0 32%, var(--green) 32% 58%, var(--coral) 58% 78%, var(--amber) 78% 100%);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 0;
+    }
+
+    .tabs, .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .unit-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 0 18px;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: border-color .15s ease, transform .15s ease, background .15s ease;
+    }
+
+    button:hover {
+      border-color: #9fb0c6;
+      transform: translateY(-1px);
+    }
+
+    button.active {
+      background: #eaf1ff;
+      border-color: var(--blue);
+      color: #1747b8;
+      font-weight: 700;
+    }
+
+    button.primary {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: white;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(88px, 1fr));
+      gap: 10px;
+      margin: 0 0 18px;
+    }
+
+    .stat {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 72px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 24px;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .progress-line {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #e7edf5;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      transition: width .2s ease;
+    }
+
+    main {
+      padding: 22px 0 48px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .q {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-height: 260px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .q-head {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 14px 0;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #eef2f7;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    .badge.basic { background: #e8f7f1; color: #087855; }
+    .badge.challenge { background: #fff1e8; color: #b8462f; }
+
+    .q-number {
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .q-body {
+      padding: 12px 14px 14px;
+    }
+
+    .unit {
+      margin: 0 0 10px;
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .prompt {
+      margin: 0 0 14px;
+      line-height: 1.65;
+      font-size: 17px;
+    }
+
+    input {
+      width: min(100%, 280px);
+      height: 42px;
+      border: 1px solid #b9c5d6;
+      border-radius: 8px;
+      padding: 8px 11px;
+      font-size: 17px;
+      background: #fff;
+    }
+
+    input:focus {
+      outline: 3px solid rgba(37, 99, 235, .18);
+      border-color: var(--blue);
+    }
+
+    .q-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 14px 14px;
+      align-items: center;
+    }
+
+    .result {
+      min-height: 22px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .ok { color: var(--green); }
+    .no { color: var(--coral); }
+
+    details {
+      border-top: 1px solid var(--line);
+      padding: 10px 14px 14px;
+      background: #fbfcfe;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .trap {
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .hint {
+      margin: 8px 0;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fff8e8;
+      border: 1px solid #f0d59f;
+      color: #704f12;
+    }
+
+    .report {
+      display: none;
+      white-space: pre-wrap;
+      line-height: 1.65;
+      margin: 18px 0 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--ink);
+      overflow: auto;
+    }
+
+    .report.show {
+      display: block;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .source-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 18px 0 0;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .donut {
+        width: 98px;
+        height: 98px;
+      }
+
+      .stats, .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .tabs, .actions {
+        width: 100%;
+      }
+
+      .unit-strip {
+        padding-bottom: 12px;
+      }
+
+      button {
+        flex: 1 1 auto;
+      }
+    }
+
+    @media print {
+      body { background: #fff; }
+      button, .toolbar, .unit-strip, .stats, .progress-line, details, .report { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .q { box-shadow: none; break-inside: avoid; min-height: 170px; }
+      input { border-bottom: 1px solid #333; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap topbar">
+      <div>
+        <h1>Bobo 數學畢業考任務</h1>
+        <p class="subtitle">康軒六下第五、六單元｜基礎 12 題、挑戰 12 題｜2026-05-28 前練習</p>
+      </div>
+      <div class="donut" aria-label="圓形圖視覺"></div>
+    </div>
+  </header>
+
+  <div class="wrap toolbar">
+    <div class="tabs" role="tablist" aria-label="題目分類">
+      <button class="tab active" data-filter="all">全部</button>
+      <button class="tab" data-filter="basic">基礎</button>
+      <button class="tab" data-filter="challenge">挑戰</button>
+      <button class="tab" data-filter="wrong">再練</button>
+    </div>
+    <div class="actions">
+      <button class="primary" id="checkAll">✓ 批改</button>
+      <button id="reportBtn">回報</button>
+      <button id="resetAll">↺ 重來</button>
+      <button id="printPage">⎙ 列印</button>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section class="unit-strip" aria-label="單元聚焦">
+      <button class="unit-tab active" data-unit="all">全部單元</button>
+      <button class="unit-tab" data-unit="5-1 和差問題">5-1 和差</button>
+      <button class="unit-tab" data-unit="5-2 年齡問題">5-2 年齡</button>
+      <button class="unit-tab" data-unit="5-3 雞兔問題">5-3 雞兔</button>
+      <button class="unit-tab" data-unit="5-4 組合問題">5-4 組合</button>
+      <button class="unit-tab" data-unit="6-1 圓形百分圖">6-1 百分圖</button>
+      <button class="unit-tab" data-unit="6-2 圓形圖">6-2 圓形圖</button>
+      <button class="unit-tab" data-unit="6-3 圓形百分圖和圓形圖的應用">6-3 應用</button>
+      <button class="unit-tab" data-unit="6-4 認識可能性">6-4 可能性</button>
+    </section>
+
+    <section class="stats" aria-label="作答狀態">
+      <div class="stat"><b id="doneCount">0</b><span>已作答</span></div>
+      <div class="stat"><b id="correctCount">0</b><span>答對</span></div>
+      <div class="stat"><b id="wrongCount">0</b><span>再練</span></div>
+      <div class="stat"><b>24</b><span>總題數</span></div>
+    </section>
+
+    <section class="progress-line" aria-label="進度">
+      <div id="progressText">完成 0 / 24 題</div>
+      <div class="bar"><span id="progressBar"></span></div>
+    </section>
+
+    <section class="grid" id="questionGrid"></section>
+
+    <pre class="report" id="reportBox"></pre>
+
+    <p class="source-note">
+      題型依據：使用者提供之康軒六下第五、六單元範圍、113-02 掃描試卷 OCR 題型、109/110 康軒第二次評量題型，以及 tCool 公開題庫分類作補充參考。所有題目為新編變化題。
+    </p>
+  </main>
+
+  <script>
+    const questions = [
+      {id:"b01",level:"basic",unit:"5-1 和差問題",prompt:"六年甲班共有 54 人，女生比男生多 6 人。女生有幾人？",answer:["30"],solution:"女生=(54+6)÷2=30。",trap:"不要把 54÷2 後再只加 6，差量要先加進總量再除以 2。"},
+      {id:"b02",level:"basic",unit:"5-1 和差問題",prompt:"圖書館六年級借書共 86 本，六甲比六乙多借 8 本。六甲借了幾本？",answer:["47"],solution:"六甲=(86+8)÷2=47。",trap:"多的那一邊是 (和+差)÷2。"},
+      {id:"b03",level:"basic",unit:"5-2 年齡問題",prompt:"媽媽今年 42 歲，小安今年 10 歲。幾年後，媽媽的年齡會是小安的 3 倍？",answer:["6"],solution:"42+x=3(10+x)，42+x=30+3x，12=2x，所以 x=6。",trap:"媽媽和小安都要同時加上 x 年。"},
+      {id:"b04",level:"basic",unit:"5-2 年齡問題",prompt:"哥哥和妹妹相差 12 歲，今年哥哥的年齡是妹妹的 5 倍。哥哥今年幾歲？",answer:["15"],solution:"哥哥比妹妹多 4 份，4 份=12，1 份=3，哥哥=5×3=15。",trap:"年齡差是 5 份和 1 份的差，也就是 4 份。"},
+      {id:"b05",level:"basic",unit:"5-3 雞兔問題",prompt:"農場裡雞和兔共有 14 隻，共有 44 隻腳。兔有幾隻？",answer:["8"],solution:"假設全是雞有 14×2=28 隻腳，少 44-28=16 隻腳；每換 1 隻兔多 2 隻腳，所以兔=16÷2=8。",trap:"求出兔後，雞是 14-8=6；題目問兔，不要填雞。"},
+      {id:"b06",level:"basic",unit:"5-3 雞兔問題",prompt:"珍珠奶茶一杯 50 元，布丁奶茶一杯 60 元。小名共買 8 杯，一共 430 元。布丁奶茶買了幾杯？",answer:["3"],solution:"假設全買 50 元飲料，8 杯是 400 元，差 30 元；每杯布丁奶茶多 10 元，所以 30÷10=3 杯。",trap:"430-400 是多出來的金額，不是珍珠奶茶的杯數。"},
+      {id:"b07",level:"basic",unit:"5-4 組合問題",prompt:"一份套餐可選 4 種主餐、3 種點心，再從 5 種飲料或湯品中選 1 種。共有幾種不同套餐？",answer:["60"],solution:"4×3×5=60。",trap:"每個階段都要選，所以用乘法。"},
+      {id:"b08",level:"basic",unit:"5-4 組合問題",prompt:"用 4、6、7、8、9 排二位數，數字可以重複使用。可以排出幾個偶數？",answer:["15"],solution:"十位有 5 種選擇，個位要偶數有 4、6、8 共 3 種，5×3=15。",trap:"題目說可以重複，所以十位和個位可用同一個數字。"},
+      {id:"b09",level:"basic",unit:"6-1 圓形百分圖",prompt:"果園共有 200 平方公尺，其中芒果占 60 平方公尺。芒果占全部的百分之幾？",answer:["30","30%"],solution:"60÷200=0.3=30%。",trap:"分母是全部 200，不是 100。"},
+      {id:"b10",level:"basic",unit:"6-1 圓形百分圖",prompt:"六年級共有 400 人，喜歡籃球的有 128 人。喜歡籃球的人占全部的百分之幾？",answer:["32","32%"],solution:"128÷400=0.32=32%。",trap:"百分率可先想 400 的 1% 是 4 人，128÷4=32%。"},
+      {id:"b11",level:"basic",unit:"6-2 圓形圖",prompt:"六年級共有 540 人，喜歡英語的有 144 人。畫成圓形圖時，英語的扇形圓心角是幾度？",answer:["96"],solution:"144÷540×360=96 度。",trap:"圓形圖全部是 360 度，不是 100 度。"},
+      {id:"b12",level:"basic",unit:"6-4 認識可能性",prompt:"A 疊有 15 張數字牌和 5 張顏色牌，B 疊有 14 張數字牌和 6 張顏色牌，C 疊有 4 張數字牌和 16 張顏色牌。抽中數字牌的可能性最大是哪一疊？請填 A、B 或 C。",answer:["A","a"],solution:"A 是 15/20，B 是 14/20，C 是 4/20，所以 A 最大。",trap:"三疊總張數一樣，直接比較數字牌張數即可。"},
+      {id:"c01",level:"challenge",unit:"5-1 和差問題",prompt:"小光和小花共有 98 顆糖。小光給小花 11 顆後，兩人一樣多。小光原本有幾顆？",answer:["60"],solution:"給 11 顆後一樣多，表示原本小光比小花多 22 顆。小光=(98+22)÷2=60。",trap:"差量不是 11，而是 11×2=22。"},
+      {id:"c02",level:"challenge",unit:"5-1 和差問題",prompt:"豪哥有 60 台玩具車，他給小鵬 12 台後，兩人的車數一樣多。小鵬原本有幾台玩具車？",answer:["36"],solution:"豪哥給出後剩 60-12=48 台，小鵬收到後也是 48 台，所以小鵬原本是 48-12=36 台。",trap:"小鵬也會增加 12 台，不能只算豪哥剩多少。"},
+      {id:"c03",level:"challenge",unit:"5-2 年齡問題",prompt:"哥哥 1 歲時爸爸 35 歲。今年哥哥和爸爸的年齡合起來是 66 歲。爸爸今年幾歲？",answer:["50"],solution:"爸爸和哥哥相差 34 歲。爸爸=(66+34)÷2=50。",trap:"「哥哥 1 歲時爸爸 35 歲」表示年齡差固定是 34 歲。"},
+      {id:"c04",level:"challenge",unit:"5-2 年齡問題",prompt:"大壯今年 40 歲，小美今年 4 歲。幾年後，大壯的年齡會是小美的 4 倍？",answer:["8"],solution:"40+x=4(4+x)，40+x=16+4x，24=3x，所以 x=8。",trap:"不是 40÷4=10，因為小美也會長大。"},
+      {id:"c05",level:"challenge",unit:"5-3 雞兔問題",prompt:"農場裡鴨和牛共有 20 隻，共有 68 隻腳。數量多的動物比數量少的動物多幾隻？",answer:["8"],solution:"假設全是鴨有 20×2=40 隻腳，差 28 隻腳；每換成 1 頭牛多 2 隻腳，所以牛=14，鴨=6，多 14-6=8 隻。",trap:"題目最後問多幾隻，不是問牛有幾隻。"},
+      {id:"c06",level:"challenge",unit:"5-3 雞兔問題",prompt:"蘋果一顆 22 元，橘子一顆 29 元。小華買蘋果和橘子共 10 顆，一共 262 元。若把所有蘋果換成同樣數量、每顆 98 元的西瓜，還要多付幾元？",answer:["304"],solution:"假設全買蘋果是 220 元，差 42 元；每顆橘子多 7 元，所以橘子 6 顆、蘋果 4 顆。蘋果換西瓜每顆多 98-22=76 元，4×76=304。",trap:"先求蘋果顆數，再算替換差價。"},
+      {id:"c07",level:"challenge",unit:"5-4 組合問題",prompt:"學校有大門、側門、後門共 3 個出入口。上學進一個門，放學出一個門，可以同一個門。共有幾種進出方式？",answer:["9"],solution:"上學有 3 種，放學有 3 種，3×3=9。",trap:"題目說可以同一個門，所以不是 3×2。"},
+      {id:"c08",level:"challenge",unit:"5-4 組合問題",prompt:"飲料店有 4 種甜度和 3 種冰塊選擇。阿同買 1 杯冬瓜青茶，甜度和冰塊共有幾種搭配？",answer:["12"],solution:"4×3=12。",trap:"甜度和冰塊都要選，是乘法搭配。"},
+      {id:"c09",level:"challenge",unit:"6-2 圓形圖",prompt:"圓形圖中，某項目占 25%。它的扇形圓心角是幾度？",answer:["90"],solution:"360×25%=90 度。",trap:"25% 是四分之一圓，所以是 90 度。"},
+      {id:"c10",level:"challenge",unit:"6-3 圓形百分圖和圓形圖的應用",prompt:"寶可夢屬性統計：超能 36 隻、火 27 隻、雷 30 隻、水 15 隻、草 12 隻。雷屬性在圓形圖中的圓心角是幾度？",answer:["90"],solution:"總數=36+27+30+15+12=120。雷屬性圓心角=30÷120×360=90 度。",trap:"要先算總數，再用部分量÷總量×360。"},
+      {id:"c11",level:"challenge",unit:"6-3 圓形百分圖和圓形圖的應用",prompt:"六年級共有 400 人。喜歡跑步 80 人、籃球 128 人、游泳 64 人，其餘喜歡足球。喜歡足球的人占全部的百分之幾？",answer:["32","32%"],solution:"足球人數=400-80-128-64=128，128÷400=32%。",trap:"先找剩下的人數，再轉成百分率。"},
+      {id:"c12",level:"challenge",unit:"6-4 認識可能性",prompt:"A 箱有黑球 2 顆、白球 3 顆；B 箱有黑球 4 顆、白球 6 顆。抽中黑球的可能性哪一箱比較大？請填 A、B 或 一樣大。",answer:["一樣大","一樣","同樣大"],solution:"A 抽中黑球是 2/5，B 抽中黑球是 4/10=2/5，所以一樣大。",trap:"不能只看 B 箱黑球比較多，還要看總球數。"}
+    ];
+
+    const STORAGE_KEY = "bobo_math_graduation_task_20260528_v2";
+    const grid = document.querySelector("#questionGrid");
+    const reportBox = document.querySelector("#reportBox");
+    const state = loadState();
+    let filter = "all";
+    let unitFilter = "all";
+
+    const unitHints = {
+      "5-1 和差問題": "先找和與差。轉移後相等時，原本差量是轉移量的 2 倍。",
+      "5-2 年齡問題": "年齡差不會變。幾年後或幾年前，兩個人都要一起加或一起減。",
+      "5-3 雞兔問題": "先全部假設成低腳數或低單價，再用總差量除以每一份的差。",
+      "5-4 組合問題": "每一階段都要選一個時用乘法；如果不分先後，要小心重複算。",
+      "6-1 圓形百分圖": "全部是 100%。百分率=部分量÷總量，100 格圖中百分率就是格數。",
+      "6-2 圓形圖": "一整個圓是 360 度。圓心角=部分量÷總量×360。",
+      "6-3 圓形百分圖和圓形圖的應用": "先把表格補完整，再在數量、百分率、圓心角之間轉換。",
+      "6-4 認識可能性": "比較可能性要看比例，不只看目標數量。"
+    };
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        return new Map(Object.entries(saved));
+      } catch {
+        return new Map();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Object.fromEntries(state)));
+    }
+
+    function normalize(value) {
+      return String(value).trim().replace(/\s+/g, "").replace("％", "%").toUpperCase();
+    }
+
+    function isCorrect(question, value) {
+      const got = normalize(value);
+      return question.answer.some(item => normalize(item) === got);
+    }
+
+    function label(level) {
+      return level === "basic" ? "基礎" : "挑戰";
+    }
+
+    function render() {
+      grid.innerHTML = "";
+      const visible = questions.filter(q => {
+        const item = state.get(q.id) || {};
+        const needsReview = item.checked && (!item.correct || item.hinted || item.shown);
+        const levelMatch = filter === "all" || q.level === filter;
+        const unitMatch = unitFilter === "all" || q.unit === unitFilter;
+        if (filter === "wrong") return needsReview && unitMatch;
+        return levelMatch && unitMatch;
+      });
+
+      visible.forEach((q, index) => {
+        const article = document.createElement("article");
+        article.className = "q";
+        article.dataset.id = q.id;
+        article.dataset.level = q.level;
+        article.innerHTML = `
+          <div class="q-head">
+            <span class="badge ${q.level}">${label(q.level)}</span>
+            <span class="q-number">${index + 1}</span>
+          </div>
+          <div class="q-body">
+            <p class="unit">${q.unit}</p>
+            <p class="prompt">${q.prompt}</p>
+            <input inputmode="text" autocomplete="off" aria-label="答案" value="${state.get(q.id)?.value || ""}">
+          </div>
+          <div class="q-actions">
+            <button data-action="check">✓ 檢查</button>
+            <button data-action="hint">提示</button>
+            <button data-action="show">看答案</button>
+            <span class="result"></span>
+          </div>
+          <details>
+            <summary>詳解</summary>
+            <div class="hint">提示：${unitHints[q.unit] || "先把題目問的量圈起來，再找對應模型。"}</div>
+            <div>${q.solution}</div>
+            <div class="trap">${q.trap}</div>
+          </details>
+        `;
+        const input = article.querySelector("input");
+        const details = article.querySelector("details");
+        const result = article.querySelector(".result");
+        const item = state.get(q.id);
+        if (item?.checked) markResult(q, article, item.correct, item);
+        input.addEventListener("input", () => {
+          const next = state.get(q.id) || {};
+          next.value = input.value;
+          next.checked = false;
+          next.correct = false;
+          next.shown = false;
+          state.set(q.id, next);
+          saveState();
+          result.textContent = "";
+          result.className = "result";
+          updateStats();
+        });
+        article.querySelector('[data-action="check"]').addEventListener("click", () => checkOne(q, article));
+        article.querySelector('[data-action="hint"]').addEventListener("click", () => {
+          const next = state.get(q.id) || {};
+          next.value = input.value;
+          next.hinted = true;
+          state.set(q.id, next);
+          saveState();
+          details.open = true;
+          result.textContent = "看過提示，這題答對後仍會留在再練。";
+          result.className = "result no";
+          updateStats();
+        });
+        article.querySelector('[data-action="show"]').addEventListener("click", () => {
+          input.value = q.answer[0];
+          state.set(q.id, { value: q.answer[0], checked: true, correct: false, shown: true, hinted: true });
+          saveState();
+          details.open = true;
+          markResult(q, article, false, { shown: true });
+          updateStats();
+        });
+        grid.appendChild(article);
+      });
+
+      if (!visible.length) {
+        grid.innerHTML = '<div class="q"><div class="q-body"><p class="prompt">目前沒有再練題。</p></div></div>';
+      }
+      updateStats();
+    }
+
+    function markResult(question, article, correct, item = {}) {
+      const result = article.querySelector(".result");
+      if (item.shown) {
+        result.textContent = `看過答案，放進再練：${question.answer[0]}`;
+        result.className = "result no";
+        return;
+      }
+      if (correct && item.hinted) {
+        result.textContent = "答對，但看過提示，放進再練。";
+        result.className = "result no";
+        return;
+      }
+      result.textContent = correct ? "答對" : `再想想，答案可填：${question.answer[0]}`;
+      result.className = `result ${correct ? "ok" : "no"}`;
+    }
+
+    function checkOne(question, article) {
+      const input = article.querySelector("input");
+      const correct = isCorrect(question, input.value);
+      const previous = state.get(question.id) || {};
+      const next = { ...previous, value: input.value, checked: true, correct, shown: false };
+      state.set(question.id, next);
+      saveState();
+      markResult(question, article, correct, next);
+      updateStats();
+    }
+
+    function updateStats() {
+      let done = 0;
+      let correct = 0;
+      let wrong = 0;
+      questions.forEach(q => {
+        const item = state.get(q.id);
+        if (item?.value?.trim()) done += 1;
+        if (item?.checked && item.correct && !item.hinted && !item.shown) correct += 1;
+        if (item?.checked && (!item.correct || item.hinted || item.shown)) wrong += 1;
+      });
+      document.querySelector("#doneCount").textContent = done;
+      document.querySelector("#correctCount").textContent = correct;
+      document.querySelector("#wrongCount").textContent = wrong;
+      document.querySelector("#progressText").textContent = `完成 ${correct} / ${questions.length} 題，不熟再練 ${wrong} 題`;
+      document.querySelector("#progressBar").style.width = `${Math.round(correct / questions.length * 100)}%`;
+    }
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        filter = tab.dataset.filter;
+        document.querySelectorAll(".tab").forEach(item => item.classList.toggle("active", item === tab));
+        reportBox.classList.remove("show");
+        render();
+      });
+    });
+
+    document.querySelectorAll(".unit-tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        unitFilter = tab.dataset.unit;
+        document.querySelectorAll(".unit-tab").forEach(item => item.classList.toggle("active", item === tab));
+        reportBox.classList.remove("show");
+        render();
+      });
+    });
+
+    document.querySelector("#checkAll").addEventListener("click", () => {
+      document.querySelectorAll(".q[data-id]").forEach(article => {
+        const q = questions.find(item => item.id === article.dataset.id);
+        checkOne(q, article);
+      });
+    });
+
+    document.querySelector("#resetAll").addEventListener("click", () => {
+      if (!confirm("確定清除這份練習在本機的作答紀錄嗎？")) return;
+      state.clear();
+      saveState();
+      reportBox.classList.remove("show");
+      render();
+    });
+
+    document.querySelector("#reportBtn").addEventListener("click", () => {
+      reportBox.textContent = buildReport();
+      reportBox.classList.add("show");
+      reportBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    document.querySelector("#printPage").addEventListener("click", () => window.print());
+
+    function buildReport() {
+      const now = new Date();
+      const unitNames = [...new Set(questions.map(q => q.unit))];
+      const lines = [
+        "Bobo 數學畢業考練習回報",
+        `時間：${now.toLocaleString("zh-TW")}`,
+        "範圍：康軒六下第五、六單元",
+        ""
+      ];
+
+      unitNames.forEach(unit => {
+        const unitQuestions = questions.filter(q => q.unit === unit);
+        const mastered = unitQuestions.filter(q => {
+          const item = state.get(q.id);
+          return item?.checked && item.correct && !item.hinted && !item.shown;
+        }).length;
+        const review = unitQuestions.filter(q => {
+          const item = state.get(q.id);
+          return item?.checked && (!item.correct || item.hinted || item.shown);
+        }).length;
+        lines.push(`${unit}：精熟 ${mastered}/${unitQuestions.length}，再練 ${review}`);
+      });
+
+      const reviewItems = questions
+        .filter(q => {
+          const item = state.get(q.id);
+          return item?.checked && (!item.correct || item.hinted || item.shown);
+        })
+        .map(q => {
+          const item = state.get(q.id);
+          const reason = item.shown ? "看過答案" : (item.hinted ? "看過提示" : "答錯");
+          return `- ${q.unit}｜${reason}｜${q.prompt}`;
+        });
+
+      lines.push("", "待加強題目：", reviewItems.join("\n") || "目前沒有待加強題目。");
+      return lines.join("\n");
+    }
+
+    render();
+  </script>
+</body>
+</html>
