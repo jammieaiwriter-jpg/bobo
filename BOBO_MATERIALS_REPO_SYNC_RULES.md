@@ -7,7 +7,7 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 ## 固定同步 Repo
 
 - 本地 repo 資料夾：
-  `/Users/emma/Desktop/bobo刷任務/repos/bobo`
+  `/Users/emma/bobo-automation/repos/bobo`
 - 目標 GitHub repo：
   `jammieaiwriter-jpg/bobo`
 - GitHub Pages 入口：
@@ -28,7 +28,7 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 1. 在工作資料夾完成教材 HTML。
 2. 用 Playwright 或瀏覽器驗證作答、批改、再練、版面與手機尺寸。
-3. 複製到 `/Users/emma/Desktop/bobo刷任務/repos/bobo/source_materials/desktop-bobo/`。
+3. 複製到 `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/`。
 4. 在 repo 內執行：
 
 ```bash
@@ -42,7 +42,7 @@ git push origin main
 
 ## 目前狀態
 
-- 固定 repo 已建立於 `/Users/emma/Desktop/bobo刷任務/repos/bobo`。
+- 固定 repo 已建立於 `/Users/emma/bobo-automation/repos/bobo`。
 - 自然科選擇題版已 commit 在本地 repo：
   `e5bae71 Publish science graduation choice practice`
 - 目前尚未 push 成功，原因是 GitHub 認證 token 失效；重新登入 GitHub 後即可 push。
