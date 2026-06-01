@@ -34,8 +34,9 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 - 穩定入口直接維護在 repo：
   - 自然：`/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/index_science.html`
   - 數學：`/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/index_math_graduation.html`
-- `/Users/emma/Documents/Codex` 內的 `latest.html` 和 `05_html_tasks/*.html` 只作為補收新成品來源。
-- 若 Documents/Codex 與 repo 有同名檔，repo 版本優先；自動流程不覆蓋 repo 版。
+- `/Users/emma/Documents/Codex` 內的 `latest.html` 和 `05_html_tasks/*.html` 可作為產生區輸出。
+- 若 Documents/Codex 產生 repo 尚未有的新檔，腳本會補收到 repo。
+- 若 Documents/Codex 更新同名 HTML，腳本會在偵測到該來源內容變更後覆蓋 repo 版並推送；既有歷史差異會先記錄為 baseline，不會突然覆蓋線上頁。
 - 推送前腳本會檢查公開檔案不含 GitHub token、OpenAI key、Telegram token 或其他 secret-like 字串。
 - 腳本預設會 commit 並 push 到 `origin/main`；git 子程序會移除壞掉的 `GITHUB_TOKEN` 環境變數，改用 `gh auth login` 的有效憑證。
 
@@ -43,7 +44,7 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 1. 完成數學、自然、社會 HTML 並用瀏覽器或 Playwright 驗證。
 2. 把正式 HTML 直接放到 `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/`。
-3. LaunchAgent 會自動 commit、push 到 GitHub；也會從 Documents/Codex 補收 repo 尚未有的新成品。
+3. LaunchAgent 會自動 commit、push 到 GitHub；也會從 Documents/Codex 補收新成品或同名更新。
 4. 若需要手動補跑：
 
 ```bash
