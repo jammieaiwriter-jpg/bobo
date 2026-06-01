@@ -54,5 +54,5 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 - 固定 repo 已建立並同步：`/Users/emma/bobo-automation/repos/bobo`。
 - 唯一 HTML 發布來源已收斂到 repo 版 `source_materials/desktop-bobo/`。
-- workspace 舊版 `/Users/emma/bobo-automation/source_materials/desktop-bobo` 不再作為來源。
+- workspace 舊版 desktop-bobo copy 已移除，不再作為來源。
 - 自動同步 LaunchAgent 已安裝且可成功執行：`com.bobo.repo-sync`。
