@@ -13,36 +13,44 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 - GitHub Pages 入口：
   `https://jammieaiwriter-jpg.github.io/bobo/source_materials/desktop-bobo/`
 
+## 自動同步流程
+
+- 自動同步腳本：
+  `/Users/emma/bobo-automation/scripts/sync_bobo_repo.py`
+- 手動補跑腳本：
+  `/Users/emma/bobo-automation/scripts/run_bobo_sync.sh`
+- LaunchAgent：
+  `/Users/emma/Library/LaunchAgents/com.bobo.repo-sync.plist`
+- WatchPaths：
+  `/Users/emma/bobo-automation/source_materials/desktop-bobo`
+  `/Users/emma/Documents/Codex/2026-05-23/ai-loading`
+  `/Users/emma/Documents/Codex/考前任務包系統`
+
 ## 教材發布規則
 
-- 所有給 Bobo 打開的正式 HTML 都放到 repo 的 `source_materials/desktop-bobo/`。
-- 每個科目保留穩定入口，例如：
+- 所有給 Bobo 打開的正式 HTML 都發布到 repo 的 `source_materials/desktop-bobo/`。
+- 穩定入口以 `/Users/emma/bobo-automation/source_materials/desktop-bobo/` 為 canonical source，例如：
   - 自然：`source_materials/desktop-bobo/index_science.html`
   - 數學：`source_materials/desktop-bobo/index_math_graduation.html`
-  - 具日期版本：`source_materials/desktop-bobo/bobo-*-YYYYMMDD.html`
-- `latest.html` 或各科 `05_html_tasks/` 內完成驗證的 HTML，發布時要同步進這個 repo。
-- 推送前先檢查公開 HTML 不含 Telegram token、OpenAI key、GitHub token 或其他私密設定。
-- 推送後把 GitHub Pages URL 給 Emma，Emma 再傳給 Bobo。
+- `/Users/emma/Documents/Codex` 內的 `latest.html` 和 `05_html_tasks/*.html` 會作為成品來源補進 repo。
+- 若同一個目標檔在 workspace 和 Documents/Codex 同時存在，workspace 版本優先，避免自動流程來回覆蓋。
+- 推送前腳本會檢查公開檔案不含 GitHub token、OpenAI key、Telegram token 或其他 secret-like 字串。
+- 腳本預設會 commit 並 push 到 `origin/main`；git 子程序會移除壞掉的 `GITHUB_TOKEN` 環境變數，改用 `gh auth login` 的有效憑證。
 
 ## 日常發布流程
 
-1. 在工作資料夾完成教材 HTML。
-2. 用 Playwright 或瀏覽器驗證作答、批改、再練、版面與手機尺寸。
-3. 複製到 `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/`。
-4. 在 repo 內執行：
+1. 完成數學、自然、社會 HTML 並用瀏覽器或 Playwright 驗證。
+2. 把正式入口頁放到 `/Users/emma/bobo-automation/source_materials/desktop-bobo/`，或把任務包成品放在 `/Users/emma/Documents/Codex` 既有任務包位置。
+3. LaunchAgent 會自動同步到 `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/`、commit、push。
+4. 若需要手動補跑：
 
 ```bash
-git status -sb
-git diff --stat
-rg -n "TG_BOT_TOKEN|OpenAI|GITHUB_TOKEN|ghp_|bot token" source_materials/desktop-bobo
-git add source_materials/desktop-bobo/<changed-files>
-git commit -m "Publish <subject> practice"
-git push origin main
+/Users/emma/bobo-automation/scripts/run_bobo_sync.sh
 ```
 
 ## 目前狀態
 
-- 固定 repo 已建立於 `/Users/emma/bobo-automation/repos/bobo`。
-- 自然科選擇題版已 commit 在本地 repo：
-  `e5bae71 Publish science graduation choice practice`
-- 目前尚未 push 成功，原因是 GitHub 認證 token 失效；重新登入 GitHub 後即可 push。
+- 固定 repo 已建立並同步：`/Users/emma/bobo-automation/repos/bobo`。
+- 自動同步 LaunchAgent 已安裝且可成功執行：`com.bobo.repo-sync`。
+- 最新成功推送 commit：`3ce03ad Sync Bobo practice HTML pages`。
+- 注意：背景 LaunchAgent 讀取 `/Users/emma/Documents/Codex` 可能受 macOS Documents 隱私權限制；若 future Documents/Codex 成品沒有自動同步，需讓執行背景腳本的 Python/launchd 取得 Full Disk Access，或改由 Codex 產生時同步一份到 `/Users/emma/bobo-automation/source_materials/desktop-bobo/`。
