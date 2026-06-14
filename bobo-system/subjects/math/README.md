@@ -9,6 +9,11 @@
 - `prototypes/index_math_graduation.html`：Bobo 康軒六下畢業考練習，範圍為第 5 單元「怎樣解題」與第 6 單元「圓形圖」。
 - `ai-grader-worker.js`：AI 照片批改後端範本。部署到 Cloudflare Worker 後，把 `GEMINI_API_KEY` 設成 secret，或改用 `OPENAI_API_KEY`，再把 Worker URL 填到網頁的「AI 批改網址」。API key 不可放在 GitHub Pages 前端。
 
+Worker 預設只接受 `https://jammieaiwriter-jpg.github.io` 與
+`http://localhost:8787` 的網頁請求；若部署或本機開發來源不同，請同步更新
+`ALLOWED_ORIGINS`。來源限制只能降低一般濫用，正式公開部署仍建議在 Cloudflare
+加上 rate limiting。
+
 數學科建議題型：
 
 - 基礎計算

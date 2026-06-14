@@ -7,9 +7,9 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 ## 固定同步 Repo
 
 - 本地 repo 資料夾：
-  `/Users/emma/bobo-automation/repos/bobo`
+  `/Users/emma/automation/repos/bobo`
 - 唯一 HTML 發布來源：
-  `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo`
+  `/Users/emma/automation/repos/bobo/source_materials/desktop-bobo`
 - 目標 GitHub repo：
   `jammieaiwriter-jpg/bobo`
 - GitHub Pages 入口：
@@ -17,14 +17,14 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 ## 自動同步流程
 
-- 自動同步腳本：
+- 自動同步腳本（位置未隨 repo 搬移，仍在舊路徑）：
   `/Users/emma/bobo-automation/scripts/sync_bobo_repo.py`
-- 手動補跑腳本：
+- 手動補跑腳本（同上）：
   `/Users/emma/bobo-automation/scripts/run_bobo_sync.sh`
 - LaunchAgent：
   `/Users/emma/Library/LaunchAgents/com.bobo.repo-sync.plist`
 - WatchPaths：
-  `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo`
+  `/Users/emma/automation/repos/bobo/source_materials/desktop-bobo`
   `/Users/emma/Documents/Codex/2026-05-23/ai-loading`
   `/Users/emma/Documents/Codex/考前任務包系統`
 
@@ -32,8 +32,8 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 - 所有給 Bobo 打開的正式 HTML 都以 repo 內的 `source_materials/desktop-bobo/` 為準。
 - 穩定入口直接維護在 repo：
-  - 自然：`/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/index_science.html`
-  - 數學：`/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/index_math_graduation.html`
+  - 自然：`/Users/emma/automation/repos/bobo/source_materials/desktop-bobo/index_science.html`
+  - 數學：`/Users/emma/automation/repos/bobo/source_materials/desktop-bobo/index_math_graduation.html`
 - `/Users/emma/Documents/Codex` 內的 `latest.html` 和 `05_html_tasks/*.html` 可作為產生區輸出。
 - 若 Documents/Codex 產生 repo 尚未有的新檔，腳本會補收到 repo。
 - 若 Documents/Codex 更新同名 HTML，腳本會在偵測到該來源內容變更後覆蓋 repo 版並推送；既有歷史差異會先記錄為 baseline，不會突然覆蓋線上頁。
@@ -43,7 +43,7 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 ## 日常發布流程
 
 1. 完成數學、自然、社會 HTML 並用瀏覽器或 Playwright 驗證。
-2. 把正式 HTML 直接放到 `/Users/emma/bobo-automation/repos/bobo/source_materials/desktop-bobo/`。
+2. 把正式 HTML 直接放到 `/Users/emma/automation/repos/bobo/source_materials/desktop-bobo/`。
 3. LaunchAgent 會自動 commit、push 到 GitHub；也會從 Documents/Codex 補收新成品或同名更新。
 4. 若需要手動補跑：
 
@@ -53,7 +53,8 @@ Emma 和 Bobo 異地使用，所有正式教材類 HTML 都要推到 GitHub，�
 
 ## 目前狀態
 
-- 固定 repo 已建立並同步：`/Users/emma/bobo-automation/repos/bobo`。
+- 固定 repo 已建立並同步：`/Users/emma/automation/repos/bobo`。
+- repo 已移至上述位置，但自動同步腳本仍保留在 `/Users/emma/bobo-automation/scripts/`，兩者位置不同。
 - 唯一 HTML 發布來源已收斂到 repo 版 `source_materials/desktop-bobo/`。
 - workspace 舊版 desktop-bobo copy 已移除，不再作為來源。
 - 自動同步 LaunchAgent 已安裝且可成功執行：`com.bobo.repo-sync`。
