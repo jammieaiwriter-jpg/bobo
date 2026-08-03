@@ -1,0 +1,65 @@
+{
+  "formatVersion": "math-html-build-manifest-v1",
+  "generatedAt": "2026-08-03T09:37:24.147016+00:00",
+  "builder": "考前任務包系統/國中_Bobo/tools/math_html_app/build.py",
+  "sources": {
+    "capItems": {
+      "path": "考前任務包系統/國中_Bobo/03_question_items/cap_105-115_question_items.json",
+      "sha256": "c5b995df9edad1e34b6614c2718f9fa4f570e9f94c403d6e295f85deb1091198",
+      "records": 2472
+    },
+    "generatedItems": {
+      "path": "考前任務包系統/國中_Bobo/tools/matrix_gen/output/generated_items.json",
+      "sha256": "995f3cd31b28598b0df40bdd35eb9c4bc83ac2ac8188bd2a3ed4b4b5c321eec3",
+      "records": 301
+    },
+    "publisherUnits": {
+      "path": "考前任務包系統/國中_Bobo/01_sources/curriculum_scope/curriculum_scope_數學_康軒_七上-九下_publisher.json",
+      "sha256": "318d74e8db57d6348909fc6df2c655f760793d59a68094c78f25fbe42ab04247",
+      "records": 72,
+      "normalizedUnitCount": 62
+    },
+    "officialMathCodes": {
+      "path": "考前任務包系統/國中_Bobo/01_sources/curriculum_scope/official_content_codes_math.json",
+      "sha256": "fdae79d18160c7177f65adf2c2b6b7041d2d2a3ac0da3b9e567856495dd25ce0",
+      "records": 73
+    },
+    "figureMap": {
+      "path": "考前任務包系統/國中_Bobo/tools/fig_crop/output/bot_figure_map.json",
+      "sha256": "af4fed7a9a46fbb2f61f80759c7986ef169147561328d3c1753f6d4ea71824be",
+      "records": 185
+    }
+  },
+  "output": {
+    "generatedEligible": 153,
+    "generatedExcluded": 148,
+    "capEligible": 258,
+    "capExcluded": 39,
+    "publisherUnitCount": 62,
+    "publisherUnitSourceRows": 72,
+    "contentSupportMatrixCount": 27,
+    "contentSupportReviewedCount": 27,
+    "capPrivateUseArea": {
+      "candidateRows": 280,
+      "solutionRows": 97,
+      "solutionOccurrences": 1168,
+      "solutionRowsWithFigure": 75,
+      "solutionRowsWithoutFigure": 22,
+      "textOrOptionsRows": 3,
+      "textOrOptionsRowsWithFigure": 3,
+      "crossQuestionHeaderRows": 1,
+      "crossQuestionHeaderQids": [
+        "CAP-115-數學-19"
+      ],
+      "emptySolutionRows": 78
+    },
+    "capCrossQuestionPollution": 1,
+    "capEmptySolutionRows": 78,
+    "copiedGeneratedImages": 111,
+    "copiedCapImages": 185
+  },
+  "additionalFiles": {
+    "templates": "tools/math_html_app/templates/*.html, app.css, app.js",
+    "generatedData": "data/*.js classic scripts for file:// compatibility"
+  }
+}

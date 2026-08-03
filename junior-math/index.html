@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Bobo 數學練習入口</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body data-page="builder">
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">BOBO MATH · LOCAL DELIVERY</p>
+      <h1>今天要練哪一種？</h1>
+      <p class="hero-copy">選好範圍後建立一份任務，Bobo 開啟連結就能開始。</p>
+    </header>
+    <section class="mode-grid" aria-label="數學練習模式">
+      <button class="mode-card is-selected" data-mode="daily"><span class="mode-icon">⚡</span><strong>隨堂測驗</strong><small>每題立即確認，錯後接變式修補。</small></button>
+      <button class="mode-card" data-mode="exam"><span class="mode-icon">✦</span><strong>考卷測試</strong><small>整份交卷後才看成績與詳解。</small></button>
+      <button class="mode-card" data-mode="past_exam"><span class="mode-icon">◈</span><strong>歷屆會考</strong><small>用原題校準單元弱點，不混入生成題。</small></button>
+    </section>
+    <section class="builder-panel" aria-live="polite">
+      <div class="panel-heading"><div><p class="eyebrow">任務設定</p><h2 id="builder-title">隨堂測驗</h2></div><span id="capacity-note" class="status-pill"></span></div>
+      <div class="form-grid">
+        <label>年級／學期<select id="term-select"></select></label>
+        <label id="unit-field">康軒單元<select id="unit-select"></select></label>
+        <label id="count-field">題數<select id="count-select"></select></label>
+        <label id="difficulty-field">難度<select id="difficulty-select"><option value="mixed">混合難度</option><option value="easy">易</option><option value="medium">中</option><option value="hard">難</option></select></label>
+        <label id="year-field" class="is-hidden">年份<select id="year-select"><option value="mixed">混合歷屆</option></select></label>
+      </div>
+      <label id="multi-unit-field" class="is-hidden">考卷／歷屆範圍<select id="multi-unit-select" multiple size="6"></select><small class="field-help">考卷選 2–3 個單元；歷屆可選一個或多個單元。</small></label>
+      <button id="create-assignment" class="primary-button">建立任務連結</button>
+      <div id="assignment-result" class="assignment-result is-hidden"></div>
+    </section>
+    <p class="offline-note">本機離線頁：題目已預先封裝，不會在作答時連線或呼叫 AI。</p>
+  </main>
+  <script src="qdata/unit_catalog.js"></script>
+  <script src="qdata/generated_items.js"></script>
+  <script src="qdata/cap_items.js"></script>
+  <script src="qdata/content_support.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
