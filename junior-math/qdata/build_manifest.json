@@ -1,6 +1,6 @@
 {
   "formatVersion": "math-html-build-manifest-v1",
-  "generatedAt": "2026-08-03T09:37:24.147016+00:00",
+  "generatedAt": "2026-08-04T06:19:40.836405+00:00",
   "builder": "考前任務包系統/國中_Bobo/tools/math_html_app/build.py",
   "sources": {
     "capItems": {
@@ -10,8 +10,8 @@
     },
     "generatedItems": {
       "path": "考前任務包系統/國中_Bobo/tools/matrix_gen/output/generated_items.json",
-      "sha256": "995f3cd31b28598b0df40bdd35eb9c4bc83ac2ac8188bd2a3ed4b4b5c321eec3",
-      "records": 301
+      "sha256": "3072df30860dd8df754e32c752544f6d1019f5d13a1fce466add85e9eea7fa1a",
+      "records": 386
     },
     "publisherUnits": {
       "path": "考前任務包系統/國中_Bobo/01_sources/curriculum_scope/curriculum_scope_數學_康軒_七上-九下_publisher.json",
@@ -31,14 +31,14 @@
     }
   },
   "output": {
-    "generatedEligible": 153,
-    "generatedExcluded": 148,
+    "generatedEligible": 274,
+    "generatedExcluded": 112,
     "capEligible": 258,
     "capExcluded": 39,
     "publisherUnitCount": 62,
     "publisherUnitSourceRows": 72,
-    "contentSupportMatrixCount": 27,
-    "contentSupportReviewedCount": 27,
+    "contentSupportMatrixCount": 40,
+    "contentSupportReviewedCount": 33,
     "capPrivateUseArea": {
       "candidateRows": 280,
       "solutionRows": 97,
@@ -55,7 +55,7 @@
     },
     "capCrossQuestionPollution": 1,
     "capEmptySolutionRows": 78,
-    "copiedGeneratedImages": 111,
+    "copiedGeneratedImages": 117,
     "copiedCapImages": 185
   },
   "additionalFiles": {
