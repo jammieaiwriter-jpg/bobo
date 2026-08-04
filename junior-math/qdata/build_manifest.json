@@ -1,6 +1,6 @@
 {
   "formatVersion": "math-html-build-manifest-v1",
-  "generatedAt": "2026-08-04T06:19:40.836405+00:00",
+  "generatedAt": "2026-08-04T10:20:45.680639+00:00",
   "builder": "考前任務包系統/國中_Bobo/tools/math_html_app/build.py",
   "sources": {
     "capItems": {
@@ -10,8 +10,8 @@
     },
     "generatedItems": {
       "path": "考前任務包系統/國中_Bobo/tools/matrix_gen/output/generated_items.json",
-      "sha256": "3072df30860dd8df754e32c752544f6d1019f5d13a1fce466add85e9eea7fa1a",
-      "records": 386
+      "sha256": "c16035abe9ab80b52a00f19c6eaf4f67dc265a4ecfa419585f6c0927f60fda94",
+      "records": 388
     },
     "publisherUnits": {
       "path": "考前任務包系統/國中_Bobo/01_sources/curriculum_scope/curriculum_scope_數學_康軒_七上-九下_publisher.json",
@@ -31,7 +31,7 @@
     }
   },
   "output": {
-    "generatedEligible": 274,
+    "generatedEligible": 276,
     "generatedExcluded": 112,
     "capEligible": 258,
     "capExcluded": 39,

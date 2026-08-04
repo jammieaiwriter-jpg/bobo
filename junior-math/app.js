@@ -390,7 +390,7 @@
   }
   function optionText(value) { return String(value == null ? "" : value); }
   function wireBuilder() {
-    var mode = "daily", termSelect = byId("term-select"), unitSelect = byId("unit-select"), multi = byId("multi-unit-select"), countSelect = byId("count-select"), yearSelect = byId("year-select"), difficultySelect = byId("difficulty-select");
+    var mode = "daily", termSelect = byId("term-select"), unitSelect = byId("unit-select"), multi = byId("multi-unit-select"), countSelect = byId("count-select"), yearSelect = byId("year-select");
     TERMS.forEach(function (term) { termSelect.appendChild(new Option(term, term)); });
     var initialUnit = (window.BOBO_UNIT_CATALOG || []).find(function (unit) { return unit.dailyReady; }) || (window.BOBO_UNIT_CATALOG || [])[0];
     termSelect.value = initialUnit ? initialUnit.gradeTerm : "國一上";
@@ -420,7 +420,7 @@
       if (!unitIds.length) { byId("assignment-result").classList.remove("is-hidden"); byId("assignment-result").textContent = "目前範圍沒有可用單元，請換一個學期或縮小選擇。"; return; }
       if (mode === "exam" && (unitIds.length < 2 || unitIds.length > 3 || new Set(unitIds).size !== unitIds.length)) { byId("assignment-result").classList.remove("is-hidden"); byId("assignment-result").textContent = "考卷測試請選 2–3 個不同的單元。"; return; }
       var assignmentId = "math-" + mode + "-" + Date.now().toString(36) + "-" + hashString(randomToken());
-      var config = { assignmentId: assignmentId, mode: mode, gradeTerm: termSelect.value, unitIds: unitIds, questionCount: Number(countSelect.value), yearFilter: mode === "past_exam" ? yearSelect.value : null, difficultyFilter: difficultySelect.value, seed: assignmentId + "|seed" };
+      var config = { assignmentId: assignmentId, mode: mode, gradeTerm: termSelect.value, unitIds: unitIds, questionCount: Number(countSelect.value), yearFilter: mode === "past_exam" ? yearSelect.value : null, seed: assignmentId + "|seed" };
       var encoded = encodeConfig(config), link = "practice.html#assignment=" + encoded;
       byId("assignment-result").classList.remove("is-hidden");
       byId("assignment-result").innerHTML = "<strong>任務已建立</strong><span>把下面連結交給 Bobo，開啟後直接開始：</span><a class=\"assignment-link\" href=\"" + link + "\">" + escapeHtml(link) + "</a><a class=\"primary-button button-link\" href=\"" + link + "\">開啟任務預覽</a>";
