@@ -2,3 +2,9 @@ __pycache__/
 *.py[cod]
 data/
 backups/
+
+# 2026-08-21：知洞學堂（商業產品）的數學交付層絕不進這個公開 repo。
+# junior-math/ 是 2026-08-04 之前 Bobo 自用練習頁的遺留，含生成題答案與詳解，
+# 已從 main 移除。正式站走 Cloudflare Worker + Basic Auth，來源是
+# 01_開發專案/知洞學堂/deploy_math/，與本 repo 無關。
+junior-math/
