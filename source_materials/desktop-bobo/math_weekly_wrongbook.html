@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bobo 國中數學 週考錯題本</title>
+<meta name="robots" content="noindex, nofollow">
+<title>國一數學 週考錯題本</title>
 <style>
 :root{
   --ink:#17212b; --muted:#5d6a75; --paper:#fffdf8; --line:#d8e1e6;
@@ -37,7 +38,7 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,5vw,2.3rem);line-height:1.15}
 .scorecard{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 6px}
 .score-main{flex:1 1 210px;background:#fff;border:1px solid var(--line);border-radius:14px;
   padding:16px 18px;box-shadow:0 1px 0 rgba(23,33,43,.04)}
-.score-main .n{font-size:2.6rem;font-weight:700;line-height:1;color:var(--rose)}
+.score-main .n{font-size:2.6rem;font-weight:700;line-height:1;color:var(--teal)}
 .score-main .lbl{color:var(--muted);font-size:.9rem;margin-top:6px;line-height:1.5}
 .insight{flex:2 1 420px;background:var(--soft-teal);border:1px solid #bfe0dc;border-radius:14px;padding:16px 18px}
 .insight h3{margin:0 0 8px;font-size:1.02rem;color:#0b6b6d}
@@ -120,8 +121,7 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
   <div class="topbar">
     <div>
       <h1>週考錯題本 · 國一數學</h1>
-      <p class="subtitle">私立港明高中國中部　115 學年度第一學期<br>
-        錯題不是抄一遍就好——每題後面有 <strong>3 道同型變式</strong>，練到手感改掉才算過。</p>
+      <p class="subtitle">錯題不是抄一遍就好——每題後面有 <strong>3 道同型變式</strong>，練到手感改掉才算過。</p>
     </div>
     <div>
       <button class="btn warn small" id="resetBtn">清除作答紀錄</button>
@@ -130,8 +130,8 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
 
   <div class="scorecard">
     <div class="score-main">
-      <div class="n" id="scoreNum">50</div>
-      <div class="lbl" id="scoreLbl">第一次週考<br>範圍 1-1~1-2 正負數的加減</div>
+      <div class="n" id="scoreNum">—</div>
+      <div class="lbl" id="scoreLbl"></div>
     </div>
     <div class="insight">
       <h3>這張考卷真正的訊息</h3>
@@ -150,8 +150,7 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
   <div id="groups"></div>
 
   <p class="footer">
-    資料來源：Bobo 本人的週考試卷與答案卷（2026-09-14 由 Telegram 取得）。<br>
-    這一頁跟知洞學堂無關，只放他自己考過的題目與同型變式。作答紀錄存在這台裝置的瀏覽器裡。
+題目取自自己考過的週考卷，變式為同型自編。作答紀錄只存在這台裝置的瀏覽器裡，不會上傳。
   </p>
 </div>
 
@@ -162,7 +161,7 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
      no    題號標籤
      root  根因分組 key（count / abs / unit / other）
      q     原題
-     his   Bobo 當時寫的答案
+     his   當時寫的答案
      ans   正確答案
      why   為什麼錯（一句話）
      drills[{q,a,hint}]  同型變式（a 用數字字串，支援分數 a/b）
@@ -174,7 +173,6 @@ const EXAMS = [{
   id: "115-1-w1",
   title: "第一次週考",
   scope: "1-1~1-2 正負數的加減",
-  score: 50,
   insight: "難題他幾乎全對——題組 8、9、11（相遇點、相反數、雙點距離固定推理）和精熟 6（換新原點與新單位長）都對了。錯的全集中在基礎題與定義題。這不是理解力的問題，是<strong>基本定義沒背熟＋算太快</strong>。所以這一頁不練難題，只練三個根因：計數邊界、絕對值、單位換算。",
   items: [
     /* ---------- 計數／邊界 off-by-one ---------- */
@@ -342,8 +340,12 @@ function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 
 /* ---------- 畫面 ---------- */
 const exam = EXAMS[0];
-document.getElementById("scoreNum").textContent = exam.score;
-document.getElementById("scoreLbl").innerHTML = exam.title + "<br>範圍 " + exam.scope;
+const drillTotal  = exam.items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
+const wrongTotal  = exam.items.length;
+document.getElementById("scoreNum").textContent = drillTotal;
+document.getElementById("scoreLbl").innerHTML =
+  "道同型變式<br>" + wrongTotal + " 題錯題　·　3 個根因<br><span style=\"opacity:.75\">" +
+  exam.title + "　範圍 " + exam.scope + "</span>";
 document.getElementById("insightText").innerHTML = exam.insight;
 
 const groupsEl = document.getElementById("groups");
