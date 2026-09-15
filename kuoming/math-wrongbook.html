@@ -55,6 +55,42 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,5vw,2.3rem);line-height:1.15}
 .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--green));
   transition:width .35s ease}
 
+/* 工具列：篩選 + 模式 */
+.toolbar{margin:14px 0 0;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.modes{display:flex;gap:6px;background:#eceff1;padding:3px;border-radius:9px}
+.mode-btn{border:none;background:transparent;min-height:32px;padding:5px 14px;border-radius:7px;
+  cursor:pointer;color:var(--muted);font-size:.9rem}
+.mode-btn.active{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(23,33,43,.12)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters label{font-size:.86rem;color:var(--muted);display:flex;gap:5px;align-items:center}
+[hidden]{display:none !important}   /* display:flex 會蓋掉 hidden 屬性 */
+.filters select{min-height:34px;padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:var(--paper)}
+.hitcount{margin-left:auto;font-size:.86rem;color:var(--muted)}
+.empty{background:#fff;border:1px solid var(--line);border-radius:12px;padding:28px 18px;
+  text-align:center;color:var(--muted);line-height:1.8}
+
+/* 抽練 */
+.quiz-head{background:var(--soft-blue);border:1px solid #b9d3e6;border-radius:12px;
+  padding:14px 16px;margin:16px 0 0;color:#245878;line-height:1.7;font-size:.94rem}
+.quiz-list{background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px}
+.qrow{padding:14px 16px;border-bottom:1px dotted #e6eaec;display:flex;gap:12px;
+  flex-wrap:wrap;align-items:flex-start}
+.qrow:last-child{border-bottom:none}
+.qrow .qi{font-weight:700;color:var(--teal);min-width:1.8em}
+.qrow .qq{flex:1 1 320px;line-height:1.8}
+.qrow input{width:130px;min-height:40px;padding:6px 10px;border:1px solid var(--line);
+  border-radius:8px;text-align:center;background:var(--paper)}
+.qrow input.right{border-color:var(--green);background:#f0f8ec}
+.qrow input.wrong{border-color:var(--rose);background:var(--soft-rose)}
+.qrow .src{flex-basis:100%;margin:6px 0 0;font-size:.85rem;color:var(--muted)}
+.qrow .reveal{flex-basis:100%;margin:8px 0 0;padding:10px 14px;background:var(--soft-gold);
+  border-left:4px solid var(--gold);border-radius:0 8px 8px 0;font-size:.9rem;
+  line-height:1.7;color:#6b4905}
+.quiz-foot{padding:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  border-top:1px solid var(--line)}
+.quiz-score{font-size:1.05rem;font-weight:700}
+
 /* 根因分組 */
 .group{margin:30px 0 0}
 .group-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
@@ -153,7 +189,25 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
     <div class="bar"><i id="progBar"></i></div>
   </div>
 
+  <div class="toolbar">
+    <div class="modes">
+      <button class="mode-btn active" data-mode="review">訂正模式</button>
+      <button class="mode-btn" data-mode="quiz">抽練模式</button>
+    </div>
+    <div class="filters">
+      <label>考次 <select id="fExam"></select></label>
+      <label>單元 <select id="fUnit"></select></label>
+      <label>根因 <select id="fRoot"></select></label>
+      <label id="countWrap" hidden>抽 <select id="fCount">
+        <option value="5">5</option><option value="10" selected>10</option>
+        <option value="15">15</option><option value="20">20</option></select> 題</label>
+      <button class="btn primary small" id="startQuiz" hidden>開始抽練</button>
+    </div>
+    <span class="hitcount" id="hitCount"></span>
+  </div>
+
   <div id="groups"></div>
+  <div id="quizPanel" hidden></div>
 
   <p class="footer">
 題目取自自己考過的週考卷，變式為同型自編。作答紀錄只存在這台裝置的瀏覽器裡，不會上傳。
@@ -378,6 +432,22 @@ let state = {};
 try { state = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch(e){ state = {}; }
 function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
 
+/* okDays＝曾經答對的「不同日期」清單。間隔回訪與「兩個不同日子都對才畢業」
+   都靠它判斷；只存最後一次結果的話，隔天重練跟當天重做分不出來。
+   訂正模式與抽練模式共用這一個寫入點，紀錄才不會有兩套。 */
+function recordAnswer(dk, v, ok){
+  const prev  = state[dk] || {};
+  const now   = new Date();
+  const today = now.getFullYear() + "-" +
+                String(now.getMonth() + 1).padStart(2, "0") + "-" +
+                String(now.getDate()).padStart(2, "0");
+  const okDays = Array.isArray(prev.okDays) ? prev.okDays.slice() : [];
+  if (ok && okDays.indexOf(today) === -1) okDays.push(today);
+  state[dk] = { v: v, ok: ok, tries: (prev.tries || 0) + 1, ts: now.getTime(), okDays: okDays };
+  save();
+  return state[dk];
+}
+
 /* ---------- 畫面 ---------- */
 const exam = EXAMS[0];
 const drillTotal  = exam.items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
@@ -389,14 +459,35 @@ document.getElementById("scoreLbl").innerHTML =
 document.getElementById("insightText").innerHTML = exam.insight;
 
 const groupsEl = document.getElementById("groups");
-let totalDrills = 0;
+const quizEl   = document.getElementById("quizPanel");
+// 分母固定＝全部變式；篩選只影響畫面，不該讓進度條的基準浮動。
+const totalDrills = exam.items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
 
-Object.keys(ROOTS).forEach(rootKey => {
-  const items = exam.items.filter(it => it.root === rootKey);
+let filters = { exam: "all", unit: "all", root: "all" };
+let mode = "review";
+
+function filteredItems(){
+  return exam.items.filter(it =>
+    (filters.exam === "all" || filters.exam === exam.id) &&
+    (filters.unit === "all" || it.unit === filters.unit) &&
+    (filters.root === "all" || it.root === filters.root));
+}
+
+function renderGroups(){
+  groupsEl.innerHTML = "";
+  const pool = filteredItems();
+  if (!pool.length){
+    groupsEl.innerHTML = '<div class="empty">這個範圍內沒有錯題。<br>換一個單元或根因看看。</div>';
+    return;
+  }
+  Object.keys(ROOTS).forEach(rootKey => renderGroup(rootKey, pool.filter(it => it.root === rootKey)));
+  refresh();
+}
+
+function renderGroup(rootKey, items){
   if (!items.length) return;
   const meta = ROOTS[rootKey];
   const drillCount = items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
-  totalDrills += drillCount;
 
   const sec = document.createElement("section");
   sec.className = "group " + meta.cls;
@@ -410,7 +501,7 @@ Object.keys(ROOTS).forEach(rootKey => {
 
   items.forEach(it => sec.appendChild(renderCard(it, exam.id)));
   groupsEl.appendChild(sec);
-});
+}
 
 function renderCard(it, examId){
   const card = document.createElement("article");
@@ -484,18 +575,7 @@ function renderCard(it, examId){
       const v  = input.value;
       if (!normStr(v)) { input.focus(); return; }
       const ok = isRight(v, d.a);
-      const prev  = state[dk] || {};
-      const tries = (prev.tries || 0) + 1;
-      const now   = new Date();
-      const today = now.getFullYear() + "-" +
-                    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-                    String(now.getDate()).padStart(2, "0");
-      // okDays＝曾經答對的「不同日期」清單。間隔回訪與「兩個不同日子都對才畢業」
-      // 都靠它判斷；只存最後一次結果的話，隔天重練跟當天重做分不出來。
-      const okDays = Array.isArray(prev.okDays) ? prev.okDays.slice() : [];
-      if (ok && okDays.indexOf(today) === -1) okDays.push(today);
-      state[dk] = { v: v, ok: ok, tries: tries, ts: now.getTime(), okDays: okDays };
-      save();
+      const tries = recordAnswer(dk, v, ok).tries;
       input.classList.remove("right","wrong");
       if (ok){
         input.classList.add("right"); mark.textContent = "✅";
@@ -522,8 +602,11 @@ function renderCard(it, examId){
 }
 
 function refresh(){
+  // 只數「目前這份題庫真的存在」的變式，避免舊存檔殘留把分子灌爆
+  const valid = new Set();
+  exam.items.forEach(it => (it.drills || []).forEach((d, i) => valid.add(exam.id + "|" + it.no + "#" + i)));
   let done = 0;
-  Object.keys(state).forEach(k => { if (state[k] && state[k].ok) done++; });
+  Object.keys(state).forEach(k => { if (valid.has(k) && state[k] && state[k].ok) done++; });
   if (done > totalDrills) done = totalDrills;
   const pct = totalDrills ? Math.round(done / totalDrills * 100) : 0;
   document.getElementById("progBar").style.width = pct + "%";
@@ -542,12 +625,113 @@ function refresh(){
   });
 }
 
+/* ---------- 篩選器 ---------- */
+function fillSelect(el, opts, cur){
+  el.innerHTML = opts.map(o => '<option value="' + o[0] + '"' +
+    (o[0] === cur ? " selected" : "") + '>' + o[1] + '</option>').join("");
+}
+const unitOpts = [["all", "全部單元"]].concat(
+  Array.from(new Set(exam.items.map(it => it.unit))).sort()
+       .map(u => [u, UNITS[u] || u]));
+const rootOpts = [["all", "全部根因"]].concat(
+  Object.keys(ROOTS).filter(k => exam.items.some(it => it.root === k))
+        .map(k => [k, ROOTS[k].name]));
+fillSelect(document.getElementById("fExam"), [["all", "全部考次"], [exam.id, exam.title]], "all");
+fillSelect(document.getElementById("fUnit"), unitOpts, "all");
+fillSelect(document.getElementById("fRoot"), rootOpts, "all");
+
+function onFilterChange(){
+  filters.exam = document.getElementById("fExam").value;
+  filters.unit = document.getElementById("fUnit").value;
+  filters.root = document.getElementById("fRoot").value;
+  const pool = filteredItems();
+  const n = pool.reduce((a, it) => a + (it.drills ? it.drills.length : 0), 0);
+  document.getElementById("hitCount").textContent =
+    "符合：" + pool.length + " 題錯題　·　" + n + " 道變式";
+  if (mode === "review") renderGroups(); else quizEl.innerHTML = "";
+}
+["fExam", "fUnit", "fRoot"].forEach(id =>
+  document.getElementById(id).addEventListener("change", onFilterChange));
+
+/* ---------- 模式切換 ---------- */
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    mode = btn.dataset.mode;
+    const quiz = mode === "quiz";
+    document.getElementById("countWrap").hidden = !quiz;
+    document.getElementById("startQuiz").hidden = !quiz;
+    groupsEl.hidden = quiz;
+    quizEl.hidden = !quiz;
+    quizEl.innerHTML = "";
+    if (!quiz) renderGroups();
+  });
+});
+
+/* ---------- 抽練 ----------
+   刻意不顯示「為什麼錯」與正確答案：訂正模式已經給過鷹架了，抽練要測的是
+   「沒有鷹架還會不會」。整份交卷後才一次揭曉。                                */
+document.getElementById("startQuiz").addEventListener("click", () => {
+  const pool = [];
+  filteredItems().forEach(it => (it.drills || []).forEach((d, i) =>
+    pool.push({ it: it, i: i, d: d })));
+  if (!pool.length){
+    quizEl.innerHTML = '<div class="empty">這個範圍內沒有可抽的變式。</div>';
+    return;
+  }
+  const want = Math.min(Number(document.getElementById("fCount").value), pool.length);
+  for (let i = pool.length - 1; i > 0; i--){          // Fisher–Yates
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  const picked = pool.slice(0, want);
+
+  let html = '<div class="quiz-head">抽練 ' + want + ' 題' +
+    (want < Number(document.getElementById("fCount").value)
+      ? '（這個範圍只有 ' + pool.length + ' 道變式，已全數抽出）' : '') +
+    '<br>作答中不給提示、不顯示正解——交卷後才一次揭曉。</div><div class="quiz-list">';
+  picked.forEach((q, n) => {
+    html += '<div class="qrow" data-n="' + n + '">' +
+      '<span class="qi">' + (n + 1) + '.</span>' +
+      '<span class="qq">' + q.d.q + '</span>' +
+      '<input type="text" aria-label="第 ' + (n + 1) + ' 題答案">' +
+      '<p class="src">來自 ' + q.it.no + '　·　' + (UNITS[q.it.unit] || q.it.unit) + '</p>' +
+      '<div class="reveal" hidden></div></div>';
+  });
+  html += '</div><div class="quiz-foot">' +
+    '<button class="btn primary" id="submitQuiz">交卷</button>' +
+    '<span class="quiz-score" id="quizScore"></span></div>';
+  quizEl.innerHTML = html;
+
+  document.getElementById("submitQuiz").addEventListener("click", function submit(){
+    let right = 0;
+    picked.forEach((q, n) => {
+      const row = quizEl.querySelector('.qrow[data-n="' + n + '"]');
+      const inp = row.querySelector("input");
+      const ok  = isRight(inp.value, q.d.a);
+      if (ok) right++;
+      inp.classList.add(ok ? "right" : "wrong");
+      inp.disabled = true;
+      const rev = row.querySelector(".reveal");
+      rev.hidden = false;
+      rev.innerHTML = (ok ? "✅ 答對" : "✏️ 正確答案是 <strong>" + q.d.a + "</strong>") +
+        "<br>" + q.it.why;
+      recordAnswer(exam.id + "|" + q.it.no + "#" + q.i, inp.value, ok);   // 抽練也算進度
+    });
+    document.getElementById("quizScore").textContent =
+      "答對 " + right + " / " + picked.length;
+    this.disabled = true;
+    refresh();
+  });
+});
+
 document.getElementById("resetBtn").addEventListener("click", () => {
   if (!confirm("確定要清除這一頁所有作答紀錄？")) return;
   state = {}; save(); location.reload();
 });
 
-refresh();
+onFilterChange();
 </script>
 </body>
 </html>
