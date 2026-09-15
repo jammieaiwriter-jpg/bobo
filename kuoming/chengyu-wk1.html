@@ -100,7 +100,7 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
 
 <header>
   <h1>成語闖關 · 第一次週考</h1>
-  <p class="sub">港明國中一年級 · 範圍 p.22–29 · 每天一輪 <span id="todaystr"></span></p>
+  <p class="sub">港明國中一年級 · 範圍 p.20–29（49 則）· 每天一輪 <span id="todaystr"></span></p>
   <div class="prog">
     <div class="ptrack"><div class="pfill" id="pfill"></div></div>
     <div class="ptext" id="ptext"></div>
@@ -135,7 +135,7 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
     <div class="done-box">
       <span class="em">🏆</span>
       <h2 id="d-h2">今天這一輪完成！</h2>
-      <p style="margin:0;font-size:14px;color:var(--ink2)">範圍內 <span id="d-n">39</span> 則每一則都答對過一次</p>
+      <p style="margin:0;font-size:14px;color:var(--ink2)">範圍內 <span id="d-n">49</span> 則每一則都答對過一次</p>
       <div class="stats">
         <div class="stat"><b id="d-tt">0</b><span>總作答</span></div>
         <div class="stat"><b id="d-pc">0%</b><span>一次答對率</span></div>
@@ -155,7 +155,7 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
   </section>
 
   <footer>
-    資料來源：成語辭典 p.22–29（第一次週考範圍）·  p.20–21 列為補充<br>
+    資料來源：成語辭典 p.20–29（第一次週考範圍，共 49 則）<br>
     原始照片存於同資料夾「成語原始圖」
   </footer>
 </div>
@@ -227,9 +227,9 @@ const CONF={"了":["瞭","樂","略"],"貉":["洛","落","駱"],"咻":["休","�
 "塵":["陳","沉","麈"],"網":["綱","罔","岡"],"團":["圓","園","專"],"葉":["業","頁","蝶"]};
 const ALLCH=[...new Set(DATA.flatMap(d=>d.i.split("")))];
 
-/* 第一次週考範圍 = p.22–29；p.20–21 為補充 */
-const EXAM=DATA.filter(d=>d.p>=22);
-const EXTRA=DATA.filter(d=>d.p<22);
+/* 第一次週考範圍 = p.20–29 全部 49 則 */
+const EXAM=DATA;
+const EXTRA=[];
 const N=EXAM.length;
 const byName=n=>DATA.find(d=>d.i===n);
 
@@ -240,7 +240,7 @@ const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMo
 const TODAY=todayStr();
 
 /* ---------- 每日一輪 ---------- */
-const KEY="cy_wk1_v3";
+const KEY="cy_wk1_v4";
 let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],sc:0,tt:0,notified:"",rounds:0};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 function newRound(countIt){
@@ -263,20 +263,10 @@ function paint(){
 }
 
 /* ---------- 速記卡 ---------- */
-let scope="exam";
-function buildFilters(){
-  const f=$("#pf");f.innerHTML="";
-  [["exam","第一次週考 p.22–29"],["extra","補充 p.20–21"],["all","全部"]].forEach(([v,label])=>{
-    const b=document.createElement("button");
-    b.textContent=label;b.className=(v===scope)?"on":"";
-    b.onclick=()=>{scope=v;buildFilters();buildGrid()};
-    f.appendChild(b);
-  });
-}
+function buildFilters(){document.querySelector("#pf").style.display="none"}
 function buildGrid(){
   const g=$("#grid");g.innerHTML="";
-  const list=scope==="exam"?EXAM:scope==="extra"?EXTRA:DATA;
-  list.forEach(d=>{
+  DATA.forEach(d=>{
     const done=S.cleared.includes(d.i);
     const c=document.createElement("div");
     c.className="card"+(done?" cleared":"");
@@ -394,7 +384,7 @@ function finishRound(){
   const msg=
     `📚 Bobo 完成今日成語闖關\n`+
     `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}\n`+
-    `範圍：第一次週考 p.22–29（${N} 則）\n`+
+    `範圍：第一次週考 p.20–29（${N} 則）\n`+
     `── 全部過關 ✓\n`+
     `作答 ${S.tt} 題 · 一次答對率 ${pc}%\n`+
     (S.everWrong.length
