@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>國一數學 週考錯題本</title>
+<style>
+:root{
+  --ink:#17212b; --muted:#5d6a75; --paper:#fffdf8; --line:#d8e1e6;
+  --teal:#0f8b8d; --green:#4f8f3a; --gold:#d99b25; --rose:#c84f5f; --blue:#2e6f9e;
+  --soft-teal:#e7f5f3; --soft-gold:#fff3d9; --soft-rose:#fdecef; --soft-blue:#edf4fa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:
+    linear-gradient(180deg,rgba(255,253,248,.96),rgba(239,246,244,.96)),
+    repeating-linear-gradient(90deg,rgba(15,139,141,.06) 0 1px,transparent 1px 44px);
+  -webkit-text-size-adjust:100%;
+}
+button,input,select{font:inherit}
+.app-shell{width:min(1040px,100%);margin:0 auto;padding:20px 20px 80px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;padding:18px 0 14px;border-bottom:1px solid var(--line)}
+h1{margin:0 0 6px;font-size:clamp(1.5rem,5vw,2.3rem);line-height:1.15}
+.subtitle{margin:0;color:var(--muted);font-size:.98rem;line-height:1.6}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);min-height:40px;
+  border-radius:8px;padding:8px 14px;cursor:pointer;
+  transition:transform .15s ease,border-color .15s ease,background .15s ease}
+.btn:hover{transform:translateY(-1px);border-color:var(--teal)}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn.warn{background:var(--soft-rose);border-color:#efb4bd;color:#842b38}
+.btn.small{min-height:34px;padding:5px 10px;font-size:.88rem}
+
+/* 成績卡 */
+.scorecard{display:flex;gap:14px;flex-wrap:wrap;margin:18px 0 6px}
+.score-main{flex:1 1 210px;background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;box-shadow:0 1px 0 rgba(23,33,43,.04)}
+.score-main .n{font-size:2.6rem;font-weight:700;line-height:1;color:var(--teal)}
+.score-main .lbl{color:var(--muted);font-size:.9rem;margin-top:6px;line-height:1.5}
+.insight{flex:2 1 420px;background:var(--soft-teal);border:1px solid #bfe0dc;border-radius:14px;padding:16px 18px}
+.insight h3{margin:0 0 8px;font-size:1.02rem;color:#0b6b6d}
+.insight p{margin:0;font-size:.95rem;line-height:1.75;color:#22424a}
+
+/* 進度 */
+.progress-wrap{margin:20px 0 10px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:14px 16px}
+.progress-head{display:flex;justify-content:space-between;align-items:baseline;
+  gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.progress-head strong{font-size:1.02rem}
+.progress-head span{color:var(--muted);font-size:.9rem}
+.bar{height:12px;border-radius:999px;background:#eceff1;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--green));
+  transition:width .35s ease}
+
+/* 根因分組 */
+.group{margin:30px 0 0}
+.group-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 16px;border-radius:12px 12px 0 0;border:1px solid var(--line);border-bottom:none;background:#fff}
+.group-head .tag{font-size:.78rem;padding:3px 9px;border-radius:999px;font-weight:600}
+.group-head h2{margin:0;font-size:1.12rem}
+.group-head .cnt{margin-left:auto;color:var(--muted);font-size:.88rem}
+.g-count .tag{background:var(--soft-gold);color:#8a5d0a;border:1px solid #ecd29a}
+.g-abs   .tag{background:var(--soft-rose);color:#842b38;border:1px solid #efb4bd}
+.g-unit  .tag{background:var(--soft-blue);color:#245878;border:1px solid #b9d3e6}
+.g-other .tag{background:#eef0f1;color:#4a565f;border:1px solid var(--line)}
+
+/* 題卡 */
+.card{background:#fff;border:1px solid var(--line);border-top:none;padding:18px 16px}
+.card:last-child{border-radius:0 0 12px 12px}
+.card.done{background:#f7fbf6}
+.card-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.qno{font-weight:700;color:var(--teal);font-size:.92rem;white-space:nowrap}
+.state{margin-left:auto;font-size:.85rem;color:var(--muted)}
+.state.ok{color:var(--green);font-weight:600}
+.qtext{margin:0 0 12px;line-height:1.85;font-size:1.02rem}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.chip{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid;line-height:1.5}
+.chip.unit{background:#eef0f1;border-color:var(--line);color:#4a565f}
+.chip.m-strong{background:#f0f8ec;border-color:#b9ddaa;color:#3c6f2b}
+.chip.m-partial{background:var(--soft-gold);border-color:#ecd29a;color:#8a5d0a}
+.chip.m-none{background:#f3f4f5;border-color:var(--line);color:#7b858d}
+.answers{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.pill{font-size:.9rem;padding:6px 12px;border-radius:8px;border:1px solid;line-height:1.4}
+.pill.his{background:var(--soft-rose);border-color:#efb4bd;color:#842b38}
+.pill.ans{background:var(--soft-teal);border-color:#bfe0dc;color:#0b6b6d;font-weight:600}
+.why{margin:0 0 14px;padding:10px 14px;background:var(--soft-gold);border-left:4px solid var(--gold);
+  border-radius:0 8px 8px 0;font-size:.94rem;line-height:1.7;color:#6b4905}
+
+/* 變式 */
+.drills{border-top:1px dashed var(--line);padding-top:14px}
+.drills-title{font-size:.88rem;color:var(--muted);margin:0 0 10px;letter-spacing:.02em}
+.drill{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;
+  padding:10px 0;border-bottom:1px dotted #e6eaec}
+.drill:last-child{border-bottom:none}
+.drill .dq{flex:1 1 300px;line-height:1.75;font-size:.98rem}
+.drill .din{display:flex;gap:8px;align-items:center}
+.drill input{width:120px;min-height:40px;padding:6px 10px;border:1px solid var(--line);
+  border-radius:8px;text-align:center;background:var(--paper)}
+.drill input:focus{outline:2px solid var(--teal);outline-offset:1px}
+.drill input.right{border-color:var(--green);background:#f0f8ec}
+.drill input.wrong{border-color:var(--rose);background:var(--soft-rose)}
+.mark{width:1.6em;font-size:1.15rem;text-align:center}
+.feedback{flex-basis:100%;margin:6px 0 0;font-size:.9rem;line-height:1.7;color:var(--muted)}
+.feedback.hint{color:#8a5d0a}
+.feedback.sol{color:#0b6b6d}
+.note{margin:12px 0 0;padding:10px 14px;background:#eef0f1;border-radius:8px;
+  font-size:.9rem;line-height:1.7;color:var(--muted)}
+details.sol-box{margin-top:12px}
+details.sol-box summary{cursor:pointer;color:var(--teal);font-size:.92rem;padding:6px 0}
+details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radius:8px;
+  font-size:.94rem;line-height:1.85;color:#22424a}
+.footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:.86rem;line-height:1.8}
+@media (max-width:520px){
+  .app-shell{padding:14px 14px 70px}
+  .drill input{width:100%}
+  .drill .din{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="topbar">
+    <div>
+      <h1>週考錯題本 · 國一數學</h1>
+      <p class="subtitle">錯題不是抄一遍就好——每題後面有 <strong>3 道同型變式</strong>，練到手感改掉才算過。</p>
+    </div>
+    <div>
+      <button class="btn warn small" id="resetBtn">清除作答紀錄</button>
+    </div>
+  </div>
+
+  <div class="scorecard">
+    <div class="score-main">
+      <div class="n" id="scoreNum">—</div>
+      <div class="lbl" id="scoreLbl"></div>
+    </div>
+    <div class="insight">
+      <h3>這張考卷真正的訊息</h3>
+      <p id="insightText"></p>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-head">
+      <strong id="progLabel">變式練習進度</strong>
+      <span id="progText">0 / 0</span>
+    </div>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+
+  <div id="groups"></div>
+
+  <p class="footer">
+題目取自自己考過的週考卷，變式為同型自編。作答紀錄只存在這台裝置的瀏覽器裡，不會上傳。
+  </p>
+</div>
+
+<script>
+/* =========================================================
+   資料層：要加下一次週考，就在 EXAMS 陣列後面 append 一個物件。
+   item 欄位：
+     no    題號標籤
+     root  根因分組 key（count / abs / unit / other）
+     unit  康軒單元 id（M1-1-1 / M1-1-2 …），段考前依範圍篩選用
+     kp    對應的知洞 g7 知識點 id；查無同型題則為 null
+     kpMatch strong / partial / none——知洞題庫能不能幫這題補題量
+     q     原題
+     his   當時寫的答案
+     ans   正確答案
+     why   為什麼錯（一句話）
+     drills[{q,a,hint}]  同型變式（a 用數字字串，支援分數 a/b）
+     solution  詳解（選填）
+     practice:false  只看詳解、不列入必練
+     unresolved:true 題目條件待確認，不判對錯
+   ========================================================= */
+const EXAMS = [{
+  id: "115-1-w1",
+  title: "第一次週考",
+  scope: "1-1~1-2 正負數的加減",
+  insight: "難題他幾乎全對——題組 8、9、11（相遇點、相反數、雙點距離固定推理）和精熟 6（換新原點與新單位長）都對了。錯的全集中在基礎題與定義題。這不是理解力的問題，是<strong>基本定義沒背熟＋算太快</strong>。所以這一頁不練難題，只練三個根因：計數邊界、絕對值、單位換算。",
+  items: [
+    /* ---------- 計數／邊界 off-by-one ---------- */
+    {
+      no: "基礎 6", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "strong",
+      q: "在數線上從 −9.8 移動到 6.7，會經過 ___ 個整數。",
+      his: "17", ans: "16",
+      why: "從 −9.8 走到 6.7，真正踩到的整數是 −9 一路到 6。算法是「6 −(−9) + 1 = 16」，不是把 9.8 和 6.7 無條件進位相加。端點是小數時，兩端各自往內取最近的整數，再用「大 − 小 + 1」。",
+      drills: [
+        { q: "在數線上從 −5.2 移動到 3.8，會經過幾個整數？", a: "9",  hint: "兩端往內取：從 −5 到 3。" },
+        { q: "在數線上從 −0.5 移動到 12.3，會經過幾個整數？", a: "13", hint: "別忘了 0 也是整數。" },
+        { q: "在數線上從 −8.6 移動到 −1.4，會經過幾個整數？", a: "7",  hint: "從 −8 到 −2，全是負整數，0 不在裡面。" }
+      ]
+    },
+    {
+      no: "精熟 4", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "strong",
+      q: "已知 a 為整數，若 −2½ < |a| < 7½，則滿足條件的 a 有 ___ 個。",
+      his: "10", ans: "15",
+      why: "|a| 一定 ≥ 0，所以左邊的 −2½ 根本沒有限制作用，真正的條件只有 |a| < 7½ → |a| 可以是 0,1,2,…,7。每個非零的值都有正負兩個 a，再加上 a = 0 這一個 → 7×2 + 1 = 15。<strong>0 最常被漏掉。</strong>",
+      drills: [
+        { q: "a 為整數，−3 < |a| < 5，滿足條件的 a 有幾個？", a: "9", hint: "|a| 可以是 0,1,2,3,4。" },
+        { q: "a 為整數，2 < |a| < 6，滿足條件的 a 有幾個？", a: "6", hint: "這題 |a| 不能是 0 或 1 或 2，只有 3,4,5。" },
+        { q: "a 為整數，|a| ≤ 4，滿足條件的 a 有幾個？", a: "9", hint: "從 −4 數到 4。" }
+      ]
+    },
+    {
+      no: "精熟 5", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-count-to-bound-inverse", kpMatch: "strong",
+      q: "A 為整數，絕對值不大於 13 的整數共有 A 個；B 為整數，絕對值小於 B 的負整數共有 19 個，則 A + B = ___。",
+      his: "44", ans: "47",
+      why: "兩個邊界詞要分開讀。「不大於 13」＝含 13 → −13 到 13 共 27 個，A = 27。「絕對值小於 B 的負整數有 19 個」＝ −1 到 −19 這 19 個，它們的絕對值 1~19 都要小於 B，而 −20 不能算進來 → B = 20。27 + 20 = 47。",
+      drills: [
+        { q: "絕對值不大於 8 的整數共有幾個？", a: "17", hint: "「不大於」含 8 本身，從 −8 數到 8。" },
+        { q: "絕對值小於 8 的整數共有幾個？", a: "15", hint: "「小於」不含 8，只到 ±7。跟上一題差在哪？" },
+        { q: "B 為整數，絕對值小於 B 的負整數共有 11 個，則 B = ？", a: "12", hint: "要讓 −11 進來、−12 不進來。" }
+      ]
+    },
+    /* ---------- 絕對值的定義與對稱性 ---------- */
+    {
+      no: "基礎 5", root: "abs",
+      unit: "M1-1-1", kp: null, kpMatch: "none",
+      q: "最大負整數減去最小正整數的結果是 ___。",
+      his: "負數（沒寫出數字）", ans: "−2",
+      why: "這題只考定義，沒有計算難度：<strong>最大的負整數是 −1，最小的正整數是 1</strong>（0 既不正也不負）。(−1) − 1 = −2。寫「負數」＝定義沒記起來，這種題丟分最可惜。",
+      drills: [
+        { q: "最小正整數 − 最大負整數 = ？", a: "2",  hint: "1 − (−1)。" },
+        { q: "最大負整數 × 最小正整數 = ？", a: "-1", hint: "(−1) × 1。" },
+        { q: "絕對值最小的整數 ＋ 最大負整數 = ？", a: "-1", hint: "絕對值最小的整數是 0。" }
+      ]
+    },
+    {
+      no: "基礎 7", root: "abs",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "partial",
+      q: "絕對值小於 12.3 的所有整數總和為 ___。",
+      his: "156", ans: "0",
+      why: "這些整數是 −12, −11, …, −1, 0, 1, …, 11, 12。<strong>每個正的都有一個負的跟它抵消</strong>，加起來一定是 0。寫 156 是把負數也當成正的加進去了——看到「絕對值」的範圍題，先想對稱抵消，不要急著硬加。",
+      drills: [
+        { q: "絕對值小於 9 的所有整數總和 = ？", a: "0", hint: "−8 到 8，兩兩抵消。" },
+        { q: "絕對值小於 9 的所有整數共有幾個？", a: "17", hint: "這題問的是「幾個」不是「總和」，別混。" },
+        { q: "絕對值小於 5 的所有整數中，所有負整數的總和 = ？", a: "-10", hint: "只算 −1、−2、−3、−4。這題不會抵消。" }
+      ]
+    },
+    /* ---------- 帶單位的線性對應 ---------- */
+    {
+      no: "基礎 10", root: "unit",
+      unit: "M1-1-1", kp: "KP-XCODE-baseline-signed-notation", kpMatch: "strong",
+      q: "以中午 12 點為準，若下午 3 點以 +6 表示，則上午 10 點應該記作 ___。",
+      his: "−2", ans: "−4",
+      why: "他直接把「早 2 小時」寫成 −2，<strong>漏掉換算單位</strong>。題目說 3 小時 ＝ +6，所以 1 小時 ＝ +2。上午 10 點比中午早 2 小時 → 2 × (−2) = −4。凡是題目給了一組對應數字，先算出「1 個單位＝多少」再動手。",
+      drills: [
+        { q: "以地面 0 樓為準，往上 2 層記為 +6，則地下 1 層記作？", a: "-3",  hint: "先算 1 層等於多少。" },
+        { q: "以中午 12 點為準，下午 5 點記為 +10，則上午 8 點記作？", a: "-8",  hint: "5 小時 = +10，所以 1 小時 = ？" },
+        { q: "以 20°C 為準，25°C 記為 +15，則 12°C 記作？", a: "-24", hint: "5 度 = +15，12°C 比 20°C 低幾度？" }
+      ]
+    },
+    {
+      no: "精熟 7", root: "unit",
+      unit: "M1-1-2", kp: "KP-XCODE-baseline-signed-notation", kpMatch: "partial",
+      q: "溫度計有兩種溫標：左邊 0°C 時右邊 32°F；左邊 100°C 時右邊 212°F。當左邊顯示 −40°C 時，右邊顯示 ___ °F。",
+      his: "（空白）", ans: "−40",
+      why: "左邊走 100 格，右邊走 212 − 32 = 180 格 → <strong>左邊 1 格 ＝ 右邊 1.8 格</strong>，而且右邊的起點是 32。所以 F = 1.8 × C + 32 → 1.8 × (−40) + 32 = −72 + 32 = −40。這跟基礎 10 是同一招：先求「1 單位對多少」，再補起點差。",
+      drills: [
+        { q: "同一支溫度計，左邊 20°C 時，右邊顯示幾 °F？", a: "68",  hint: "1.8 × 20 + 32。" },
+        { q: "同一支溫度計，右邊顯示 5°F 時，左邊是幾 °C？", a: "-15", hint: "倒著做：(5 − 32) ÷ 1.8。" },
+        { q: "另一種刻度：左 0 對右 10，左 50 對右 110。左邊 −20 時，右邊顯示？", a: "-30", hint: "左 1 格 = 右 (110−10)÷50 = 2 格，起點是 10。" }
+      ]
+    },
+    /* ---------- 其他技巧 ---------- */
+    {
+      no: "精熟 3", root: "other",
+      unit: "M1-1-2", kp: null, kpMatch: "none",
+      q: "計算 1 − 2 + 3 − 4 + 5 − 6 + … + 65 − 66 + 67 = ___。",
+      his: "2278", ans: "34",
+      why: "不要硬加。<strong>兩兩配對</strong>：(1−2) + (3−4) + … + (65−66)，一共 33 組，每組都是 −1 → −33；最後剩下沒有配對的 67 → −33 + 67 = 34。看到正負交錯的長算式，第一個念頭永遠是配對相消。",
+      drills: [
+        { q: "1 − 2 + 3 − 4 + … + 99 − 100 = ？", a: "-50", hint: "剛好配成 50 組，沒有落單的。" },
+        { q: "1 − 2 + 3 − 4 + … + 49 − 50 + 51 = ？", a: "26", hint: "25 組 −1，再加落單的 51。" },
+        { q: "−1 + 2 − 3 + 4 − … − 19 + 20 = ？", a: "10", hint: "這次配成 (−1+2)、(−3+4)…，每組是 +1。" }
+      ]
+    },
+    {
+      no: "精熟 10", root: "other",
+      unit: "M1-1-1", kp: "KP-XCODE-numline-coordinate-transform", kpMatch: "strong",
+      q: "在座標 0 與 −1 之間等距設 9 個陷阱，由左到右依序為 P₁…P₉；又在 P₂、P₃ 之間等距設 9 個陷阱 Q₁…Q₉，則 Q₃ 的座標為 ___。",
+      his: "60/81", ans: "−0.77",
+      why: "「中間插 9 個點」＝<strong>把線段切成 10 等分</strong>（9 個點會造出 10 段），不是 9 等分。0 與 −1 之間每段 0.1，由左（−1 側）到右數：P₁ = −0.9、P₂ = −0.8、P₃ = −0.7。P₂ 到 P₃ 長 0.1 再切 10 等分，每段 0.01 → Q₃ = −0.8 + 0.03 = −0.77。",
+      drills: [
+        { q: "0 與 −1 之間等距設 9 個點，由左到右為 P₁…P₉，P₇ 的座標是？", a: "-0.3", hint: "P₁ = −0.9，往右每次 +0.1。" },
+        { q: "0 與 1 之間等距設 4 個點，由左到右數，第 3 個點的座標是？", a: "0.6", hint: "4 個點 → 切成 5 段，每段 0.2。" },
+        { q: "在 −0.8 與 −0.7 之間等距設 9 個點，由左到右為 Q₁…Q₉，Q₈ 的座標是？", a: "-0.72", hint: "每段 0.01，從 −0.8 往右數 8 步。" }
+      ]
+    },
+    /* ---------- 只看詳解、不列入必練 ---------- */
+    {
+      no: "精熟 12", root: "other",
+      unit: "M1-1-2", kp: null, kpMatch: "none", practice: false,
+      q: "五人各從編號 1~12 的牌中任取 2 張（十張互不相同），兩張編號之和分別是：艾連 4、米卡莎 11、阿爾敏 16、約翰 19、科尼 20。五人各自宣稱自己拿到編號 2、3、5、7、11 的牌，則有 ___ 個人說謊。",
+      his: "2", ans: "4",
+      why: "這題是純邏輯推理，出現頻率低，而且你同一張考卷的題組推理題（8、9、11）全對——不是你的弱點，不用花時間重練。看懂詳解就好。",
+      drills: [],
+      solution: "① 艾連兩張和是 4，若真有編號 2，另一張也得是 2 → 牌不重複，不可能。所以<strong>艾連說謊</strong>，他只能是 {1, 3}。<br>② 3 被艾連拿走了，米卡莎宣稱有 3 → <strong>米卡莎也說謊</strong>。<br>③ 科尼和 20 的組合只有 {8,12} 或 {9,11}。若科尼 = {9,11}，則約翰（和 19）只剩 {7,12}，阿爾敏（和 16）只剩 {6,10}，米卡莎（和 11）從剩下的 {2,4,5,8} 湊不出 11 → 矛盾。<br>④ 所以科尼 = {8,12}（<strong>說謊</strong>），約翰 = {9,10}（<strong>說謊</strong>），阿爾敏 = {5,11}（說真話），米卡莎 = {4,7}。<br>⑤ 說謊的是艾連、米卡莎、約翰、科尼 → <strong>4 個人</strong>。"
+    },
+    {
+      no: "精熟 2", root: "other",
+      unit: "M1-1-1", kp: "KP-N-7-5-numline-concept-statement", kpMatch: "partial", practice: false, unresolved: true,
+      q: "已知 |a| = 4，|b| = −b，則 a + b = ___。",
+      his: "−16＋a、4＋b（寫成算式）", ans: "待確認",
+      why: "照卷面印出來的條件：|a| = 4 只給出 a = ±4，|b| = −b 只說明 b ≤ 0，<strong>b 的大小沒有被限制，a + b 算不出唯一答案</strong>。多半是題目漏印（例如原本要問「a + b 的最大值」，那答案是 4）。這題請先跟老師對一下正式解答，再決定要不要進錯題本。",
+      drills: []
+    }
+  ]
+}];
+
+/* 康軒單元（名稱取自知洞 g7 data/unit_catalog.js，康軒是 g7 原生版本）*/
+const UNITS = {
+  "M1-1-1": "康軒 1-1 負數與數線",
+  "M1-1-2": "康軒 1-2 整數的加減"
+};
+/* 知洞 g7 知識點對照——2026-09-15 逐題查核 deploy_math/g7 生成題庫的結果。
+   strong＝題庫有同型題可直接補量；partial＝技巧相同但表述或難度有落差；none＝題庫查無同型題。*/
+const KP_LABELS = {
+  "KP-N-7-5-integer-count-in-range":      "跨原點／絕對值範圍的整數計數",
+  "KP-N-7-5-count-to-bound-inverse":      "由個數逆推絕對值上界",
+  "KP-XCODE-baseline-signed-notation":    "基準值與縮放單位記法",
+  "KP-XCODE-numline-coordinate-transform":"換原點／單位長與 n 等分點",
+  "KP-N-7-5-numline-concept-statement":   "相反數與絕對值敘述判讀"
+};
+const KP_MATCH = {
+  strong:  { txt: "知洞可補題", cls: "m-strong" },
+  partial: { txt: "知洞部分對應", cls: "m-partial" },
+  none:    { txt: "知洞無同型題", cls: "m-none" }
+};
+
+const ROOTS = {
+  count: { tag: "根因 ①", name: "計數／邊界 off-by-one", cls: "g-count",
+           desc: "最會丟分的一類——數整數個數、「不大於 vs 小於」的邊界" },
+  abs:   { tag: "根因 ②", name: "絕對值的定義與對稱性", cls: "g-abs",
+           desc: "定義要背熟，看到絕對值先想對稱抵消" },
+  unit:  { tag: "根因 ③", name: "帶單位的線性對應", cls: "g-unit",
+           desc: "先算「1 個單位等於多少」再動手" },
+  other: { tag: "其他",   name: "解題技巧與待確認", cls: "g-other",
+           desc: "配對相消、等距分點，以及不必重練的題目" }
+};
+
+/* ---------- 答案比對 ---------- */
+function normStr(s){
+  return String(s).trim()
+    .replace(/[−–—－]/g, "-")   // 各種減號統一
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[\s,，。個个度]/g, "");
+}
+function toNum(s){
+  s = normStr(s);
+  if (s === "") return NaN;
+  if (/^[+-]?\d+(\.\d+)?$/.test(s)) return parseFloat(s);
+  let m = s.match(/^([+-]?\d+)\/(\d+)$/);                  // 分數 a/b
+  if (m) return parseInt(m[1],10) / parseInt(m[2],10);
+  m = s.match(/^([+-]?)(\d+)\+?(\d+)\/(\d+)$/);            // 帶分數 2 1/2
+  if (m){ const v = parseInt(m[2],10) + parseInt(m[3],10)/parseInt(m[4],10);
+          return m[1] === "-" ? -v : v; }
+  return NaN;
+}
+function isRight(input, expected){
+  const a = toNum(input), b = toNum(expected);
+  if (Number.isNaN(a) || Number.isNaN(b)) return normStr(input) === normStr(expected);
+  return Math.abs(a - b) < 1e-9;
+}
+
+/* ---------- 進度存檔 ---------- */
+const STORE_KEY = "bobo.math.weekly.wrongbook.v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); } catch(e){ state = {}; }
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+
+/* ---------- 畫面 ---------- */
+const exam = EXAMS[0];
+const drillTotal  = exam.items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
+const wrongTotal  = exam.items.length;
+document.getElementById("scoreNum").textContent = drillTotal;
+document.getElementById("scoreLbl").innerHTML =
+  "道同型變式<br>" + wrongTotal + " 題錯題　·　3 個根因<br><span style=\"opacity:.75\">" +
+  exam.title + "　範圍 " + exam.scope + "</span>";
+document.getElementById("insightText").innerHTML = exam.insight;
+
+const groupsEl = document.getElementById("groups");
+let totalDrills = 0;
+
+Object.keys(ROOTS).forEach(rootKey => {
+  const items = exam.items.filter(it => it.root === rootKey);
+  if (!items.length) return;
+  const meta = ROOTS[rootKey];
+  const drillCount = items.reduce((n, it) => n + (it.drills ? it.drills.length : 0), 0);
+  totalDrills += drillCount;
+
+  const sec = document.createElement("section");
+  sec.className = "group " + meta.cls;
+  sec.innerHTML =
+    '<div class="group-head">' +
+      '<span class="tag">' + meta.tag + '</span>' +
+      '<h2>' + meta.name + '</h2>' +
+      '<span class="cnt">' + items.length + ' 題錯題' +
+        (drillCount ? '　·　' + drillCount + ' 道變式' : '') + '</span>' +
+    '</div>';
+
+  items.forEach(it => sec.appendChild(renderCard(it, exam.id)));
+  groupsEl.appendChild(sec);
+});
+
+function renderCard(it, examId){
+  const card = document.createElement("article");
+  card.className = "card";
+  const key = examId + "|" + it.no;
+
+  let html =
+    '<div class="card-head">' +
+      '<span class="qno">' + it.no + '</span>' +
+      '<span class="state" data-state></span>' +
+    '</div>' +
+    '<div class="meta">' +
+      '<span class="chip unit">' + (UNITS[it.unit] || it.unit || "未標單元") + '</span>' +
+      (it.kpMatch ? '<span class="chip ' + KP_MATCH[it.kpMatch].cls + '">' + KP_MATCH[it.kpMatch].txt +
+          (it.kp ? '：' + (KP_LABELS[it.kp] || it.kp) : '') + '</span>' : '') +
+    '</div>' +
+    '<p class="qtext">' + it.q + '</p>' +
+    '<div class="answers">' +
+      '<span class="pill his">你寫的：' + it.his + '</span>' +
+      '<span class="pill ans">正確答案：' + it.ans + '</span>' +
+    '</div>' +
+    '<p class="why">' + it.why + '</p>';
+
+  if (it.drills && it.drills.length){
+    html += '<div class="drills"><p class="drills-title">同型變式 — 三題都答對才算這個根因過關</p>';
+    it.drills.forEach((d, i) => {
+      html +=
+        '<div class="drill" data-i="' + i + '">' +
+          '<div class="dq">' + (i+1) + '. ' + d.q + '</div>' +
+          '<div class="din">' +
+            '<input type="text" inputmode="text" placeholder="答案" aria-label="第 ' + (i+1) + ' 題答案">' +
+            '<button class="btn small primary" data-check>對答案</button>' +
+            '<span class="mark"></span>' +
+          '</div>' +
+          '<p class="feedback"></p>' +
+        '</div>';
+    });
+    html += '</div>';
+  } else if (it.solution){
+    html += '<details class="sol-box"><summary>看詳解</summary><div class="body">' + it.solution + '</div></details>';
+  }
+  if (it.unresolved){
+    html += '<p class="note">⚠️ 這題條件待確認，暫不列入練習，也不要當成「已訂正」。</p>';
+  } else if (it.practice === false){
+    html += '<p class="note">這題不列入必練，看懂詳解就好。</p>';
+  }
+  card.innerHTML = html;
+
+  card.querySelectorAll(".drill").forEach(row => {
+    const i     = +row.dataset.i;
+    const d     = it.drills[i];
+    const input = row.querySelector("input");
+    const mark  = row.querySelector(".mark");
+    const fb    = row.querySelector(".feedback");
+    const btn   = row.querySelector("[data-check]");
+    const dk    = key + "#" + i;
+
+    function paint(){
+      const st = state[dk];
+      if (!st) return;
+      input.value = st.v || "";
+      if (st.ok){
+        input.classList.add("right"); mark.textContent = "✅";
+        fb.className = "feedback sol"; fb.textContent = "答對了。";
+      } else {
+        input.classList.add("wrong"); mark.textContent = "✏️";
+        fb.className = "feedback hint"; fb.innerHTML = "再想一次：" + d.hint;
+      }
+    }
+    function check(){
+      const v  = input.value;
+      if (!normStr(v)) { input.focus(); return; }
+      const ok = isRight(v, d.a);
+      const prev  = state[dk] || {};
+      const tries = (prev.tries || 0) + 1;
+      const now   = new Date();
+      const today = now.getFullYear() + "-" +
+                    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(now.getDate()).padStart(2, "0");
+      // okDays＝曾經答對的「不同日期」清單。間隔回訪與「兩個不同日子都對才畢業」
+      // 都靠它判斷；只存最後一次結果的話，隔天重練跟當天重做分不出來。
+      const okDays = Array.isArray(prev.okDays) ? prev.okDays.slice() : [];
+      if (ok && okDays.indexOf(today) === -1) okDays.push(today);
+      state[dk] = { v: v, ok: ok, tries: tries, ts: now.getTime(), okDays: okDays };
+      save();
+      input.classList.remove("right","wrong");
+      if (ok){
+        input.classList.add("right"); mark.textContent = "✅";
+        fb.className = "feedback sol"; fb.textContent = "答對了。";
+      } else {
+        input.classList.add("wrong"); mark.textContent = "✏️";
+        if (tries === 1){
+          fb.className = "feedback hint"; fb.innerHTML = "還不對。提示：" + d.hint;
+        } else {
+          fb.className = "feedback hint";
+          fb.innerHTML = "還不對。提示：" + d.hint + "<br>正確答案是 <strong>" + d.a +
+                         "</strong>——把上面那段「為什麼錯」再讀一次，然後自己重算一遍。";
+        }
+      }
+      refresh();
+    }
+    btn.addEventListener("click", check);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+    input.addEventListener("input", () => { input.classList.remove("right","wrong"); mark.textContent=""; });
+    paint();
+  });
+
+  return card;
+}
+
+function refresh(){
+  let done = 0;
+  Object.keys(state).forEach(k => { if (state[k] && state[k].ok) done++; });
+  if (done > totalDrills) done = totalDrills;
+  const pct = totalDrills ? Math.round(done / totalDrills * 100) : 0;
+  document.getElementById("progBar").style.width = pct + "%";
+  document.getElementById("progText").textContent = done + " / " + totalDrills + "　(" + pct + "%)";
+  document.getElementById("progLabel").textContent =
+    pct === 100 ? "🎉 全部變式都答對了——這三個根因今天過關" : "變式練習進度";
+
+  document.querySelectorAll(".card").forEach(card => {
+    const rows = card.querySelectorAll(".drill");
+    if (!rows.length) return;
+    const st = card.querySelector("[data-state]");
+    let ok = 0;
+    rows.forEach(r => { const m = r.querySelector(".mark"); if (m.textContent === "✅") ok++; });
+    if (ok === rows.length){ card.classList.add("done"); st.className = "state ok"; st.textContent = "✅ 已過關"; }
+    else { card.classList.remove("done"); st.className = "state"; st.textContent = ok + " / " + rows.length + " 答對"; }
+  });
+}
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("確定要清除這一頁所有作答紀錄？")) return;
+  state = {}; save(); location.reload();
+});
+
+refresh();
+</script>
+</body>
+</html>
