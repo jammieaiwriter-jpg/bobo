@@ -159,7 +159,7 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
   </section>
 
   <section id="sec-none" class="hide">
-    <div class="empty"><span class="em">✨</span>錯題本是空的<br><span style="font-size:14px">闖關時答錯的成語會自動收進來</span></div>
+    <div class="empty" id="none-body"><span class="em">✨</span>錯題本是空的<br><span style="font-size:14px">闖關時答錯的成語會自動收進來</span></div>
   </section>
 
   <footer>
@@ -249,11 +249,11 @@ const TODAY=todayStr();
 
 /* ---------- 每日一輪 ---------- */
 const KEY="cy_wk1_v4";
-let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],sc:0,tt:0,notified:"",rounds:0};
+let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],drill:{},sc:0,tt:0,notified:"",rounds:0};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 function newRound(countIt){
   S.day=TODAY; S.queue=shuffle(EXAM.map(d=>d.i));
-  S.cleared=[]; S.everWrong=[]; S.sc=0; S.tt=0;
+  S.cleared=[]; S.everWrong=[]; S.drill={}; S.sc=0; S.tt=0;
   if(countIt)S.rounds=(S.rounds||0)+1;
 }
 if(S.day!==TODAY){newRound(false)}            // 換日 → 自動開新的一輪
@@ -267,7 +267,7 @@ function paint(){
   $("#pfill").style.width=pct+"%";
   $("#ptext").innerHTML=c>=N?`<span class="done">✓ 今天這一輪完成（${N} 則）</span>`
     :`今日進度 <b>${c}</b> / ${N}　·　還剩 ${N-c} 則`;
-  $("#wn").textContent=S.everWrong.length;
+  $("#wn").textContent=S.everWrong.length?drillPool().length:0;
 }
 
 /* ---------- 速記卡 ---------- */
@@ -341,6 +341,9 @@ function makeQ(d,type){
 
 /* ---------- 主流程 ---------- */
 let mode="run",cur=null,locked=false;
+const DRILL_PASS=2;                 // 曾錯的每則要再答對幾次才畢業
+let lastDrill=null;                 // 上一題抽到的，避免連抽同一則
+const drillPool=()=>S.everWrong.filter(x=>(S.drill[x]||0)<DRILL_PASS);
 
 function nextQ(){
   if(readTimer){clearTimeout(readTimer);readTimer=null}
@@ -351,10 +354,15 @@ function nextQ(){
     if(!S.queue.length){finishRound();return}
     name=S.queue[0];$("#qr").textContent=`還剩 ${S.queue.length} 則待過關`;
   }else{
-    const pool=S.wrong.length?S.wrong:S.everWrong;
-    if(!pool.length){show("none");return}
-    name=pool[Math.floor(Math.random()*pool.length)];
-    $("#qr").textContent=`曾答錯 ${S.everWrong.length} 則 · 重練中`;
+    const pool=drillPool();
+    if(!pool.length){paintNone();show("none");return}
+    // 池子大於 1 時不連抽同一則
+    let cand=pool.filter(x=>x!==lastDrill);
+    if(!cand.length)cand=pool;
+    name=cand[Math.floor(Math.random()*cand.length)];
+    lastDrill=name;
+    const need=pool.reduce((a,x)=>a+(DRILL_PASS-(S.drill[x]||0)),0);
+    $("#qr").textContent=`待畢業 ${pool.length} 則 · 還需答對 ${need} 次`;
   }
   cur=makeQ(byName(name));
   $("#ql").textContent=cur.label;
@@ -381,10 +389,16 @@ function answer(btn,val){
     S.queue=S.queue.filter(x=>x!==d.i);
     S.wrong=S.wrong.filter(x=>x!==d.i);
     if(!S.cleared.includes(d.i))S.cleared.push(d.i);
+    if(mode==="wrong"&&S.everWrong.includes(d.i))S.drill[d.i]=(S.drill[d.i]||0)+1;
     fb.className="fb show good";
     fb.innerHTML=`<span class="fi">✓ ${d.i}</span>${d.m}`+
       (d.t?`<div style="margin-top:6px;font-size:13px">⚠️ ${d.t}</div>`:"")+
-      (mode==="run"?`<div class="again">🏅 過關！還剩 ${S.queue.length} 則</div>`:"");
+      (mode==="run"?`<div class="again">🏅 過關！還剩 ${S.queue.length} 則</div>`
+       :(S.everWrong.includes(d.i)
+          ? ((S.drill[d.i]||0)>=DRILL_PASS
+              ? `<div class="again">🎓 這則畢業了！剩 ${drillPool().length} 則待畢業</div>`
+              : `<div class="again">再答對 ${DRILL_PASS-(S.drill[d.i]||0)} 次就畢業</div>`)
+          :""));
   }else{
     if(mode==="run"){
       S.queue=S.queue.filter(x=>x!==d.i);S.queue.push(d.i);
@@ -392,6 +406,7 @@ function answer(btn,val){
     }
     if(!S.wrong.includes(d.i))S.wrong.push(d.i);
     if(!S.everWrong.includes(d.i))S.everWrong.push(d.i);
+    S.drill[d.i]=0;                 // 答錯 → 畢業進度歸零，要重新累積
     fb.className="fb show no";
     fb.innerHTML=`<span class="fi">✗ 正解：${d.i}</span>`+cardHTML(d)+
       `<div class="again">↩︎ 這一則排到最後，等一下會再考你一次</div>`+
@@ -449,6 +464,16 @@ function finishRound(){
     });
 }
 
+function paintNone(){
+  const b=$("#none-body");
+  if(S.everWrong.length){
+    b.innerHTML=`<span class="em">🎓</span>曾錯的 ${S.everWrong.length} 則都畢業了<br>`+
+      `<span style="font-size:14px">每則都再答對 ${DRILL_PASS} 次，可以去睡了</span>`;
+  }else{
+    b.innerHTML=`<span class="em">✨</span>錯題本是空的<br>`+
+      `<span style="font-size:14px">闖關時答錯的成語會自動收進來</span>`;
+  }
+}
 function show(which){
   $("#sec-learn").classList.toggle("hide",which!=="learn");
   $("#sec-quiz").classList.toggle("hide",which!=="quiz");
@@ -462,7 +487,7 @@ document.querySelectorAll("nav button").forEach(b=>{
     setNav(b.dataset.m);mode=b.dataset.m;
     if(mode==="learn"){buildGrid();show("learn")}
     else if(mode==="run"){S.queue.length?(show("quiz"),nextQ()):finishRound()}
-    else{(S.wrong.length||S.everWrong.length)?(show("quiz"),nextQ()):show("none")}
+    else{lastDrill=null;drillPool().length?(show("quiz"),nextQ()):(paintNone(),show("none"))}
   };
 });
 $("#nx").onclick=nextQ;
@@ -476,7 +501,7 @@ $("#d-again").onclick=()=>{
 };
 $("#d-wrongonly").onclick=()=>{
   if(!S.everWrong.length){alert("今天沒有答錯過任何一則 👏");return}
-  S.wrong=S.everWrong.slice();save();paint();
+  S.everWrong.forEach(x=>S.drill[x]=0);lastDrill=null;save();paint();
   setNav("wrong");mode="wrong";show("quiz");nextQ();
 };
 
