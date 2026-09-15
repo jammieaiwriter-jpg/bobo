@@ -59,6 +59,7 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#fff;fon
 .opt{font-family:inherit;font-size:16px;text-align:left;padding:13px 15px;border-radius:9px;cursor:pointer;
   border:1.5px solid var(--line);background:var(--paper);color:var(--ink);transition:.12s;line-height:1.6}
 .opt.char{font-size:29px;text-align:center;letter-spacing:3px;font-weight:700}
+.opt.char2{font-size:23px;text-align:center;letter-spacing:4px;font-weight:700}
 .opt:hover{border-color:var(--accent2)}
 .opt.right{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
 .opt.wrong{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
@@ -233,6 +234,57 @@ const CONF={"了":["瞭","樂","略"],"貉":["洛","落","駱"],"咻":["休","�
 "傳":["轉","博","摶"],"針":["珍","診","斟"],"筆":["畢","必","比"],
 "暴":["曝","爆","瀑"],"鳴":["嗚","烏","鳥"],"鵰":["雕","凋","碉"],"諾":["若","偌","匿"],
 "塵":["陳","沉","麈"],"網":["綱","罔","岡"],"團":["圓","園","專"],"葉":["業","頁","蝶"]};
+const EX={
+"一了百了":"他以為辭職就能______，沒想到問題反而更多。",
+"一五一十":"警察問話時，他把看到的經過______地說了出來。",
+"一介不取":"這位老法官為官數十年，______，從不收受任何禮物。",
+"一手遮天":"他在公司裡______，沒有人敢說真話。",
+"一日三秋":"自從好友出國後，我天天惦記著，真是______。",
+"一毛不拔":"他明明很有錢卻______，連捐一百元都捨不得。",
+"一丘之貉":"這兩個貪官互相包庇，根本是______。",
+"一目瞭然":"這張圖表做得很清楚，各季的業績______。",
+"一本正經":"他平時愛開玩笑，上台報告時卻______。",
+"一字千金":"這位作家惜墨如金，寫出來的文章______。",
+"一年半載":"這項工程不是______就能完成的。",
+"一成不變":"時代不斷在變，做法若______，遲早被淘汰。",
+"一步登天":"想成功就要腳踏實地，別妄想______。",
+"一見如故":"我們雖是初次見面，卻聊得投機，______。",
+"一言九鼎":"他向來說話算話，在同學之間______。",
+"一事無成":"他整天空想卻不肯行動，到頭來______。",
+"一言難盡":"這幾年發生的事______，改天再慢慢說給你聽。",
+"一命嗚呼":"那隻受傷的小鳥沒能撐過寒夜，終究______。",
+"一波三折":"這場比賽______，最後一秒才分出勝負。",
+"一知半解":"他對這個題目只是______，卻裝作很懂。",
+"一股腦兒":"他把書包裡的東西______全倒在桌上。",
+"一哄而散":"老師一走進教室，圍觀的同學就______。",
+"一面之交":"我和他只有______，談不上熟識。",
+"一氣呵成":"這篇文章寫得______，讀起來十分流暢。",
+"一笑置之":"面對那些閒言閒語，他只是______。",
+"一針見血":"老師的評語______，點出了我作文的毛病。",
+"一馬當先":"大掃除時他總是______，搶著做最累的工作。",
+"一敗塗地":"因為輕敵，這場球賽他們打得______。",
+"一望無際":"站在山頂往下看，是______的稻田。",
+"一貧如洗":"他家中______，卻仍堅持讓孩子把書念完。",
+"一傳眾咻":"在吵鬧的環境裡讀書，______，效果自然不好。",
+"一勞永逸":"與其年年修補，不如重建，才能______。",
+"一揮而就":"他文思敏捷，這篇稿子______。",
+"一朝一夕":"學問的累積不是______的事，要長期用功。",
+"一筆勾消":"他決定把過去的恩怨______，重新開始。",
+"一絲不苟":"他做事______，連標點符號都要檢查三遍。",
+"一視同仁":"老師對每個學生都______，不偏袒任何人。",
+"一絲不掛":"這位禪師修行多年，心中______，不為名利所動。",
+"一飯千金":"他始終記得當年那份恩情，日後______地回報。",
+"一塌糊塗":"房間亂得______，連下腳的地方都沒有。",
+"一落千丈":"他沉迷手機之後，成績______。",
+"一葉知秋":"從這些小地方就看得出問題，正所謂______。",
+"一團和氣":"這家店的老闆待人______，客人都很喜歡。",
+"一塵不染":"他把房間打掃得______，連窗框都擦過。",
+"一網打盡":"警方順藤摸瓜，把整個詐騙集團______。",
+"一暴十寒":"學語言最忌______，每天練一點才有效。",
+"一鳴驚人":"他平時默默苦練，這次比賽果然______。",
+"一箭雙鵰":"騎腳踏車上學既省錢又能運動，真是______。",
+"一諾千金":"他答應過的事一定辦到，真是______。"
+};
 const ALLCH=[...new Set(DATA.flatMap(d=>d.i.split("")))];
 
 /* 第一次週考範圍 = p.20–29 全部 49 則 */
@@ -246,10 +298,18 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const pick=(arr,n,not)=>shuffle(arr.filter(x=>x!==not)).slice(0,n);
 const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const TODAY=todayStr();
+/* 第幾天＝過去完成過的天數＋1；?day=N 可手動預覽 */
+function dayNo(){
+  const q=new URLSearchParams(location.search).get("day");
+  if(q&&+q>0)return +q;
+  const past=(S.history||[]).filter(x=>x!==TODAY).length;
+  return past+1;
+}
+const TIER_NAME={1:"第一天 · 基礎題",2:"第二天 · 變化題",3:"第三天 · 應用題"};
 
 /* ---------- 每日一輪 ---------- */
 const KEY="cy_wk1_v4";
-let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],drill:{},sc:0,tt:0,notified:"",rounds:0};
+let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],drill:{},sc:0,tt:0,notified:"",rounds:0,history:[]};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 function newRound(countIt){
   S.day=TODAY; S.queue=shuffle(EXAM.map(d=>d.i));
@@ -259,7 +319,8 @@ function newRound(countIt){
 if(S.day!==TODAY){newRound(false)}            // 換日 → 自動開新的一輪
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 
-$("#todaystr").textContent="· "+(new Date().getMonth()+1)+"/"+new Date().getDate();
+$("#todaystr").textContent="· "+(new Date().getMonth()+1)+"/"+new Date().getDate()+
+  "　【"+(TIER_NAME[Math.min(dayNo(),3)]||("第"+dayNo()+"天 · 應用題"))+"】";
 $("#d-n").textContent=N;
 
 function paint(){
@@ -320,22 +381,132 @@ function forceRead(){
   tick();
 }
 
+/* ── 難度強化 ─────────────────────────────── */
+
+/* 1) 遮蔽釋義裡洩漏答案的字（辭典常直接訓詁成語本身的字） */
+function maskMeaning(d){
+  let m=d.m, idm=d.i;
+  for(let len=4;len>=2;len--){
+    for(let st=0;st+len<=idm.length;st++){
+      const frag=idm.substr(st,len);
+      if(frag.indexOf("一")===0&&len===2)continue;
+      if(m.includes(frag))m=m.split(frag).join("□".repeat(len));
+    }
+  }
+  // 開頭單字訓詁：「載，年。」「咻，喧鬧。」「置，安放。」
+  if(m.length>1&&idm.includes(m[0])&&m[1]==="，")m="□"+m.slice(1);
+  return m;
+}
+
+/* 2) 誘答改抽「長得像的」：與答案共用字越多越優先 */
+function similarIdioms(d,n){
+  const key=new Set(d.i.slice(1).split(""));
+  const tiers={};
+  DATA.forEach(x=>{
+    if(x.i===d.i)return;
+    let sc=0;x.i.slice(1).split("").forEach(c=>{if(key.has(c))sc++});
+    (tiers[sc]=tiers[sc]||[]).push(x);
+  });
+  const out=[];
+  Object.keys(tiers).map(Number).sort((a,b)=>b-a).forEach(sc=>{
+    if(out.length<n)out.push(...shuffle(tiers[sc]).slice(0,n-out.length));
+  });
+  return out.slice(0,n);
+}
+
+/* 3) 造錯別字變體：把某個字換成易混淆字 */
+function typoVariants(d,n){
+  const chars=d.i.split("");
+  const spots=chars.map((c,i)=>({c,i})).filter(o=>CONF[o.c]&&CONF[o.c].length>=3);
+  if(!spots.length)return [];
+  const out=[],used=new Set();
+  shuffle(spots).forEach(sp=>{
+    shuffle(CONF[sp.c]).forEach(rep=>{
+      if(out.length>=n)return;
+      const v=chars.slice();v[sp.i]=rep;
+      const str=v.join("");
+      if(str!==d.i&&!used.has(str)){used.add(str);out.push(str)}
+    });
+  });
+  return out.slice(0,n);
+}
+const splitRel=str=>(str||"").split(/[、，]/).map(x=>x.trim()).filter(x=>x.length>=3);
+const REL_POOL=DATA.flatMap(d=>[...splitRel(d.n),...splitRel(d.f)]);
+
 function makeQ(d,type){
-  const m=type||["m2i","i2m","fill"][Math.floor(Math.random()*3)];
-  if(m==="m2i")return{d,label:"看 釋 義 · 選 成 語",html:d.m,
-    opts:shuffle([d.i,...pick(EXAM.map(x=>x.i),3,d.i)]),ans:d.i,cls:""};
+  // 依「第幾天」給題型（累積式）：D1 基礎 → D2 變化 → D3+ 應用
+  const TIERS={
+    1:["m2i","i2m"],
+    2:["fill","typo","rel","fill","m2i"],
+    3:["cloze","cloze","cloze","rel","typo","fill"]
+  };
+  let pool=(TIERS[Math.min(dayNo(),3)]||TIERS[3]).slice();
+  if(!typoVariants(d,3).length)pool=pool.filter(x=>x!=="typo");
+  if(!(splitRel(d.n).length&&splitRel(d.f).length))pool=pool.filter(x=>x!=="rel");
+  if(!EX[d.i])pool=pool.filter(x=>x!=="cloze");
+  if(!pool.length)pool=["i2m"];
+  const m=type||pool[Math.floor(Math.random()*pool.length)];
+
+  if(m==="cloze")return{d,label:"應 用 · 選 出 最 適 合 的 成 語",
+    html:`<span style="font-size:18px;line-height:2">${EX[d.i].replace("______",'<span class="blank" style="min-width:5em">？</span>')}</span>`,
+    opts:shuffle([d.i,...similarIdioms(d,3).map(x=>x.i)]),ans:d.i,cls:""};
+
+  if(m==="m2i")return{d,label:"看 釋 義 · 選 成 語",
+    html:maskMeaning(d)+`<div style="font-size:12px;color:#a89a7c;margin-top:8px">□ 代表被遮住的字</div>`,
+    opts:shuffle([d.i,...similarIdioms(d,3).map(x=>x.i)]),ans:d.i,cls:""};
+
   if(m==="i2m")return{d,label:"看 成 語 · 選 釋 義",
     html:`<span class="big">${d.i}</span>`+(d.z?`<span style="font-size:13px;color:var(--accent2)">${d.z}</span>`:""),
-    opts:shuffle([d.m,...pick(EXAM.map(x=>x.m),3,d.m)]),ans:d.m,cls:""};
+    opts:shuffle([d.m,...similarIdioms(d,3).map(x=>x.m)]),ans:d.m,cls:""};
+
+  if(m==="typo"){
+    return{d,label:"錯 別 字 · 選 出 完 全 正 確 的",
+      html:`<span style="font-size:15px;color:var(--ink2)">${maskMeaning(d)}</span>`,
+      opts:shuffle([d.i,...typoVariants(d,3)]),ans:d.i,cls:"char2"};
+  }
+
+  if(m==="rel"){
+    const askNear=Math.random()<0.5;
+    const right=splitRel(askNear?d.n:d.f);
+    const trap=splitRel(askNear?d.f:d.n);          // 用「相反那一欄」當誘答
+    const ans=right[Math.floor(Math.random()*right.length)];
+    let dis=shuffle(trap).slice(0,3);
+    if(dis.length<3){
+      const bad=new Set([...right,...trap,d.i]);
+      dis=dis.concat(shuffle(REL_POOL.filter(x=>!bad.has(x))).slice(0,3-dis.length));
+    }
+    return{d,label:askNear?"下 列 何 者 與 它 意 思 相 近":"下 列 何 者 與 它 意 思 相 反",
+      html:`<span class="big">${d.i}</span>`+
+           `<span style="font-size:13px;color:var(--ink2)">${maskMeaning(d)}</span>`,
+      opts:shuffle([ans,...dis]),ans:ans,cls:""};
+  }
+
+  // fill：挖 1~2 個字
   const chars=d.i.split("");
   const tricky=chars.map((c,idx)=>({c,idx})).filter(o=>CONF[o.c]&&CONF[o.c].length>=3);
+  if(tricky.length>=2&&Math.random()<0.45){
+    // 雙挖：選項是兩字組合，光靠字形猜不到
+    const two=shuffle(tricky).slice(0,2).sort((a,b)=>a.idx-b.idx);
+    const shown=chars.map((c,k)=>two.some(o=>o.idx===k)?'<span class="blank">？</span>':c).join("");
+    const right=two.map(o=>o.c).join("");
+    const set=new Set([right]);
+    while(set.size<4){
+      const a=Math.random()<0.5?two[0].c:pick(CONF[two[0].c],1)[0];
+      const b=Math.random()<0.5?two[1].c:pick(CONF[two[1].c],1)[0];
+      set.add(a+b);
+      if(set.size<4&&[...set].length>20)break;
+    }
+    return{d,label:"填 空 · 選 出 正 確 的 兩 個 字",
+      html:`<span class="big">${shown}</span><span style="font-size:14px;color:var(--ink2)">${maskMeaning(d)}</span>`,
+      opts:shuffle([...set]),ans:right,cls:"char2"};
+  }
   const sel=tricky.length?tricky[Math.floor(Math.random()*tricky.length)]
                         :{c:chars[Math.floor(Math.random()*chars.length)],idx:-1};
   const idx=sel.idx>=0?sel.idx:chars.indexOf(sel.c);
   const shown=chars.map((c,k)=>k===idx?'<span class="blank">？</span>':c).join("");
   const dis=(CONF[sel.c]&&CONF[sel.c].length>=3)?pick(CONF[sel.c],3):pick(ALLCH,3,sel.c);
   return{d,label:"填 空 · 選 出 正 確 的 字",
-    html:`<span class="big">${shown}</span><span style="font-size:14px;color:var(--ink2)">${d.m}</span>`,
+    html:`<span class="big">${shown}</span><span style="font-size:14px;color:var(--ink2)">${maskMeaning(d)}</span>`,
     opts:shuffle([sel.c,...dis]),ans:sel.c,cls:"char"};
 }
 
@@ -436,6 +607,8 @@ function finishRound(){
   }else t.classList.add("hide");
 
   const nb=$("#d-notify");
+  if(!S.history)S.history=[];
+  if(!S.history.includes(TODAY)){S.history.push(TODAY);save()}
   if(S.notified===TODAY){
     nb.className="notify sent";nb.textContent="✓ 今天的完成通知已經傳給媽媽了";
     return;
@@ -446,6 +619,7 @@ function finishRound(){
     `📚 Bobo 完成今日成語闖關\n`+
     `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}\n`+
     `範圍：第一次週考 p.20–29（${N} 則）\n`+
+    `關卡：${TIER_NAME[Math.min(dayNo(),3)]||("第"+dayNo()+"天 · 應用題")}\n`+
     `── 全部過關 ✓\n`+
     `作答 ${S.tt} 題 · 一次答對率 ${pc}%\n`+
     (S.everWrong.length
