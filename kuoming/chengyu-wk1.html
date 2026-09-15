@@ -69,6 +69,14 @@ nav button.on{background:var(--accent);border-color:var(--accent);color:#fff;fon
 .fb.no{background:var(--badbg);color:#8a2626;border:1px solid #e2b0ab}
 .fb .fi{font-size:19px;font-weight:700;letter-spacing:3px;display:block;margin-bottom:3px}
 .fb .again{font-size:12.5px;margin-top:7px;font-weight:700;opacity:.85}
+.fcard{background:#fff;border:1px solid #e2b0ab;border-radius:9px;padding:13px 15px;margin-top:11px;text-align:left}
+.fcard .fz{font-size:12px;color:var(--accent2);letter-spacing:1px;margin-bottom:5px}
+.fcard .fm{font-size:15.5px;color:var(--ink);line-height:1.8}
+.fcard .fr{font-size:13px;color:var(--ink2);margin-top:8px}
+.fcard .fr span{display:inline-block;background:#ece2c9;border-radius:4px;padding:1px 6px;margin-right:5px;font-size:11px;color:#7a6a48}
+.fcard .ft{background:#fdf3d6;border-left:3px solid #d9a441;padding:7px 10px;font-size:13px;margin-top:9px;border-radius:0 5px 5px 0;color:#6b5520}
+.readnote{font-size:12.5px;color:#8a2626;margin-top:9px;font-weight:700;letter-spacing:.5px}
+.next:disabled{background:#c9bda3;cursor:not-allowed;letter-spacing:1px}
 .next{display:block;width:100%;margin-top:14px;padding:14px;border:none;border-radius:9px;cursor:pointer;
   background:var(--accent);color:#fff;font-family:inherit;font-size:16px;font-weight:700;letter-spacing:2px}
 .done-box{text-align:center;background:var(--paper2);border:2px solid var(--gold);border-radius:12px;padding:32px 20px;box-shadow:var(--shadow)}
@@ -282,6 +290,36 @@ function buildGrid(){
 }
 
 /* ---------- 出題 ---------- */
+/* 答錯時攤開的完整速記卡 */
+function cardHTML(d){
+  return `<div class="fcard">`+
+    (d.z?`<div class="fz">${d.z}</div>`:"")+
+    `<div class="fm">${d.m}</div>`+
+    (d.n?`<div class="fr"><span>近義</span>${d.n}</div>`:"")+
+    (d.f?`<div class="fr"><span>反義</span>${d.f}</div>`:"")+
+    (d.t?`<div class="ft">⚠️ ${d.t}</div>`:"")+
+  `</div>`;
+}
+/* 強制閱讀：讀滿秒數才解鎖「下一題」 */
+let readTimer=null;
+const READ_SEC=6;
+function forceRead(){
+  const btn=$("#nx");
+  btn.classList.remove("hide");
+  btn.disabled=true;
+  let sec=READ_SEC;
+  const tick=()=>{
+    if(sec<=0){
+      btn.disabled=false;
+      btn.textContent="我讀完了，下一題 →";
+      readTimer=null;return;
+    }
+    btn.textContent=`請先把速記卡讀完…（${sec}）`;
+    sec--;readTimer=setTimeout(tick,1000);
+  };
+  tick();
+}
+
 function makeQ(d,type){
   const m=type||["m2i","i2m","fill"][Math.floor(Math.random()*3)];
   if(m==="m2i")return{d,label:"看 釋 義 · 選 成 語",html:d.m,
@@ -305,7 +343,9 @@ function makeQ(d,type){
 let mode="run",cur=null,locked=false;
 
 function nextQ(){
-  locked=false;$("#fb").className="fb";$("#nx").classList.add("hide");
+  if(readTimer){clearTimeout(readTimer);readTimer=null}
+  locked=false;$("#fb").className="fb";
+  $("#nx").classList.add("hide");$("#nx").disabled=false;
   let name;
   if(mode==="run"){
     if(!S.queue.length){finishRound();return}
@@ -353,13 +393,18 @@ function answer(btn,val){
     if(!S.wrong.includes(d.i))S.wrong.push(d.i);
     if(!S.everWrong.includes(d.i))S.everWrong.push(d.i);
     fb.className="fb show no";
-    fb.innerHTML=`<span class="fi">✗ 正解：${d.i}</span>${d.m}`+
-      (d.t?`<div style="margin-top:6px;font-size:13px">⚠️ ${d.t}</div>`:"")+
-      `<div class="again">↩︎ 這一則排到最後，等一下會再考你一次</div>`;
+    fb.innerHTML=`<span class="fi">✗ 正解：${d.i}</span>`+cardHTML(d)+
+      `<div class="again">↩︎ 這一則排到最後，等一下會再考你一次</div>`+
+      `<div class="readnote">📖 讀完這張速記卡才能繼續</div>`;
   }
   save();paint();
-  $("#nx").classList.remove("hide");
-  $("#nx").textContent=(mode==="run"&&!S.queue.length)?"🏆 看成果 →":"下一題 →";
+  if(ok){
+    $("#nx").classList.remove("hide");
+    $("#nx").disabled=false;
+    $("#nx").textContent=(mode==="run"&&!S.queue.length)?"🏆 看成果 →":"下一題 →";
+  }else{
+    forceRead();
+  }
 }
 
 /* ---------- 完成 + Telegram 通知 ---------- */
