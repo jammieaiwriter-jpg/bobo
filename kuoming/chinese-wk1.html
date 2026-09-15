@@ -136,7 +136,8 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
 <div class="wrap">
   <nav>
     <button data-m="learn">📖 速記卡</button>
-    <button data-m="run" class="on">🏆 今日闖關</button>
+    <button data-m="cy" class="on">📗 成語闖關 (<span id="ncy">0</span>/49)</button>
+    <button data-m="wy">📘 文言文闖關 (<span id="nwy">0</span>/41)</button>
     <button data-m="wrong">🎯 錯題重練 (<span id="wn">0</span>)</button>
     <button data-m="cap" class="cap">📜 會考文言 (<span id="cn">0</span>/149)</button>
   </nav>
@@ -172,6 +173,7 @@ footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 
       <div class="tough hide" id="d-tough"></div>
       <div class="notify" id="d-notify"></div>
       <div class="btnrow">
+        <button id="d-other">➡️ 去做另一科</button>
         <button class="blue" id="d-cap">📜 加碼會考文言</button>
         <button class="ghost" id="d-wrongonly">🎯 再練曾錯的</button>
         <button class="ghost" id="d-again">🔁 再跑一輪</button>
@@ -333,13 +335,22 @@ $("#d-n").textContent=N;
 /* ══ 進度 ══ */
 const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const TODAY=todayStr();
-const KEY="gw_wk1_v5";
-let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],drill:{},sc:0,tt:0,notified:"",history:[],capDone:[],capWrong:[]};
+const KEY="gw_wk1_v6";
+const TRACK=id=>id.startsWith("cy:")?"cy":"wy";
+const IDS={cy:ITEMS.filter(x=>x.kind==="cy").map(x=>x.id),
+           wy:ITEMS.filter(x=>x.kind!=="cy").map(x=>x.id)};
+let S={day:"",q:{cy:[],wy:[]},cl:{cy:[],wy:[]},wrong:[],everWrong:[],drill:{},
+       sc:0,tt:0,notified:"",history:[],capDone:[]};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
-function newRound(){S.day=TODAY;S.queue=shuffle(ITEMS.map(x=>x.id));S.cleared=[];S.everWrong=[];S.drill={};S.sc=0;S.tt=0}
+function newTrack(t){S.q[t]=shuffle(IDS[t].slice());S.cl[t]=[]}
+function newRound(){S.day=TODAY;newTrack("cy");newTrack("wy");
+  S.everWrong=[];S.drill={};S.wrong=[];S.sc=0;S.tt=0}
 if(S.day!==TODAY)newRound();
-ITEMS.forEach(x=>{if(!S.queue.includes(x.id)&&!S.cleared.includes(x.id))S.queue.push(x.id)});
+["cy","wy"].forEach(t=>{S.q[t]=S.q[t]||[];S.cl[t]=S.cl[t]||[];
+  IDS[t].forEach(id=>{if(!S.q[t].includes(id)&&!S.cl[t].includes(id))S.q[t].push(id)})});
+const trackDone=t=>S.q[t].length===0;
+const bothDone=()=>trackDone("cy")&&trackDone("wy");
 
 function dayNo(){
   const q=new URLSearchParams(location.search).get("day");
@@ -351,13 +362,13 @@ const tierLabel=()=>TIER_NAME[Math.min(dayNo(),3)]||("第"+dayNo()+"天 · 應�
 $("#todaystr").textContent="· "+(new Date().getMonth()+1)+"/"+new Date().getDate()+"　【"+tierLabel()+"】";
 
 function paint(){
-  const cy=S.cleared.filter(x=>x.startsWith("cy:")).length;
-  const wy=S.cleared.length-cy;
+  const cy=S.cl.cy.length,wy=S.cl.wy.length;
   $("#segcy").style.width=(cy/N*100)+"%";
   $("#segwy").style.width=(wy/N*100)+"%";
-  $("#ptext").innerHTML=S.cleared.length>=N
-    ? `<span class="done">✓ 今天這一輪完成（${N} 題）</span>`
-    : `成語 <b>${cy}</b>/${N_CY}　·　文言文 <b class="w">${wy}</b>/${N_WY}　·　還剩 ${N-S.cleared.length} 題`;
+  $("#ncy").textContent=cy;$("#nwy").textContent=wy;
+  $("#ptext").innerHTML=bothDone()
+    ? `<span class="done">✓ 成語＋文言文 今天都完成了</span>`
+    : `成語 <b>${cy}</b>/${N_CY}${trackDone("cy")?" ✓":""}　·　文言文 <b class="w">${wy}</b>/${N_WY}${trackDone("wy")?" ✓":""}`;
   $("#wn").textContent=S.everWrong.length?drillPool().length:0;
   $("#cn").textContent=(S.capDone||[]).length;
 }
@@ -650,10 +661,10 @@ function nextQ(){
     cur=qCAP(tierPool[Math.floor(Math.random()*tierPool.length)]);
     cur.capItem=tierPool.find(c=>`<span class="lab">(${c.an})</span>`+esc(c.op[c.an])===cur.ans)||null;
     $("#qr").textContent=`已完成 ${(S.capDone||[]).length}/149`;
-  }else if(mode==="run"){
-    if(!S.queue.length){finishRound();return}
-    cur=makeQ(BY[S.queue[0]]);
-    $("#qr").textContent=`還剩 ${S.queue.length} 題`;
+  }else if(mode==="cy"||mode==="wy"){
+    if(!S.q[mode].length){finishTrack(mode);return}
+    cur=makeQ(BY[S.q[mode][0]]);
+    $("#qr").textContent=`${mode==="cy"?"成語":"文言文"} 還剩 ${S.q[mode].length} 題`;
   }else{
     const pool=drillPool();
     if(!pool.length){paintNone();show("none");return}
@@ -704,24 +715,25 @@ function answer(btn,val){
     }
     return;
   }
-  const it=cur.it,id=it.id;
+  const it=cur.it,id=it.id,tk=TRACK(id);
+  const inRun=(mode==="cy"||mode==="wy");
   if(ok){
-    S.queue=S.queue.filter(x=>x!==id);
+    S.q[tk]=S.q[tk].filter(x=>x!==id);
     S.wrong=S.wrong.filter(x=>x!==id);
-    if(!S.cleared.includes(id))S.cleared.push(id);
+    if(!S.cl[tk].includes(id))S.cl[tk].push(id);
     if(mode==="wrong"&&S.everWrong.includes(id))S.drill[id]=(S.drill[id]||0)+1;
     fb.className="fb show good";
     fb.innerHTML=`<span class="fi">✓ 答對</span>`+
       (it.kind==="cy"?`${it.d.i}　${it.d.m}`:`${cur.ans}`)+
-      (mode==="run"?`<div class="again">🏅 過關！還剩 ${S.queue.length} 題</div>`
+      (inRun?`<div class="again">🏅 過關！${mode==="cy"?"成語":"文言文"}還剩 ${S.q[mode].length} 題</div>`
         :(S.everWrong.includes(id)?((S.drill[id]||0)>=DRILL_PASS
             ?`<div class="again">🎓 這題畢業了！剩 ${drillPool().length} 題</div>`
             :`<div class="again">再答對 ${DRILL_PASS-(S.drill[id]||0)} 次就畢業</div>`):""));
     save();paint();
     $("#nx").classList.remove("hide");$("#nx").disabled=false;
-    $("#nx").textContent=(mode==="run"&&!S.queue.length)?"🏆 看成果 →":"下一題 →";
+    $("#nx").textContent=(inRun&&!S.q[mode].length)?"🏆 看成果 →":"下一題 →";
   }else{
-    if(mode==="run"){S.queue=S.queue.filter(x=>x!==id);S.queue.push(id);S.cleared=S.cleared.filter(x=>x!==id)}
+    if(inRun){S.q[tk]=S.q[tk].filter(x=>x!==id);S.q[tk].push(id);S.cl[tk]=S.cl[tk].filter(x=>x!==id)}
     if(!S.wrong.includes(id))S.wrong.push(id);
     if(!S.everWrong.includes(id))S.everWrong.push(id);
     S.drill[id]=0;
@@ -734,32 +746,46 @@ function answer(btn,val){
 }
 
 /* ══ 完成與通知 ══ */
-function finishRound(){
+function finishTrack(t){
   show("done");
+  const nm=t==="cy"?"成語":"文言文",other=t==="cy"?"wy":"cy";
+  $("#sec-done").querySelector("h2").textContent=bothDone()
+    ? "成語＋文言文 today 全部完成！" : `${nm}闖關完成！`;
+  $("#sec-done").querySelector("h2+p").innerHTML=bothDone()
+    ? `課內 ${N} 題每一題都答對過一次`
+    : `${nm} ${IDS[t].length} 題都過了　·　<b>還差「${other==="cy"?"成語":"文言文"}」沒做，做完才會通知媽媽</b>`;
+  $("#d-other").classList.toggle("hide",bothDone());
+  $("#d-other").textContent=`➡️ 去做${other==="cy"?"成語":"文言文"}（還剩 ${S.q[other].length} 題）`;
+  $("#d-other").onclick=()=>go(other);
   const pc=S.tt?Math.round(S.sc/S.tt*100):0;
   $("#d-tt").textContent=S.tt;$("#d-pc").textContent=pc+"%";$("#d-wr").textContent=S.everWrong.length;
-  const t=$("#d-tough");
+  const tb=$("#d-tough");
   if(S.everWrong.length){
-    t.classList.remove("hide");
-    t.innerHTML="<b>⚠️ 這幾題曾經答錯，考前再看一次：</b>"+
+    tb.classList.remove("hide");
+    tb.innerHTML="<b>⚠️ 這幾題曾經答錯，考前再看一次：</b>"+
       S.everWrong.map(id=>{const x=BY[id];if(!x)return"";
         return `<i>${x.kind==="cy"?x.d.i:(x.kind==="wy"?x.L.t+"「"+x.w[0]+"」":(x.kind==="wk"?x.L.t+"·常識":WY[x.t[0]].t+"·閱讀"))}</i>`}).join("");
-  }else t.classList.add("hide");
+  }else tb.classList.add("hide");
   if(!S.history)S.history=[];
-  if(!S.history.includes(TODAY)){S.history.push(TODAY);save()}
+  if(bothDone()&&!S.history.includes(TODAY)){S.history.push(TODAY);save()}
   const nb=$("#d-notify");
+  if(!bothDone()){
+    nb.className="notify wait";
+    nb.innerHTML=`⏳ 兩科都完成才會通知媽媽（還差「${other==="cy"?"成語":"文言文"}」）`;
+    return;
+  }
   if(S.notified===TODAY){nb.className="notify sent";nb.textContent="✓ 今天的完成通知已經傳給媽媽了";return}
   nb.className="notify wait";nb.textContent="📨 正在通知媽媽…";
   const dt=new Date();
-  const cyW=S.everWrong.filter(x=>x.startsWith("cy:")).map(x=>BY[x].d.i);
-  const wyW=S.everWrong.filter(x=>!x.startsWith("cy:")).map(x=>{const y=BY[x];
+  const cyW=S.everWrong.filter(x=>TRACK(x)==="cy").map(x=>BY[x].d.i);
+  const wyW=S.everWrong.filter(x=>TRACK(x)==="wy").map(x=>{const y=BY[x];
     return y.kind==="wy"?y.L.t+"「"+y.w[0]+"」":(y.kind==="wk"?y.L.t+"·常識":WY[y.t[0]].t+"·閱讀")});
   const msg=
     `📚 Bobo 完成今日國文闖關\n`+
     `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,"0")}:${String(dt.getMinutes()).padStart(2,"0")}\n`+
     `關卡：${tierLabel()}\n`+
     `範圍：成語 p.20–29 ＋ 文言文 p.14–25（共 ${N} 題）\n`+
-    `── 全部過關 ✓\n`+
+    `── 成語 ${N_CY} 題 ✓　文言文 ${N_WY} 題 ✓\n`+
     `作答 ${S.tt} 題 · 一次答對率 ${pc}%\n`+
     (S.everWrong.length?`曾答錯 ${S.everWrong.length} 題：\n`+
        (cyW.length?`· 成語：${cyW.join("、")}\n`:"")+
@@ -787,7 +813,7 @@ function buildGrid(){
   const g=$("#grid");g.innerHTML="";
   if(scope==="cy"){
     DATA.forEach(d=>{
-      const done=S.cleared.includes("cy:"+d.i);
+      const done=S.cl.cy.includes("cy:"+d.i);
       const c=document.createElement("div");c.className="card"+(done?" cleared":"");
       c.innerHTML=`<div class="idm"><span class="pg">p.${d.p}${done?" ✓":""}</span>${d.i}</div>`+
         (d.z?`<div class="zy">${d.z}</div>`:"")+
@@ -801,7 +827,7 @@ function buildGrid(){
   }
   WY.forEach((L,li)=>{
     const ids=L.w.map(w=>"wy:"+li+":"+w[0]).concat(["wk:"+li]);
-    const done=ids.every(x=>S.cleared.includes(x));
+    const done=ids.every(x=>S.cl.wy.includes(x));
     const c=document.createElement("div");c.className="card wy"+(done?" cleared":"");
     c.innerHTML=`<div class="idm sm"><span class="pg">p.${L.p}${done?" ✓":""}</span>${L.t}</div>`+
       `<div class="zy">${L.dy}·${L.au}　${L.src}</div>`+
@@ -825,28 +851,30 @@ function show(w){
   $("#sec-quiz").classList.toggle("hide",w!=="quiz");
   $("#sec-done").classList.toggle("hide",w!=="done");
   $("#sec-none").classList.toggle("hide",w!=="none");
-  $("#rs").classList.toggle("hide",w!=="quiz"||mode!=="run");
+  $("#rs").classList.toggle("hide",w!=="quiz"||!(mode==="cy"||mode==="wy"));
 }
 function setNav(m){document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.m===m))}
 function go(m){
   setNav(m);mode=m;lastDrill=null;
-  if(m==="learn"){buildGrid();show("learn")}
-  else if(m==="run"){S.queue.length?(show("quiz"),nextQ()):finishRound()}
+  if(m==="learn"){scope=(m==="wy")?"wy":scope;buildGrid();show("learn")}
+  else if(m==="cy"||m==="wy"){S.q[m].length?(show("quiz"),nextQ()):finishTrack(m)}
   else if(m==="cap"){capPool().length?(show("quiz"),nextQ()):(paintNone(),show("none"))}
   else{drillPool().length?(show("quiz"),nextQ()):(paintNone(),show("none"))}
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.m));
 $("#nx").onclick=nextQ;
-$("#rs").onclick=()=>{if(!confirm("重新開始今天這一輪？已過關的 "+S.cleared.length+" 題會歸零。"))return;
-  newRound();save();paint();buildGrid();go("run")};
-$("#d-again").onclick=()=>{newRound();save();paint();buildGrid();go("run")};
+$("#rs").onclick=()=>{
+  const t=(mode==="cy"||mode==="wy")?mode:"cy";
+  if(!confirm(`重新開始今天的${t==="cy"?"成語":"文言文"}？已過關的 ${S.cl[t].length} 題會歸零。`))return;
+  newTrack(t);save();paint();buildGrid();go(t)};
+$("#d-again").onclick=()=>{newRound();save();paint();buildGrid();go("cy")};
 $("#d-cap").onclick=()=>go("cap");
 $("#d-wrongonly").onclick=()=>{
   if(!S.everWrong.length){alert("今天沒有答錯過任何一題 👏");return}
   S.everWrong.forEach(x=>S.drill[x]=0);save();paint();go("wrong")};
 
 buildFilters();buildGrid();paint();
-S.queue.length?(show("quiz"),nextQ()):finishRound();
+go(S.q.cy.length?"cy":(S.q.wy.length?"wy":"cy"));
 </script>
 </body>
 </html>
