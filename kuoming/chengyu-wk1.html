@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>成語闖關 · 第一次週考</title>
+<style>
+:root{
+  --paper:#f5efdf; --paper2:#fbf7ec; --ink:#2e2a24; --ink2:#6b6255;
+  --line:#d9cfb6; --accent:#9c3d2e; --accent2:#c8785c;
+  --ok:#2f7a4f; --okbg:#e3f2e8; --bad:#b03030; --badbg:#fbe6e4; --gold:#c9a227;
+  --shadow:0 2px 10px rgba(80,66,40,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);
+  font-family:"Noto Serif TC","Songti TC","PingFang TC","Heiti TC",serif;line-height:1.75;padding:0 0 60px}
+header{background:linear-gradient(180deg,#efe6cf,#f5efdf);border-bottom:2px solid var(--line);
+  padding:15px 16px 11px;text-align:center;position:sticky;top:0;z-index:20}
+h1{margin:0;font-size:21px;letter-spacing:2px}
+.sub{margin:3px 0 0;font-size:12.5px;color:var(--ink2);letter-spacing:1px}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+.prog{margin:9px auto 0;max-width:520px}
+.ptrack{height:11px;background:#e4d9bd;border-radius:99px;overflow:hidden;border:1px solid #d2c4a3}
+.pfill{height:100%;background:linear-gradient(90deg,#b4692f,#d99b3f);width:0%;transition:width .45s ease;border-radius:99px}
+.ptext{font-size:12.5px;color:var(--ink2);margin-top:4px;letter-spacing:.5px}
+.ptext b{color:var(--accent);font-size:15px}
+.ptext .done{color:var(--ok);font-weight:700}
+nav{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:16px 0 14px}
+nav button{font-family:inherit;font-size:15px;padding:9px 16px;border-radius:999px;cursor:pointer;
+  border:1.5px solid var(--line);background:var(--paper2);color:var(--ink2);transition:.15s}
+nav button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.filters{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:8px}
+.filters button{font-family:inherit;font-size:13px;padding:5px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--line);background:var(--paper2);color:var(--ink2)}
+.filters button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.hintbtn{text-align:center;font-size:12px;color:#a89a7c;margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--paper2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+  box-shadow:var(--shadow);cursor:pointer;transition:.15s}
+.card:active{transform:scale(.985)}
+.card.cleared{border-color:#a9d6ba;background:#f3f9f4}
+.card .idm{font-size:25px;font-weight:700;letter-spacing:4px}
+.card .zy{font-size:12px;color:var(--accent2);letter-spacing:1px;margin-top:2px}
+.card .body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.card.open .body{max-height:700px}
+.card .mean{margin:10px 0 0;font-size:15px;border-top:1px dashed var(--line);padding-top:9px}
+.card .rel{font-size:13px;color:var(--ink2);margin-top:7px}
+.card .rel span{display:inline-block;background:#ece2c9;border-radius:4px;padding:1px 6px;margin-right:5px;font-size:11px;color:#7a6a48}
+.card .pg{float:right;font-size:11px;color:#a89a7c;font-weight:400;letter-spacing:0}
+.tip{background:#fdf3d6;border-left:3px solid #d9a441;padding:6px 9px;font-size:12.5px;margin-top:8px;border-radius:0 5px 5px 0;color:#6b5520}
+.qbox{background:var(--paper2);border:1px solid var(--line);border-radius:12px;padding:20px 18px;box-shadow:var(--shadow)}
+.qhead{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--accent2);letter-spacing:1.5px;margin-bottom:4px}
+.qhead .rem{color:var(--ink2);letter-spacing:0}
+.qtext{font-size:19px;text-align:center;margin:16px 0 20px;line-height:1.85}
+.qtext .blank{display:inline-block;min-width:1.3em;border-bottom:3px solid var(--accent);color:var(--accent);font-weight:700}
+.qtext .big{font-size:31px;letter-spacing:6px;font-weight:700;display:block;margin:6px 0}
+.opts{display:grid;gap:9px}
+.opt{font-family:inherit;font-size:16px;text-align:left;padding:13px 15px;border-radius:9px;cursor:pointer;
+  border:1.5px solid var(--line);background:var(--paper);color:var(--ink);transition:.12s;line-height:1.6}
+.opt.char{font-size:29px;text-align:center;letter-spacing:3px;font-weight:700}
+.opt:hover{border-color:var(--accent2)}
+.opt.right{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+.opt.wrong{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{margin-top:16px;padding:13px 15px;border-radius:9px;font-size:15px;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--okbg);color:#1f5c3a;border:1px solid #a9d6ba}
+.fb.no{background:var(--badbg);color:#8a2626;border:1px solid #e2b0ab}
+.fb .fi{font-size:19px;font-weight:700;letter-spacing:3px;display:block;margin-bottom:3px}
+.fb .again{font-size:12.5px;margin-top:7px;font-weight:700;opacity:.85}
+.next{display:block;width:100%;margin-top:14px;padding:14px;border:none;border-radius:9px;cursor:pointer;
+  background:var(--accent);color:#fff;font-family:inherit;font-size:16px;font-weight:700;letter-spacing:2px}
+.done-box{text-align:center;background:var(--paper2);border:2px solid var(--gold);border-radius:12px;padding:32px 20px;box-shadow:var(--shadow)}
+.done-box .em{font-size:52px;display:block;margin-bottom:8px}
+.done-box h2{margin:0 0 6px;font-size:23px;letter-spacing:2px;color:var(--accent)}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:10px 18px;min-width:92px}
+.stat b{display:block;font-size:24px;color:var(--accent)}
+.stat span{font-size:11.5px;color:var(--ink2);letter-spacing:1px}
+.tough{text-align:left;background:#fdf3d6;border-radius:9px;padding:13px 15px;margin-top:6px;font-size:14px;color:#6b5520}
+.tough b{display:block;margin-bottom:6px;letter-spacing:1px}
+.tough i{font-style:normal;display:inline-block;background:#fff;border:1px solid #e0cc95;border-radius:5px;padding:2px 9px;margin:3px 4px 0 0;letter-spacing:2px}
+.notify{margin-top:16px;font-size:13px;padding:9px 12px;border-radius:8px;letter-spacing:.5px}
+.notify.wait{background:#eee6d2;color:var(--ink2)}
+.notify.sent{background:var(--okbg);color:#1f5c3a;border:1px solid #a9d6ba;font-weight:700}
+.notify.fail{background:var(--badbg);color:#8a2626;border:1px solid #e2b0ab}
+.btnrow{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.btnrow button{font-family:inherit;font-size:15px;padding:11px 20px;border-radius:9px;cursor:pointer;border:1.5px solid var(--accent);background:var(--accent);color:#fff;font-weight:700}
+.btnrow button.ghost{background:transparent;color:var(--accent)}
+.empty{text-align:center;color:var(--ink2);padding:48px 20px;font-size:16px}
+.empty .em{font-size:40px;display:block;margin-bottom:10px}
+footer{text-align:center;font-size:12px;color:#a89a7c;margin-top:34px;padding:0 14px;line-height:1.9}
+.reset{border:none;background:none;color:#b5a68a;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;margin-top:14px;display:block;width:100%}
+.hide{display:none}
+@media(max-width:520px){.grid{grid-template-columns:1fr}h1{font-size:19px}.qtext .big{font-size:27px}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>成語闖關 · 第一次週考</h1>
+  <p class="sub">港明國中一年級 · 範圍 p.22–29 · 每天一輪 <span id="todaystr"></span></p>
+  <div class="prog">
+    <div class="ptrack"><div class="pfill" id="pfill"></div></div>
+    <div class="ptext" id="ptext"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav>
+    <button data-m="learn">📖 速記卡</button>
+    <button data-m="run" class="on">🏆 今日闖關</button>
+    <button data-m="wrong">🎯 錯題重練 (<span id="wn">0</span>)</button>
+  </nav>
+
+  <section id="sec-learn" class="hide">
+    <div class="filters" id="pf"></div>
+    <p class="hintbtn">點卡片看釋義 · 綠色＝今天已過關</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="sec-quiz" class="hide">
+    <div class="qbox">
+      <div class="qhead"><span id="ql"></span><span class="rem" id="qr"></span></div>
+      <div class="qtext" id="qt"></div>
+      <div class="opts" id="op"></div>
+      <div class="fb" id="fb"></div>
+      <button class="next hide" id="nx">下一題 →</button>
+    </div>
+    <button class="reset" id="rs">重新開始今天這一輪</button>
+  </section>
+
+  <section id="sec-done" class="hide">
+    <div class="done-box">
+      <span class="em">🏆</span>
+      <h2 id="d-h2">今天這一輪完成！</h2>
+      <p style="margin:0;font-size:14px;color:var(--ink2)">範圍內 <span id="d-n">39</span> 則每一則都答對過一次</p>
+      <div class="stats">
+        <div class="stat"><b id="d-tt">0</b><span>總作答</span></div>
+        <div class="stat"><b id="d-pc">0%</b><span>一次答對率</span></div>
+        <div class="stat"><b id="d-wr">0</b><span>曾答錯</span></div>
+      </div>
+      <div class="tough hide" id="d-tough"></div>
+      <div class="notify" id="d-notify"></div>
+      <div class="btnrow">
+        <button class="ghost" id="d-wrongonly">🎯 再練曾錯的</button>
+        <button class="ghost" id="d-again">🔁 再跑一輪（不重複通知）</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="sec-none" class="hide">
+    <div class="empty"><span class="em">✨</span>錯題本是空的<br><span style="font-size:14px">闖關時答錯的成語會自動收進來</span></div>
+  </section>
+
+  <footer>
+    資料來源：成語辭典 p.22–29（第一次週考範圍）·  p.20–21 列為補充<br>
+    原始照片存於同資料夾「成語原始圖」
+  </footer>
+</div>
+
+<script>
+const NOTIFY_ENDPOINT="https://bobo-math-notify.bobo-math-grader.workers.dev";
+
+const DATA=[
+{i:"一了百了",z:"ㄌㄧㄠˇ",p:20,m:"比喻一件事了結，其他的也跟著解決了。",f:"沒完沒了、層出不窮",t:"「了」讀ㄌㄧㄠˇ，不是ㄌㄜ˙。"},
+{i:"一五一十",p:20,m:"古時數銅錢習慣每五枚一數。比喻把事情從頭到尾詳細說出，毫無遺漏。"},
+{i:"一介不取",p:20,m:"介，通「芥」，小草。形容人絲毫不取，操守廉潔。",n:"廉潔奉公",f:"貪得無厭、見利忘義、中飽私囊",t:"「介」通「芥」（小草），不是「個」的意思。"},
+{i:"一手遮天",p:20,m:"比喻玩弄權術，隱瞞事實。",n:"隻手遮天、欺上瞞下",f:"正大光明、光明磊落"},
+{i:"一日三秋",p:20,m:"三秋，三年。一天不見，好像隔了三年，形容思念殷切。",n:"度日如年",t:"「三秋」＝三年，不是三個秋天。"},
+{i:"一毛不拔",p:21,m:"連一根毫毛都不肯拔，形容人非常吝嗇。",f:"一擲千金、揮金如土、輕財好施"},
+{i:"一丘之貉",z:"ㄏㄜˊ",p:21,m:"貉，獸名，形似狐狸。同一座山丘上的貉，比喻都是同類，沒有差別（貶義）。",t:"「貉」讀ㄏㄜˊ，不寫成「洛、落、駱」。用於罵人，不可用在好人身上。"},
+{i:"一目瞭然",p:21,m:"看一眼就完全清楚明白。",n:"瞭如指掌",t:"「瞭」讀ㄌㄧㄠˇ，作「明白」解；寫「一目了然」亦可，考試以課本為準。"},
+{i:"一本正經",p:21,m:"原指一部正規的經典，後形容人態度莊重認真。",n:"不苟言笑、正襟危坐",f:"嘻皮笑臉、油腔滑調"},
+{i:"一字千金",p:21,m:"形容文辭精妙，價值非常高的作品。",f:"滿紙空文"},
+{i:"一年半載",z:"ㄗㄞˇ",p:22,m:"載，年。一年半年，指時間不長也不短。",n:"三年五載",f:"千秋萬代、萬古千年",t:"「載」＝年，讀ㄗㄞˇ。"},
+{i:"一成不變",p:22,m:"本指刑罰一經執行就無法改變，引申為事物一經形成，就不輕易改變。",n:"墨守成規",f:"因時制宜、推陳出新"},
+{i:"一步登天",p:22,m:"一步就登上青天。比喻突然得志，或達到極高的境界。",n:"平步青雲、扶搖直上",f:"按部就班、循序漸進"},
+{i:"一見如故",p:22,m:"形容初次見面就像老朋友一樣投合。",n:"相見恨晚",f:"白頭如新"},
+{i:"一言九鼎",z:"ㄉㄧㄥˇ",p:22,m:"九鼎，古代國家的寶器。比喻說話很有分量。",n:"一諾千金",f:"人微言輕",t:"「鼎」不寫成「頂」。"},
+{i:"一事無成",p:23,m:"一件事情也沒有做成。",f:"功成名就、卓有成效"},
+{i:"一言難盡",p:23,m:"事情複雜，無法用簡單的話說清楚。",f:"一言蔽之、三言兩語"},
+{i:"一命嗚呼",z:"ㄨ ㄏㄨ",p:23,m:"嗚呼，嘆詞，借指死亡。指人死了。",n:"與世長辭、蒙主寵召",f:"生龍活虎",t:"是「嗚」（口字旁）不是「鳴」（鳥字旁）！最常考的錯字。"},
+{i:"一波三折",p:23,m:"本指寫字時一筆之中有三種筆勢的轉折，今比喻事情進行得不順利。",n:"峰迴路轉",f:"一帆風順、水到渠成"},
+{i:"一知半解",p:23,m:"形容知道得不夠透徹，只懂一點皮毛。",n:"不求甚解、囫圇吞棗、淺嘗輒止",f:"心領神會、融會貫通、瞭如指掌"},
+{i:"一股腦兒",p:24,m:"指全部、一切地，全部一起。",n:"一切、全部"},
+{i:"一哄而散",z:"ㄏㄨㄥ",p:24,m:"形容原本聚集的人群，一下子吵嚷著各自散去。",n:"作鳥獸散",f:"蜂擁而至",t:"「哄」讀ㄏㄨㄥ，不寫成「烘」。"},
+{i:"一面之交",p:24,m:"指只見過一次面的交情，形容交情很淺。",n:"一面之雅、一面之緣",f:"刎頸之交、莫逆之交"},
+{i:"一氣呵成",z:"ㄏㄜ",p:24,m:"比喻文章或繪畫氣勢流暢，首尾連貫，一次完成。",n:"一鼓作氣",f:"斷斷續續",t:"「呵」讀ㄏㄜ，不寫成「喝」或「何」。"},
+{i:"一笑置之",p:24,m:"置，安放。形容對人或事不加計較，笑一笑就算了。",n:"付之一笑",f:"斤斤計較"},
+{i:"一針見血",p:24,m:"一針刺入就見到血。比喻說話或文章能抓住主旨，見解透徹。",n:"一語道破、單刀直入",f:"不著邊際"},
+{i:"一馬當先",p:25,m:"比喻領導別人向前進，有帶頭的作用。",n:"身先士卒、挺身而出",f:"畏首畏尾、裹足不前"},
+{i:"一敗塗地",p:25,m:"塗地，「肝腦塗地」的省略。比喻徹底失敗。",n:"一蹶不振、片甲不留",f:"百戰百勝、所向披靡、勢如破竹",t:"是「塗」不是「途」。"},
+{i:"一望無際",p:25,m:"看不到邊際，形容非常廣大遼闊。",n:"漫無邊際、無邊無涯",f:"一隅之地、方寸之地、彈丸之地"},
+{i:"一貧如洗",p:25,m:"窮得像水洗過一樣，形容非常窮困，一無所有。",n:"家徒四壁、短褐穿結",f:"金玉滿堂、家財萬貫、富可敵國"},
+{i:"一傳眾咻",z:"ㄒㄧㄡ",p:25,m:"傳，教。咻，喧鬧。一個人教，許多人在旁邊喧鬧擾亂。指學習環境的重要。",t:"「咻」讀ㄒㄧㄡ，口字旁。典出《孟子》。"},
+{i:"一勞永逸",p:26,m:"一次的辛勞，可以獲得永久的安逸。",f:"徒勞無益、勞而無功",t:"是「逸」不是「意」。"},
+{i:"一揮而就",p:26,m:"揮筆一下就完成。形容書畫、文章寫得又快又好。",n:"倚馬可待、下筆成章",f:"搜索枯腸、嘔心瀝血"},
+{i:"一朝一夕",z:"ㄓㄠ",p:26,m:"一時半刻，形容時間很短。",n:"一時半刻、俯仰之間、轉瞬之間",f:"千秋萬載、日久年深、天長地久",t:"「朝」讀ㄓㄠ（早晨），不讀ㄔㄠˊ。"},
+{i:"一筆勾消",p:26,m:"一筆全部勾除註銷，比喻全部取消。",n:"一筆抹煞",f:"沒齒難忘、刻骨銘心、耿耿於懷",t:"「消」亦作「銷」，寫「一筆勾銷」也通。"},
+{i:"一絲不苟",z:"ㄍㄡˇ",p:26,m:"不苟，不馬虎。形容做事態度謹慎認真。",n:"一板一眼、有板有眼",f:"草草了事、馬馬虎虎、虛應故事",t:"是「苟」（草字頭）不是「狗」。"},
+{i:"一視同仁",p:27,m:"仁，通「人」。指對人不分親疏，同等看待。",f:"另眼相看、厚此薄彼"},
+{i:"一絲不掛",p:27,m:"原為佛家語，指人心中毫無雜念；現多用來指人全身赤裸。",t:"原意是「心無雜念」，與現在的用法差很多，常考本義。"},
+{i:"一飯千金",p:27,m:"形容接受別人一點小恩惠，卻給予重大的回報。典出韓信報漂母之恩。",n:"感恩圖報、感恩戴德",f:"忘恩負義、過河拆橋、鳥盡弓藏"},
+{i:"一塌糊塗",z:"ㄊㄚ",p:27,m:"形容混亂敗壞到不可收拾的程度。",n:"亂七八糟、雜亂無章",f:"井井有條、井然有序、有條不紊",t:"「塌」讀ㄊㄚ，不寫成「榻」。"},
+{i:"一落千丈",p:27,m:"本指琴聲突然由高降低，後多比喻境況、地位、聲譽急速下降。",n:"江河日下、每況愈下",f:"蒸蒸日上、扶搖直上"},
+{i:"一葉知秋",p:28,m:"看見一片葉子掉落，就知道一年將要過完。比喻由微小的徵兆，就能推知事情往後的發展。",n:"見微知著",t:"典出《淮南子》：「見一葉落，而知歲之將暮。」"},
+{i:"一團和氣",p:28,m:"一片祥和的氣氛；也用來形容人態度和藹可親。",n:"和顏悅色",f:"怒目相視、橫眉豎眼"},
+{i:"一塵不染",z:"ㄔㄣˊ",p:28,m:"原為佛教用語，塵比喻物欲。指修道人六根清淨，不受塵俗干擾。後泛指人品純潔，也形容非常乾淨。",n:"冰清玉潔、潔身自愛",f:"同流合汙、藏汙納垢",t:"「塵」不寫成「陳」。原是佛家語，本義指心無物欲。"},
+{i:"一網打盡",p:28,m:"指捕捉獵物一個不漏，全部捕獲。比喻完全捕捉或消滅。",t:"「網」不寫成「綱」。"},
+{i:"一暴十寒",z:"ㄆㄨˋ",p:29,m:"曬一天，凍十天。比喻學習、做事沒有恆心，時常間斷。",n:"三天打魚，兩天曬網",f:"持之以恆、鍥而不舍",t:"「暴」通「曝」，讀ㄆㄨˋ（曬），不讀ㄅㄠˋ！典出《孟子‧告子上》，最常考的破音字。"},
+{i:"一鳴驚人",p:29,m:"一出聲就令人吃驚。比喻平時默默無聞，突然做出令人驚訝的表現。",n:"一舉成名、石破天驚",f:"平凡無奇、默默無聞、庸庸碌碌",t:"是「鳴」（鳥字旁，鳥叫）—— 跟「一命嗚呼」的「嗚」（口字旁）不要搞混！"},
+{i:"一箭雙鵰",z:"ㄉㄧㄠ",p:29,m:"一箭同時射得兩隻鵰。比喻做一件事而同時獲得兩種效果。",n:"一石二鳥、一舉兩得",f:"事倍功半、徒勞無功、顧此失彼",t:"「鵰」是猛禽（鳥字旁），不寫成「雕」刻的「雕」。"},
+{i:"一諾千金",z:"ㄋㄨㄛˋ",p:29,m:"諾，允諾。形容說話極有信用、極有價值。",n:"一言九鼎、言而有信",f:"信口開河、輕諾寡信、食言而肥",t:"典出《史記‧季布欒布列傳》：「得黃金百斤，不如得季布一諾。」"}
+];
+
+const CONF={"了":["瞭","樂","略"],"貉":["洛","落","駱"],"咻":["休","修","怵"],"瞭":["了","遼","撩"],
+"苟":["狗","句","敬"],"塗":["途","徒","屠"],"逸":["意","遂","隱"],"呵":["喝","何","訶"],
+"嗚":["鳴","烏","鳥"],"鼎":["頂","鼐","貞"],"洗":["冼","銑","先"],"仁":["人","任","仞"],
+"呼":["乎","忽","虎"],"折":["摺","拆","析"],"勾":["句","鉤","勺"],"消":["削","宵","肖"],
+"掛":["卦","罣","挂"],"哄":["烘","供","鬨"],"糊":["胡","湖","蝴"],"塌":["榻","蹋","遢"],
+"丈":["仗","杖","文"],"載":["栽","裁","戴"],"介":["芥","個","界"],"秋":["鞦","愁","啾"],
+"朝":["潮","嘲","廟"],"置":["值","植","至"],"際":["祭","察","擦"],"揮":["輝","渾","暉"],
+"傳":["轉","博","摶"],"針":["珍","診","斟"],"筆":["畢","必","比"],
+"暴":["曝","爆","瀑"],"鳴":["嗚","烏","鳥"],"鵰":["雕","凋","碉"],"諾":["若","偌","匿"],
+"塵":["陳","沉","麈"],"網":["綱","罔","岡"],"團":["圓","園","專"],"葉":["業","頁","蝶"]};
+const ALLCH=[...new Set(DATA.flatMap(d=>d.i.split("")))];
+
+/* 第一次週考範圍 = p.22–29；p.20–21 為補充 */
+const EXAM=DATA.filter(d=>d.p>=22);
+const EXTRA=DATA.filter(d=>d.p<22);
+const N=EXAM.length;
+const byName=n=>DATA.find(d=>d.i===n);
+
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=(arr,n,not)=>shuffle(arr.filter(x=>x!==not)).slice(0,n);
+const todayStr=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const TODAY=todayStr();
+
+/* ---------- 每日一輪 ---------- */
+const KEY="cy_wk1_v3";
+let S={day:"",queue:[],cleared:[],wrong:[],everWrong:[],sc:0,tt:0,notified:"",rounds:0};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+function newRound(countIt){
+  S.day=TODAY; S.queue=shuffle(EXAM.map(d=>d.i));
+  S.cleared=[]; S.everWrong=[]; S.sc=0; S.tt=0;
+  if(countIt)S.rounds=(S.rounds||0)+1;
+}
+if(S.day!==TODAY){newRound(false)}            // 換日 → 自動開新的一輪
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+$("#todaystr").textContent="· "+(new Date().getMonth()+1)+"/"+new Date().getDate();
+$("#d-n").textContent=N;
+
+function paint(){
+  const c=S.cleared.length,pct=Math.round(c/N*100);
+  $("#pfill").style.width=pct+"%";
+  $("#ptext").innerHTML=c>=N?`<span class="done">✓ 今天這一輪完成（${N} 則）</span>`
+    :`今日進度 <b>${c}</b> / ${N}　·　還剩 ${N-c} 則`;
+  $("#wn").textContent=S.wrong.length;
+}
+
+/* ---------- 速記卡 ---------- */
+let scope="exam";
+function buildFilters(){
+  const f=$("#pf");f.innerHTML="";
+  [["exam","第一次週考 p.22–29"],["extra","補充 p.20–21"],["all","全部"]].forEach(([v,label])=>{
+    const b=document.createElement("button");
+    b.textContent=label;b.className=(v===scope)?"on":"";
+    b.onclick=()=>{scope=v;buildFilters();buildGrid()};
+    f.appendChild(b);
+  });
+}
+function buildGrid(){
+  const g=$("#grid");g.innerHTML="";
+  const list=scope==="exam"?EXAM:scope==="extra"?EXTRA:DATA;
+  list.forEach(d=>{
+    const done=S.cleared.includes(d.i);
+    const c=document.createElement("div");
+    c.className="card"+(done?" cleared":"");
+    c.innerHTML=`<div class="idm"><span class="pg">p.${d.p}${done?" ✓":""}</span>${d.i}</div>`+
+      (d.z?`<div class="zy">${d.z}</div>`:"")+
+      `<div class="body"><div class="mean">${d.m}</div>`+
+      (d.n?`<div class="rel"><span>近義</span>${d.n}</div>`:"")+
+      (d.f?`<div class="rel"><span>反義</span>${d.f}</div>`:"")+
+      (d.t?`<div class="tip">⚠️ ${d.t}</div>`:"")+`</div>`;
+    c.onclick=()=>c.classList.toggle("open");
+    g.appendChild(c);
+  });
+}
+
+/* ---------- 出題 ---------- */
+function makeQ(d,type){
+  const m=type||["m2i","i2m","fill"][Math.floor(Math.random()*3)];
+  if(m==="m2i")return{d,label:"看 釋 義 · 選 成 語",html:d.m,
+    opts:shuffle([d.i,...pick(EXAM.map(x=>x.i),3,d.i)]),ans:d.i,cls:""};
+  if(m==="i2m")return{d,label:"看 成 語 · 選 釋 義",
+    html:`<span class="big">${d.i}</span>`+(d.z?`<span style="font-size:13px;color:var(--accent2)">${d.z}</span>`:""),
+    opts:shuffle([d.m,...pick(EXAM.map(x=>x.m),3,d.m)]),ans:d.m,cls:""};
+  const chars=d.i.split("");
+  const tricky=chars.map((c,idx)=>({c,idx})).filter(o=>CONF[o.c]&&CONF[o.c].length>=3);
+  const sel=tricky.length?tricky[Math.floor(Math.random()*tricky.length)]
+                        :{c:chars[Math.floor(Math.random()*chars.length)],idx:-1};
+  const idx=sel.idx>=0?sel.idx:chars.indexOf(sel.c);
+  const shown=chars.map((c,k)=>k===idx?'<span class="blank">？</span>':c).join("");
+  const dis=(CONF[sel.c]&&CONF[sel.c].length>=3)?pick(CONF[sel.c],3):pick(ALLCH,3,sel.c);
+  return{d,label:"填 空 · 選 出 正 確 的 字",
+    html:`<span class="big">${shown}</span><span style="font-size:14px;color:var(--ink2)">${d.m}</span>`,
+    opts:shuffle([sel.c,...dis]),ans:sel.c,cls:"char"};
+}
+
+/* ---------- 主流程 ---------- */
+let mode="run",cur=null,locked=false;
+
+function nextQ(){
+  locked=false;$("#fb").className="fb";$("#nx").classList.add("hide");
+  let name;
+  if(mode==="run"){
+    if(!S.queue.length){finishRound();return}
+    name=S.queue[0];$("#qr").textContent=`還剩 ${S.queue.length} 則待過關`;
+  }else{
+    if(!S.wrong.length){show("none");return}
+    name=S.wrong[Math.floor(Math.random()*S.wrong.length)];
+    $("#qr").textContent=`錯題本 ${S.wrong.length} 則`;
+  }
+  cur=makeQ(byName(name));
+  $("#ql").textContent=cur.label;
+  $("#qt").innerHTML=cur.html;
+  const box=$("#op");box.innerHTML="";
+  cur.opts.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="opt "+cur.cls;b.textContent=o;
+    b.onclick=()=>answer(b,o);box.appendChild(b);
+  });
+}
+
+function answer(btn,val){
+  if(locked)return;locked=true;
+  const ok=(val===cur.ans),d=cur.d;
+  S.tt++;if(ok)S.sc++;
+  document.querySelectorAll(".opt").forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===cur.ans)b.classList.add("right");
+    else if(b===btn)b.classList.add("wrong");
+  });
+  const fb=$("#fb");
+  if(ok){
+    S.queue=S.queue.filter(x=>x!==d.i);
+    S.wrong=S.wrong.filter(x=>x!==d.i);
+    if(!S.cleared.includes(d.i))S.cleared.push(d.i);
+    fb.className="fb show good";
+    fb.innerHTML=`<span class="fi">✓ ${d.i}</span>${d.m}`+
+      (d.t?`<div style="margin-top:6px;font-size:13px">⚠️ ${d.t}</div>`:"")+
+      (mode==="run"?`<div class="again">🏅 過關！還剩 ${S.queue.length} 則</div>`:"");
+  }else{
+    if(mode==="run"){
+      S.queue=S.queue.filter(x=>x!==d.i);S.queue.push(d.i);
+      S.cleared=S.cleared.filter(x=>x!==d.i);
+    }
+    if(!S.wrong.includes(d.i))S.wrong.push(d.i);
+    if(!S.everWrong.includes(d.i))S.everWrong.push(d.i);
+    fb.className="fb show no";
+    fb.innerHTML=`<span class="fi">✗ 正解：${d.i}</span>${d.m}`+
+      (d.t?`<div style="margin-top:6px;font-size:13px">⚠️ ${d.t}</div>`:"")+
+      `<div class="again">↩︎ 這一則排到最後，等一下會再考你一次</div>`;
+  }
+  save();paint();
+  $("#nx").classList.remove("hide");
+  $("#nx").textContent=(mode==="run"&&!S.queue.length)?"🏆 看成果 →":"下一題 →";
+}
+
+/* ---------- 完成 + Telegram 通知 ---------- */
+function finishRound(){
+  show("done");
+  const pc=S.tt?Math.round(S.sc/S.tt*100):0;
+  $("#d-tt").textContent=S.tt;
+  $("#d-pc").textContent=pc+"%";
+  $("#d-wr").textContent=S.everWrong.length;
+  const t=$("#d-tough");
+  if(S.everWrong.length){
+    t.classList.remove("hide");
+    t.innerHTML="<b>⚠️ 這幾則曾經答錯，考前再看一次：</b>"+S.everWrong.map(x=>`<i>${x}</i>`).join("");
+  }else t.classList.add("hide");
+
+  const nb=$("#d-notify");
+  if(S.notified===TODAY){
+    nb.className="notify sent";nb.textContent="✓ 今天的完成通知已經傳給媽媽了";
+    return;
+  }
+  nb.className="notify wait";nb.textContent="📨 正在通知媽媽…";
+  const d=new Date();
+  const msg=
+    `📚 Bobo 完成今日成語闖關\n`+
+    `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}\n`+
+    `範圍：第一次週考 p.22–29（${N} 則）\n`+
+    `── 全部過關 ✓\n`+
+    `作答 ${S.tt} 題 · 一次答對率 ${pc}%\n`+
+    (S.everWrong.length
+      ? `曾答錯 ${S.everWrong.length} 則：\n${S.everWrong.join("、")}`
+      : `全部一次就對，零失誤 👏`);
+  fetch(NOTIFY_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({text:msg})})
+    .then(r=>{
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      S.notified=TODAY;save();
+      nb.className="notify sent";nb.textContent="✓ 已通知媽媽";
+    })
+    .catch(e=>{
+      nb.className="notify fail";
+      nb.innerHTML="⚠️ 通知沒送出去（"+e.message+"）<br><span style='font-size:12px'>把結果截圖給媽媽即可</span>";
+    });
+}
+
+function show(which){
+  $("#sec-learn").classList.toggle("hide",which!=="learn");
+  $("#sec-quiz").classList.toggle("hide",which!=="quiz");
+  $("#sec-done").classList.toggle("hide",which!=="done");
+  $("#sec-none").classList.toggle("hide",which!=="none");
+}
+function setNav(m){document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.m===m))}
+
+document.querySelectorAll("nav button").forEach(b=>{
+  b.onclick=()=>{
+    setNav(b.dataset.m);mode=b.dataset.m;
+    if(mode==="learn"){buildGrid();show("learn")}
+    else if(mode==="run"){S.queue.length?(show("quiz"),nextQ()):finishRound()}
+    else{S.wrong.length?(show("quiz"),nextQ()):show("none")}
+  };
+});
+$("#nx").onclick=nextQ;
+$("#rs").onclick=()=>{
+  if(!confirm("重新開始今天這一輪？已過關的 "+S.cleared.length+" 則會歸零。"))return;
+  newRound(false);save();paint();buildGrid();show("quiz");nextQ();
+};
+$("#d-again").onclick=()=>{
+  newRound(true);save();paint();buildGrid();
+  setNav("run");mode="run";show("quiz");nextQ();
+};
+$("#d-wrongonly").onclick=()=>{
+  if(!S.everWrong.length){alert("今天沒有答錯過任何一則 👏");return}
+  S.wrong=S.everWrong.slice();save();paint();
+  setNav("wrong");mode="wrong";show("quiz");nextQ();
+};
+
+buildFilters();buildGrid();paint();
+S.queue.length?(show("quiz"),nextQ()):finishRound();
+</script>
+</body>
+</html>
