@@ -750,7 +750,7 @@ function finishTrack(t){
   show("done");
   const nm=t==="cy"?"成語":"文言文",other=t==="cy"?"wy":"cy";
   $("#sec-done").querySelector("h2").textContent=bothDone()
-    ? "成語＋文言文 today 全部完成！" : `${nm}闖關完成！`;
+    ? "成語＋文言文 今天全部完成！" : `${nm}闖關完成！`;
   $("#sec-done").querySelector("h2+p").innerHTML=bothDone()
     ? `課內 ${N} 題每一題都答對過一次`
     : `${nm} ${IDS[t].length} 題都過了　·　<b>還差「${other==="cy"?"成語":"文言文"}」沒做，做完才會通知媽媽</b>`;
