@@ -259,7 +259,7 @@ function paint(){
   $("#pfill").style.width=pct+"%";
   $("#ptext").innerHTML=c>=N?`<span class="done">✓ 今天這一輪完成（${N} 則）</span>`
     :`今日進度 <b>${c}</b> / ${N}　·　還剩 ${N-c} 則`;
-  $("#wn").textContent=S.wrong.length;
+  $("#wn").textContent=S.everWrong.length;
 }
 
 /* ---------- 速記卡 ---------- */
@@ -311,9 +311,10 @@ function nextQ(){
     if(!S.queue.length){finishRound();return}
     name=S.queue[0];$("#qr").textContent=`還剩 ${S.queue.length} 則待過關`;
   }else{
-    if(!S.wrong.length){show("none");return}
-    name=S.wrong[Math.floor(Math.random()*S.wrong.length)];
-    $("#qr").textContent=`錯題本 ${S.wrong.length} 則`;
+    const pool=S.wrong.length?S.wrong:S.everWrong;
+    if(!pool.length){show("none");return}
+    name=pool[Math.floor(Math.random()*pool.length)];
+    $("#qr").textContent=`曾答錯 ${S.everWrong.length} 則 · 重練中`;
   }
   cur=makeQ(byName(name));
   $("#ql").textContent=cur.label;
@@ -416,7 +417,7 @@ document.querySelectorAll("nav button").forEach(b=>{
     setNav(b.dataset.m);mode=b.dataset.m;
     if(mode==="learn"){buildGrid();show("learn")}
     else if(mode==="run"){S.queue.length?(show("quiz"),nextQ()):finishRound()}
-    else{S.wrong.length?(show("quiz"),nextQ()):show("none")}
+    else{(S.wrong.length||S.everWrong.length)?(show("quiz"),nextQ()):show("none")}
   };
 });
 $("#nx").onclick=nextQ;
