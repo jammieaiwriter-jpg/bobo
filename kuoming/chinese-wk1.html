@@ -463,32 +463,108 @@ function qCY(d,type){
 
 /* ══ 文言文出題 ══ */
 const ALL_W=[];WY.forEach(L=>L.w.forEach(w=>ALL_W.push(w)));
+/* 跨課同字異義（例：懷橘＝藏著／懷璧＝持有）*/
+const SAMECH={};
+WY.forEach((L,li)=>L.w.forEach(w=>{(SAMECH[w[0]]=SAMECH[w[0]]||[]).push({L,w})}));
+
 function qWY(it){
   const [ch,ctx,ans,dis]=it.w;
-  let opts=[ans,...dis];
-  if(opts.length<4){
-    const pool=ALL_W.filter(w=>w[0]!==ch).flatMap(w=>[w[2],...w[3]]).filter(x=>!opts.includes(x));
-    opts=opts.concat(shuffle([...new Set(pool)]).slice(0,4-opts.length));
-  }
-  return{label:"文 言 字 義 · 音 義 推 敲",
-    html:`<span style="font-size:13px;color:var(--ink2)">〈${it.L.t}〉</span>`+
-         `<span class="src">${ctx}</span>`+
+  const day=Math.min(dayNo(),3);
+  const head=`<span style="font-size:13px;color:var(--ink2)">〈${it.L.t}〉</span>`;
+  const fill=n=>{let o=[ans,...dis];
+    if(o.length<n){const pool=ALL_W.filter(w=>w[0]!==ch).flatMap(w=>[w[2],...w[3]]).filter(x=>!o.includes(x));
+      o=o.concat(shuffle([...new Set(pool)]).slice(0,n-o.length))}
+    return o.slice(0,n)};
+
+  const forward=()=>({label:"文 言 字 義 · 音 義 推 敲",
+    html:head+`<span class="src">${ctx}</span>`+
          `<span style="font-size:14px;color:var(--ink2)">「${ch}」在這裡是什麼意思？</span>`,
-    opts:shuffle(opts.slice(0,4)),ans:ans,cls:""};
+    opts:shuffle(fill(4)),ans:ans,cls:""});
+
+  // D2-a 反向：原文挖字
+  const blank=()=>{
+    const shown=ctx.replace("「"+ch+"」",'<span class="blank">？</span>');
+    const others=[...new Set(ALL_W.map(w=>w[0]).filter(c=>c!==ch))];
+    return{label:"文 言 字 義 · 原 文 填 空",
+      html:head+`<span class="src">${shown}</span>`+
+           `<span style="font-size:14px;color:var(--ink2)">空格應填哪個字？（此處作「${ans}」解）</span>`,
+      opts:shuffle([ch,...shuffle(others).slice(0,3)]),ans:ch,cls:"char"};
+  };
+  // D2-b 給義選字
+  const rev=()=>{
+    const others=[...new Set(ALL_W.filter(w=>w[0]!==ch&&w[2]!==ans).map(w=>w[0]))];
+    return{label:"文 言 字 義 · 由 義 找 字",
+      html:head+`<span style="font-size:15px">在本課中，表示「<b>${ans}</b>」的是哪一個字？</span>`+
+           `<div style="font-size:13px;color:var(--ink2);margin-top:6px">${ctx}</div>`,
+      opts:shuffle([ch,...shuffle(others).slice(0,3)]),ans:ch,cls:"char"};
+  };
+  // D3-a 同字異義辨析
+  const cross=()=>{
+    const pair=SAMECH[ch].filter(x=>x.L.t!==it.L.t)[0];
+    const same=Math.random()<0.5;
+    return{label:"文 言 字 義 · 同 字 異 義 辨 析",leftAlign:true,
+      html:`「${ch}」字在下列兩句中的意思：<br>`+
+           `（甲）〈${it.L.t}〉${ctx}<br>（乙）〈${pair.L.t}〉${pair.w[1]}<br>`+
+           `<span style="font-size:14px;color:var(--ink2)">下列敘述何者正確？</span>`,
+      opts:shuffle([`甲作「${ans}」解，乙作「${pair.w[2]}」解`,
+                    `甲乙皆作「${ans}」解`,
+                    `甲乙皆作「${pair.w[2]}」解`,
+                    `甲作「${pair.w[2]}」解，乙作「${ans}」解`]),
+      ans:`甲作「${ans}」解，乙作「${pair.w[2]}」解`,cls:""};
+  };
+  // D3-b 配對找錯
+  const mismatch=()=>{
+    const pool=shuffle(ALL_W.filter(w=>w[0]!==ch)).slice(0,3);
+    const wrongGloss=shuffle(ALL_W.filter(w=>w[2]!==ans).map(w=>w[2]))[0];
+    const bad=`${ctx}　→　「${ch}」＝${wrongGloss}`;
+    const good=pool.map(w=>`${w[1]}　→　「${w[0]}」＝${w[2]}`);
+    return{label:"文 言 字 義 · 選 出 配 對 錯 誤 的",leftAlign:true,
+      html:`<span style="font-size:15px">下列字義配對，何者<b>錯誤</b>？</span>`,
+      opts:shuffle([bad,...good]),ans:bad,cls:""};
+  };
+
+  let bag;
+  if(day===1)bag=[forward];
+  else if(day===2)bag=[blank,rev,forward];
+  else{bag=[mismatch,mismatch,blank,rev];
+       if(SAMECH[ch].length>1)bag=[cross,cross,mismatch,blank];}
+  return bag[Math.floor(Math.random()*bag.length)]();
 }
 function qWK(it){
-  const L=it.L,mode=Math.random()<0.5?"src":"au";
-  if(mode==="src"){
-    const dis=shuffle(WY.filter(x=>x.t!==L.t)).slice(0,3).map(x=>x.src);
-    return{label:"文 學 常 識 · 出 處",
-      html:`<span class="src">〈${L.t}〉</span><span style="font-size:14px;color:var(--ink2)">這一課出自哪一部作品？</span>`,
-      opts:shuffle([L.src,...dis]),ans:L.src,cls:""};
-  }
-  const me=L.dy+"·"+L.au;
-  const dis=shuffle(WY.filter(x=>x.t!==L.t)).slice(0,3).map(x=>x.dy+"·"+x.au);
-  return{label:"文 學 常 識 · 作 者 朝 代",
-    html:`<span class="src">〈${L.t}〉</span><span style="font-size:14px;color:var(--ink2)">作者與朝代是？</span>`,
-    opts:shuffle([me,...dis]),ans:me,cls:""};
+  const L=it.L,day=Math.min(dayNo(),3),others=WY.filter(x=>x.t!==L.t);
+  const src=()=>({label:"文 學 常 識 · 出 處",
+    html:`<span class="src">〈${L.t}〉</span><span style="font-size:14px;color:var(--ink2)">這一課出自哪一部作品？</span>`,
+    opts:shuffle([L.src,...shuffle(others).slice(0,3).map(x=>x.src)]),ans:L.src,cls:""});
+  const au=()=>{const me=L.dy+"·"+L.au;
+    return{label:"文 學 常 識 · 作 者 朝 代",
+      html:`<span class="src">〈${L.t}〉</span><span style="font-size:14px;color:var(--ink2)">作者與朝代是？</span>`,
+      opts:shuffle([me,...shuffle(others).slice(0,3).map(x=>x.dy+"·"+x.au)]),ans:me,cls:""}};
+  // D2 主旨句配對
+  const gist=()=>({label:"文 學 常 識 · 主 旨 句 配 對",leftAlign:true,
+    html:`<span class="src" style="font-size:22px">〈${L.t}〉</span>`+
+         `<span style="font-size:14px;color:var(--ink2)">這一課的主旨句是下列何者？</span>`,
+    opts:shuffle([L.gist,...shuffle(others).slice(0,3).map(x=>x.gist)]),ans:L.gist,cls:""});
+  // D2 反向：由主旨找課
+  const which=()=>({label:"文 學 常 識 · 由 主 旨 找 課 次",leftAlign:true,
+    html:`<span style="font-size:16px">「${L.gist}」</span>`+
+         `<div style="font-size:14px;color:var(--ink2);margin-top:8px">這是哪一課的主旨？</div>`,
+    opts:shuffle([L.t,...shuffle(others).slice(0,3).map(x=>x.t)]),ans:L.t,cls:""});
+  // D3 課次×作者×出處 混搭辨析
+  const mix=()=>{
+    const good=`〈${L.t}〉—— ${L.dy}·${L.au}《${L.src.replace(/[《》]/g,"")}》`;
+    const bad=shuffle(others).slice(0,3).map((x,i)=>{
+      const w=others.filter(y=>y.t!==x.t)[i%Math.max(1,others.length-1)]||L;
+      return `〈${x.t}〉—— ${w.dy}·${w.au}《${x.src.replace(/[《》]/g,"")}》`;
+    });
+    return{label:"文 學 常 識 · 選 出 正 確 的 一 組",leftAlign:true,
+      html:`<span style="font-size:15px">下列「課次 —— 朝代·作者·出處」的配對，何者<b>完全正確</b>？</span>`,
+      opts:shuffle([good,...new Set(bad)].slice(0,4)),ans:good,cls:""};
+  };
+  let bag;
+  if(day===1)bag=[src,au];
+  else if(day===2)bag=[gist,which,src];
+  else bag=[mix,mix,gist,au];
+  return bag[Math.floor(Math.random()*bag.length)]();
 }
 function qWT(it){
   const [li,stem,opts,an]=it.t;
