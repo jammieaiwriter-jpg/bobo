@@ -384,6 +384,7 @@ function forceRead(){
 /* ── 難度強化 ─────────────────────────────── */
 
 /* 1) 遮蔽釋義裡洩漏答案的字（辭典常直接訓詁成語本身的字） */
+const KEEP=new Set("一之的是在而以其此也".split(""));   // 太常見、遮了反而讀不通
 function maskMeaning(d){
   let m=d.m, idm=d.i;
   for(let len=4;len>=2;len--){
@@ -393,8 +394,11 @@ function maskMeaning(d){
       if(m.includes(frag))m=m.split(frag).join("□".repeat(len));
     }
   }
-  // 開頭單字訓詁：「載，年。」「咻，喧鬧。」「置，安放。」
-  if(m.length>1&&idm.includes(m[0])&&m[1]==="，")m="□"+m.slice(1);
+  // 單字也要遮：釋義後半常再出現成語本字（「…山丘上的貉…」）
+  idm.split("").forEach(c=>{
+    if(KEEP.has(c))return;
+    if(m.includes(c))m=m.split(c).join("□");
+  });
   return m;
 }
 
@@ -430,6 +434,18 @@ function typoVariants(d,n){
   });
   return out.slice(0,n);
 }
+/* 填空誘答：先取其他成語「同一個位置」的字（一□千金 → 字／諾／擲），再取形近字 */
+function fillDistractors(d,idx,right){
+  const same=[...new Set(DATA.filter(x=>x.i.length===d.i.length&&x.i!==d.i)
+    .map(x=>x.i[idx]).filter(c=>c&&c!==right))];
+  const conf=(CONF[right]||[]).filter(c=>c!==right);
+  const out=[];
+  shuffle(same).forEach(c=>{if(out.length<2&&!out.includes(c))out.push(c)});
+  shuffle(conf).forEach(c=>{if(out.length<3&&!out.includes(c))out.push(c)});
+  shuffle(same).forEach(c=>{if(out.length<3&&!out.includes(c))out.push(c)});
+  pick(ALLCH,3,right).forEach(c=>{if(out.length<3&&!out.includes(c))out.push(c)});
+  return out.slice(0,3);
+}
 const splitRel=str=>(str||"").split(/[、，]/).map(x=>x.trim()).filter(x=>x.length>=3);
 const REL_POOL=DATA.flatMap(d=>[...splitRel(d.n),...splitRel(d.f)]);
 
@@ -455,9 +471,14 @@ function makeQ(d,type){
     html:maskMeaning(d)+`<div style="font-size:12px;color:#a89a7c;margin-top:8px">□ 代表被遮住的字</div>`,
     opts:shuffle([d.i,...similarIdioms(d,3).map(x=>x.i)]),ans:d.i,cls:""};
 
-  if(m==="i2m")return{d,label:"看 成 語 · 選 釋 義",
-    html:`<span class="big">${d.i}</span>`+(d.z?`<span style="font-size:13px;color:var(--accent2)">${d.z}</span>`:""),
-    opts:shuffle([d.m,...similarIdioms(d,3).map(x=>x.m)]),ans:d.m,cls:""};
+  if(m==="i2m"){
+    const ansTxt=maskMeaning(d);
+    const others=similarIdioms(d,3).map(x=>maskMeaning(x)).filter(x=>x!==ansTxt);
+    return{d,label:"看 成 語 · 選 釋 義",
+      html:`<span class="big">${d.i}</span>`+(d.z?`<span style="font-size:13px;color:var(--accent2)">${d.z}</span>`:"")+
+           `<div style="font-size:12px;color:#a89a7c;margin-top:8px">□ 代表被遮住的字</div>`,
+      opts:shuffle([ansTxt,...others]),ans:ansTxt,cls:""};
+  }
 
   if(m==="typo"){
     return{d,label:"錯 別 字 · 選 出 完 全 正 確 的",
@@ -504,7 +525,7 @@ function makeQ(d,type){
                         :{c:chars[Math.floor(Math.random()*chars.length)],idx:-1};
   const idx=sel.idx>=0?sel.idx:chars.indexOf(sel.c);
   const shown=chars.map((c,k)=>k===idx?'<span class="blank">？</span>':c).join("");
-  const dis=(CONF[sel.c]&&CONF[sel.c].length>=3)?pick(CONF[sel.c],3):pick(ALLCH,3,sel.c);
+  const dis=fillDistractors(d,idx,sel.c);
   return{d,label:"填 空 · 選 出 正 確 的 字",
     html:`<span class="big">${shown}</span><span style="font-size:14px;color:var(--ink2)">${maskMeaning(d)}</span>`,
     opts:shuffle([sel.c,...dis]),ans:sel.c,cls:"char"};
