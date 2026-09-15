@@ -76,6 +76,12 @@ h1{margin:0 0 6px;font-size:clamp(1.5rem,5vw,2.3rem);line-height:1.15}
 .state{margin-left:auto;font-size:.85rem;color:var(--muted)}
 .state.ok{color:var(--green);font-weight:600}
 .qtext{margin:0 0 12px;line-height:1.85;font-size:1.02rem}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.chip{font-size:.78rem;padding:3px 9px;border-radius:999px;border:1px solid;line-height:1.5}
+.chip.unit{background:#eef0f1;border-color:var(--line);color:#4a565f}
+.chip.m-strong{background:#f0f8ec;border-color:#b9ddaa;color:#3c6f2b}
+.chip.m-partial{background:var(--soft-gold);border-color:#ecd29a;color:#8a5d0a}
+.chip.m-none{background:#f3f4f5;border-color:var(--line);color:#7b858d}
 .answers{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .pill{font-size:.9rem;padding:6px 12px;border-radius:8px;border:1px solid;line-height:1.4}
 .pill.his{background:var(--soft-rose);border-color:#efb4bd;color:#842b38}
@@ -160,6 +166,9 @@ details.sol-box .body{padding:10px 14px;background:var(--soft-teal);border-radiu
    item 欄位：
      no    題號標籤
      root  根因分組 key（count / abs / unit / other）
+     unit  康軒單元 id（M1-1-1 / M1-1-2 …），段考前依範圍篩選用
+     kp    對應的知洞 g7 知識點 id；查無同型題則為 null
+     kpMatch strong / partial / none——知洞題庫能不能幫這題補題量
      q     原題
      his   當時寫的答案
      ans   正確答案
@@ -178,6 +187,7 @@ const EXAMS = [{
     /* ---------- 計數／邊界 off-by-one ---------- */
     {
       no: "基礎 6", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "strong",
       q: "在數線上從 −9.8 移動到 6.7，會經過 ___ 個整數。",
       his: "17", ans: "16",
       why: "從 −9.8 走到 6.7，真正踩到的整數是 −9 一路到 6。算法是「6 −(−9) + 1 = 16」，不是把 9.8 和 6.7 無條件進位相加。端點是小數時，兩端各自往內取最近的整數，再用「大 − 小 + 1」。",
@@ -189,6 +199,7 @@ const EXAMS = [{
     },
     {
       no: "精熟 4", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "strong",
       q: "已知 a 為整數，若 −2½ < |a| < 7½，則滿足條件的 a 有 ___ 個。",
       his: "10", ans: "15",
       why: "|a| 一定 ≥ 0，所以左邊的 −2½ 根本沒有限制作用，真正的條件只有 |a| < 7½ → |a| 可以是 0,1,2,…,7。每個非零的值都有正負兩個 a，再加上 a = 0 這一個 → 7×2 + 1 = 15。<strong>0 最常被漏掉。</strong>",
@@ -200,6 +211,7 @@ const EXAMS = [{
     },
     {
       no: "精熟 5", root: "count",
+      unit: "M1-1-1", kp: "KP-N-7-5-count-to-bound-inverse", kpMatch: "strong",
       q: "A 為整數，絕對值不大於 13 的整數共有 A 個；B 為整數，絕對值小於 B 的負整數共有 19 個，則 A + B = ___。",
       his: "44", ans: "47",
       why: "兩個邊界詞要分開讀。「不大於 13」＝含 13 → −13 到 13 共 27 個，A = 27。「絕對值小於 B 的負整數有 19 個」＝ −1 到 −19 這 19 個，它們的絕對值 1~19 都要小於 B，而 −20 不能算進來 → B = 20。27 + 20 = 47。",
@@ -212,6 +224,7 @@ const EXAMS = [{
     /* ---------- 絕對值的定義與對稱性 ---------- */
     {
       no: "基礎 5", root: "abs",
+      unit: "M1-1-1", kp: null, kpMatch: "none",
       q: "最大負整數減去最小正整數的結果是 ___。",
       his: "負數（沒寫出數字）", ans: "−2",
       why: "這題只考定義，沒有計算難度：<strong>最大的負整數是 −1，最小的正整數是 1</strong>（0 既不正也不負）。(−1) − 1 = −2。寫「負數」＝定義沒記起來，這種題丟分最可惜。",
@@ -223,6 +236,7 @@ const EXAMS = [{
     },
     {
       no: "基礎 7", root: "abs",
+      unit: "M1-1-1", kp: "KP-N-7-5-integer-count-in-range", kpMatch: "partial",
       q: "絕對值小於 12.3 的所有整數總和為 ___。",
       his: "156", ans: "0",
       why: "這些整數是 −12, −11, …, −1, 0, 1, …, 11, 12。<strong>每個正的都有一個負的跟它抵消</strong>，加起來一定是 0。寫 156 是把負數也當成正的加進去了——看到「絕對值」的範圍題，先想對稱抵消，不要急著硬加。",
@@ -235,6 +249,7 @@ const EXAMS = [{
     /* ---------- 帶單位的線性對應 ---------- */
     {
       no: "基礎 10", root: "unit",
+      unit: "M1-1-1", kp: "KP-XCODE-baseline-signed-notation", kpMatch: "strong",
       q: "以中午 12 點為準，若下午 3 點以 +6 表示，則上午 10 點應該記作 ___。",
       his: "−2", ans: "−4",
       why: "他直接把「早 2 小時」寫成 −2，<strong>漏掉換算單位</strong>。題目說 3 小時 ＝ +6，所以 1 小時 ＝ +2。上午 10 點比中午早 2 小時 → 2 × (−2) = −4。凡是題目給了一組對應數字，先算出「1 個單位＝多少」再動手。",
@@ -246,6 +261,7 @@ const EXAMS = [{
     },
     {
       no: "精熟 7", root: "unit",
+      unit: "M1-1-2", kp: "KP-XCODE-baseline-signed-notation", kpMatch: "partial",
       q: "溫度計有兩種溫標：左邊 0°C 時右邊 32°F；左邊 100°C 時右邊 212°F。當左邊顯示 −40°C 時，右邊顯示 ___ °F。",
       his: "（空白）", ans: "−40",
       why: "左邊走 100 格，右邊走 212 − 32 = 180 格 → <strong>左邊 1 格 ＝ 右邊 1.8 格</strong>，而且右邊的起點是 32。所以 F = 1.8 × C + 32 → 1.8 × (−40) + 32 = −72 + 32 = −40。這跟基礎 10 是同一招：先求「1 單位對多少」，再補起點差。",
@@ -258,6 +274,7 @@ const EXAMS = [{
     /* ---------- 其他技巧 ---------- */
     {
       no: "精熟 3", root: "other",
+      unit: "M1-1-2", kp: null, kpMatch: "none",
       q: "計算 1 − 2 + 3 − 4 + 5 − 6 + … + 65 − 66 + 67 = ___。",
       his: "2278", ans: "34",
       why: "不要硬加。<strong>兩兩配對</strong>：(1−2) + (3−4) + … + (65−66)，一共 33 組，每組都是 −1 → −33；最後剩下沒有配對的 67 → −33 + 67 = 34。看到正負交錯的長算式，第一個念頭永遠是配對相消。",
@@ -269,6 +286,7 @@ const EXAMS = [{
     },
     {
       no: "精熟 10", root: "other",
+      unit: "M1-1-1", kp: "KP-XCODE-numline-coordinate-transform", kpMatch: "strong",
       q: "在座標 0 與 −1 之間等距設 9 個陷阱，由左到右依序為 P₁…P₉；又在 P₂、P₃ 之間等距設 9 個陷阱 Q₁…Q₉，則 Q₃ 的座標為 ___。",
       his: "60/81", ans: "−0.77",
       why: "「中間插 9 個點」＝<strong>把線段切成 10 等分</strong>（9 個點會造出 10 段），不是 9 等分。0 與 −1 之間每段 0.1，由左（−1 側）到右數：P₁ = −0.9、P₂ = −0.8、P₃ = −0.7。P₂ 到 P₃ 長 0.1 再切 10 等分，每段 0.01 → Q₃ = −0.8 + 0.03 = −0.77。",
@@ -280,7 +298,8 @@ const EXAMS = [{
     },
     /* ---------- 只看詳解、不列入必練 ---------- */
     {
-      no: "精熟 12", root: "other", practice: false,
+      no: "精熟 12", root: "other",
+      unit: "M1-1-2", kp: null, kpMatch: "none", practice: false,
       q: "五人各從編號 1~12 的牌中任取 2 張（十張互不相同），兩張編號之和分別是：艾連 4、米卡莎 11、阿爾敏 16、約翰 19、科尼 20。五人各自宣稱自己拿到編號 2、3、5、7、11 的牌，則有 ___ 個人說謊。",
       his: "2", ans: "4",
       why: "這題是純邏輯推理，出現頻率低，而且你同一張考卷的題組推理題（8、9、11）全對——不是你的弱點，不用花時間重練。看懂詳解就好。",
@@ -288,7 +307,8 @@ const EXAMS = [{
       solution: "① 艾連兩張和是 4，若真有編號 2，另一張也得是 2 → 牌不重複，不可能。所以<strong>艾連說謊</strong>，他只能是 {1, 3}。<br>② 3 被艾連拿走了，米卡莎宣稱有 3 → <strong>米卡莎也說謊</strong>。<br>③ 科尼和 20 的組合只有 {8,12} 或 {9,11}。若科尼 = {9,11}，則約翰（和 19）只剩 {7,12}，阿爾敏（和 16）只剩 {6,10}，米卡莎（和 11）從剩下的 {2,4,5,8} 湊不出 11 → 矛盾。<br>④ 所以科尼 = {8,12}（<strong>說謊</strong>），約翰 = {9,10}（<strong>說謊</strong>），阿爾敏 = {5,11}（說真話），米卡莎 = {4,7}。<br>⑤ 說謊的是艾連、米卡莎、約翰、科尼 → <strong>4 個人</strong>。"
     },
     {
-      no: "精熟 2", root: "other", practice: false, unresolved: true,
+      no: "精熟 2", root: "other",
+      unit: "M1-1-1", kp: "KP-N-7-5-numline-concept-statement", kpMatch: "partial", practice: false, unresolved: true,
       q: "已知 |a| = 4，|b| = −b，則 a + b = ___。",
       his: "−16＋a、4＋b（寫成算式）", ans: "待確認",
       why: "照卷面印出來的條件：|a| = 4 只給出 a = ±4，|b| = −b 只說明 b ≤ 0，<strong>b 的大小沒有被限制，a + b 算不出唯一答案</strong>。多半是題目漏印（例如原本要問「a + b 的最大值」，那答案是 4）。這題請先跟老師對一下正式解答，再決定要不要進錯題本。",
@@ -296,6 +316,26 @@ const EXAMS = [{
     }
   ]
 }];
+
+/* 康軒單元（名稱取自知洞 g7 data/unit_catalog.js，康軒是 g7 原生版本）*/
+const UNITS = {
+  "M1-1-1": "康軒 1-1 負數與數線",
+  "M1-1-2": "康軒 1-2 整數的加減"
+};
+/* 知洞 g7 知識點對照——2026-09-15 逐題查核 deploy_math/g7 生成題庫的結果。
+   strong＝題庫有同型題可直接補量；partial＝技巧相同但表述或難度有落差；none＝題庫查無同型題。*/
+const KP_LABELS = {
+  "KP-N-7-5-integer-count-in-range":      "跨原點／絕對值範圍的整數計數",
+  "KP-N-7-5-count-to-bound-inverse":      "由個數逆推絕對值上界",
+  "KP-XCODE-baseline-signed-notation":    "基準值與縮放單位記法",
+  "KP-XCODE-numline-coordinate-transform":"換原點／單位長與 n 等分點",
+  "KP-N-7-5-numline-concept-statement":   "相反數與絕對值敘述判讀"
+};
+const KP_MATCH = {
+  strong:  { txt: "知洞可補題", cls: "m-strong" },
+  partial: { txt: "知洞部分對應", cls: "m-partial" },
+  none:    { txt: "知洞無同型題", cls: "m-none" }
+};
 
 const ROOTS = {
   count: { tag: "根因 ①", name: "計數／邊界 off-by-one", cls: "g-count",
@@ -382,6 +422,11 @@ function renderCard(it, examId){
       '<span class="qno">' + it.no + '</span>' +
       '<span class="state" data-state></span>' +
     '</div>' +
+    '<div class="meta">' +
+      '<span class="chip unit">' + (UNITS[it.unit] || it.unit || "未標單元") + '</span>' +
+      (it.kpMatch ? '<span class="chip ' + KP_MATCH[it.kpMatch].cls + '">' + KP_MATCH[it.kpMatch].txt +
+          (it.kp ? '：' + (KP_LABELS[it.kp] || it.kp) : '') + '</span>' : '') +
+    '</div>' +
     '<p class="qtext">' + it.q + '</p>' +
     '<div class="answers">' +
       '<span class="pill his">你寫的：' + it.his + '</span>' +
@@ -439,8 +484,17 @@ function renderCard(it, examId){
       const v  = input.value;
       if (!normStr(v)) { input.focus(); return; }
       const ok = isRight(v, d.a);
-      const tries = (state[dk] && state[dk].tries || 0) + 1;
-      state[dk] = { v: v, ok: ok, tries: tries };
+      const prev  = state[dk] || {};
+      const tries = (prev.tries || 0) + 1;
+      const now   = new Date();
+      const today = now.getFullYear() + "-" +
+                    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(now.getDate()).padStart(2, "0");
+      // okDays＝曾經答對的「不同日期」清單。間隔回訪與「兩個不同日子都對才畢業」
+      // 都靠它判斷；只存最後一次結果的話，隔天重練跟當天重做分不出來。
+      const okDays = Array.isArray(prev.okDays) ? prev.okDays.slice() : [];
+      if (ok && okDays.indexOf(today) === -1) okDays.push(today);
+      state[dk] = { v: v, ok: ok, tries: tries, ts: now.getTime(), okDays: okDays };
       save();
       input.classList.remove("right","wrong");
       if (ok){
