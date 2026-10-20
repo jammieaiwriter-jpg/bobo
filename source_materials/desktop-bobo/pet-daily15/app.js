@@ -78,13 +78,24 @@ function context(w,k){
  'accept':{pt:['She ___ my invitation.','她接受了我的邀請。'],pp:['They have ___ our offer.','他們已經接受了我們的提議。']}
  };return contexts[w.id]?.[k];
 }
+const DAILY_WORD_TARGET=15;
+function wordProgress(ss){
+ const d=E.daily(state),ids=new Set(d.ids),target=d.ids.length||DAILY_WORD_TARGET,completed=d.completed.length;
+ const category=t=>t.retry||ss.mode==='errors'?'mistakes':ss.mode==='word'?'single':(ss.mode==='daily'||ss.mode==='new')&&ids.has(t.id)?'new':'review';
+ const pending=ss.feedback?ss.queue.slice(1):ss.queue;
+ const mistakes=new Set(pending.filter(t=>category(t)==='mistakes').map(t=>t.id)).size;
+ const review=new Set(pending.filter(t=>category(t)==='review').map(t=>t.id)).size;
+ const current=ss.queue[0],kind=category(current),index=d.ids.indexOf(current.id);
+ const stage=kind==='new'?`正在學第 ${index+1} / ${target} 個新字`:kind==='mistakes'?'錯題再練（不算新字）':kind==='single'?'自選單字練習':'到期複習（不算新字）';
+ return {target,completed,mistakes,review,stage,pct:Math.min(100,Math.round(completed/target*100))};
+}
 function practice(){
  let ss=state.session;if(!ss||!ss.queue.length){finish(ss);return;}
  let t=ss.queue[0],w=byId[t.id];if(!w){ss.queue.shift();persist();practice();return;}
  let f=ss.feedback;hinted=!!ss.hinted;
- let pct=Math.round(ss.done/(ss.done+ss.queue.length)*100);
+ let progress=wordProgress(ss);let pct=progress.pct;
  let contextPair=context(w,t.skill);
- main.innerHTML=`<div class="practice-head"><button id="pause">← 暫停，保留進度</button><span>${ss.done} / ${ss.done+ss.queue.length} 步</span></div><div class="progress"><span style="width:${pct}%"></span></div><div class="row"><span class="pill">${labels[t.skill]}</span><span class="muted">${t.retry?'錯題再練':state.days[today()]?.ids.includes(w.id)?'今日新字':'到期複習'}</span></div><section class="question">
+ main.innerHTML=`<div class="practice-head"><button id="pause">← 暫停，保留進度</button><strong class="new-word-total">今日新字：已完成 ${progress.completed} / ${progress.target} 個</strong></div><div class="progress" aria-label="今日新字完成進度"><span style="width:${pct}%"></span></div><div class="practice-counts"><span>錯題再練：還有 ${progress.mistakes} 個字</span><span>到期複習：還有 ${progress.review} 個字</span></div><p class="practice-stage">${progress.stage}</p><div class="row"><span class="pill">${labels[t.skill]}</span></div><section class="question">
  ${t.skill==='learn'?`<div class="learn-banner">先認識這個字，再用小測驗記住它。</div><div class="row"><h1 class="question-word">${esc(w.word)}</h1>${sound(w)}</div><div class="phonetic">${esc(w.pos)} ${w.phonetic?'/'+esc(w.phonetic)+'/':''}</div><p class="question-meaning">${esc(w.meaning)}</p>${forms(w)}${example(w)}${relatedWordsCard(w)}<div class="actions"><button id="learnNext" class="primary">記住了，試試看 →</button><button id="quickKnown" class="text-btn">我已熟悉，先做拼字小測驗</button></div>`:
  t.skill==='meaning'?`<div class="row"><h1 class="question-word">${esc(w.word)}</h1>${sound(w)}</div><div class="phonetic">${esc(w.pos)}</div><p class="muted">選出符合這個字的意思。</p><div class="options">${choices(w).map((o,i)=>`<button class="option ${f&&o.id===w.id?'selected':''} ${f&&!f.ok&&o.id===f.selected?'wrong':''}" data-choice="${esc(o.id)}" ${f?'disabled':''}><span>${'ABCD'[i]}</span>${esc(o.meaning)}</button>`).join('')}</div>`:
  `<h2 class="question-meaning">${t.skill==='spell'?esc(w.meaning):esc(w.answers[0])}</h2><p class="muted">${t.skill==='spell'?`${esc(w.pos)} · 輸入對應的英文單字或片語。<br>開頭 ${esc(w.answers[0][0])} · ${w.answers[0].length} 個字元`:`輸入這個動詞的${t.skill==='pt'?'過去式（PT）':'過去分詞（PP）'}。`}</p>${contextPair?`<div class="example">${esc(contextPair[0])}<small>${esc(contextPair[1])}</small></div>`:''}<form id="answerForm"><label class="compact" for="answer">${t.skill==='spell'?'英文答案':labels[t.skill]}</label><input class="answer-input" id="answer" name="answer" lang="en" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" placeholder="輸入答案…" ${f?'disabled':''} value="${esc(f?.typed||'')}"><div class="row"><button type="button" id="hint" class="text-btn" ${f?'disabled':''}>給我提示</button>${t.skill==='spell'?'<button type="button" id="listenHint" class="text-btn">聽發音提示 ♪</button>':''}</div>${hinted?`<div class="hint">提示：${esc(answers(w,t.skill)[0].slice(0,2))}…（${answers(w,t.skill)[0].length} 個字元）<br>使用提示會安排隔天再練。</div>`:''}<button class="primary" type="submit" ${f?'disabled':''}>確認答案</button></form>`}</section>
