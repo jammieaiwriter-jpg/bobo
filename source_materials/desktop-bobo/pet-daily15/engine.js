@@ -18,7 +18,7 @@
    if(!(i===0&&s.session.feedback))t.skill='pt';return true;
   });s.session.total=s.session.done+s.session.queue.length;
  }
- const fresh=()=>({version:1,records:{},days:{},session:null,exam:'2027-01-15',settings:{daily:15},history:[]});
+ const fresh=()=>({version:1,records:{},days:{},session:null,exam:'2027-01-15',settings:{daily:15,difficulty:'all'},history:[]});
  function daily(s,date=day()){return s.days[date]||(s.days[date]={ids:[],completed:[],answers:0,correct:0});}
  function due(s,words,date=day()){
    let q=[];for(let w of words){let r=s.records[w.id];if(!r)continue;for(let k of taskSkills(w)){
@@ -31,16 +31,43 @@
  const SCENES=[{"id": "school", "title": "學校的一天"}, {"id": "home", "title": "在家過生活"}, {"id": "food", "title": "吃飯與點餐"}, {"id": "shopping", "title": "一起去買東西"}, {"id": "travel", "title": "搭車與出遊"}, {"id": "hobbies", "title": "放學後的興趣"}, {"id": "health", "title": "照顧自己的身體"}, {"id": "feelings", "title": "心情與朋友相處"}, {"id": "nature", "title": "看看天氣與大自然"}, {"id": "time", "title": "安排今天的生活"}, {"id": "communication", "title": "說話與傳遞訊息"}, {"id": "work", "title": "認識工作與城市"}, {"id": "learning", "title": "想一想與解決問題"}];
  const stableRank=w=>{let h=0;for(const c of w.id)h=(h*31+c.charCodeAt(0))>>>0;return h;};
  const commonSort=(a,b)=>(a.commonRank??999)-(b.commonRank??999)||a.word.length-b.word.length||stableRank(a)-stableRank(b);
+ const DIFFICULTIES=['all','basic','intermediate','challenge'];
+ const getDifficulty=s=>DIFFICULTIES.includes(s.settings?.difficulty)?s.settings.difficulty:'all';
+ const matchesDifficulty=(w,level)=>level==='all'||w.difficulty===level;
+ function setDifficulty(s,words,level,date=day()){
+  if(!DIFFICULTIES.includes(level))throw Error('Invalid difficulty');
+  const d=daily(s,date),oldIds=d.ids.slice(),oldSet=new Set(oldIds),byId=Object.fromEntries(words.map(w=>[w.id,w]));
+  if(getDifficulty(s)===level&&d.difficulty===level)return plan(s,words,date);
+  s.settings={...s.settings,daily:LIMIT,difficulty:level};
+  // Answered words keep their slots. Only untouched, out-of-level words are replaced.
+  d.ids=d.ids.filter(id=>d.completed.includes(id)||s.records[id]||matchesDifficulty(byId[id],level));
+  d.difficulty=level;d.sceneId=null;d.sceneWordIds=[];d.commonWordIds=d.ids.slice();
+  plan(s,words,date);
+  const removed=new Set(oldIds.filter(id=>!d.ids.includes(id))),added=d.ids.filter(id=>!oldSet.has(id));
+  const ss=s.session;
+  if(ss?.date===date&&['daily','new'].includes(ss.mode)&&ss.queue.length){
+   const currentRemoved=removed.has(ss.queue[0].id);
+   ss.queue=ss.queue.filter(t=>!removed.has(t.id));
+   for(const id of added){const w=byId[id],missing=taskSkills(w).filter(k=>!s.records[id]?.[k]||(k==='pt'&&sameForms(w)&&!s.records[id]?.pp));
+    if(missing.length)ss.queue.push({id,skill:'learn'},...missing.map(skill=>({id,skill})));
+   }
+   if(currentRemoved){ss.feedback=null;ss.hinted=false;}
+   ss.total=ss.done+ss.queue.length;
+  }
+  return d;
+ }
  function plan(s,words,date=day()){
-  let d=daily(s,date);s.settings={...s.settings,daily:LIMIT};
+  let d=daily(s,date),level=getDifficulty(s);s.settings={...s.settings,daily:LIMIT,difficulty:level};
+  if(d.difficulty&&d.difficulty!==level)return setDifficulty(s,words,level,date);
+  d.difficulty=level;
   if(d.orderVersion!==ORDER_VERSION){
    const untouched=d.answers===0&&d.completed.length===0&&!d.ids.some(id=>s.records[id]);
    if(untouched){d.ids=[];if(s.session?.date===date&&['daily','new'].includes(s.session.mode)&&!s.session.attempts)s.session=null;}
    if(!untouched){d.sceneTitle=d.sceneTitle||'原有學習計畫';d.sceneWordIds=d.sceneWordIds||[];d.commonWordIds=d.commonWordIds||d.ids.slice();}
    d.orderVersion=ORDER_VERSION;
   }
-  if(d.ids.length>=LIMIT)return d;
-  const selected=new Set(d.ids),pool=words.filter(w=>!s.records[w.id]&&!selected.has(w.id));if(!pool.length)return d;
+  if(d.ids.length>=LIMIT){d.sceneWordIds=d.ids.filter(id=>words.find(w=>w.id===id)?.learningScene===d.sceneId);d.commonWordIds=d.ids.filter(id=>!d.sceneWordIds.includes(id));return d;}
+  const selected=new Set(d.ids),pool=words.filter(w=>!s.records[w.id]&&!selected.has(w.id)&&matchesDifficulty(w,level));if(!pool.length)return d;
   const sceneGoal=Math.round(LIMIT*.6),commonGoal=LIMIT-sceneGoal;
   let scene=SCENES.find(x=>x.id===d.sceneId);
   if(!scene){const prior=Object.entries(s.days).filter(([k,v])=>k<date&&v.answers>0).length;const rotated=SCENES.map((_,i)=>SCENES[(prior+i)%SCENES.length]);scene=rotated.find(x=>pool.filter(w=>w.learningScene===x.id).length>=sceneGoal)||rotated.find(x=>pool.some(w=>w.learningScene===x.id))||{id:'general',title:'綜合實用'};}
@@ -87,12 +114,13 @@
  }
  function valid(s,words){
    if(!s||s.version!==1||!s.records||Array.isArray(s.records)||typeof s.records!=='object'||!s.days||typeof s.days!=='object'||Array.isArray(s.days)||!Array.isArray(s.history))return false;
+   if(s.settings?.difficulty!==undefined&&!DIFFICULTIES.includes(s.settings.difficulty))return false;
    let ids=new Set(words.map(w=>w.id));
    for(let [id,r] of Object.entries(s.records)){if(!ids.has(id)||!r||typeof r!=='object')return false;for(let [k,x] of Object.entries(r)){if(!['meaning','spell','pt','pp'].includes(k)||!x||!Number.isInteger(x.level)||x.level< -1||x.level>4||!/^\d{4}-\d{2}-\d{2}$/.test(x.due)||!Number.isFinite(x.errors)||x.errors<0||!Number.isFinite(x.wins)||x.wins<0)return false;}}
    for(let [date,d] of Object.entries(s.days)){if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Array.isArray(d.ids)||d.ids.length>15||d.ids.some(id=>!ids.has(id))||!Array.isArray(d.completed)||d.completed.some(id=>!d.ids.includes(id))||!Number.isFinite(d.answers)||!Number.isFinite(d.correct))return false;}
    if(s.session){let z=s.session;if(!Array.isArray(z.queue)||z.queue.length>2000||z.queue.some(t=>!ids.has(t.id)||!['learn','meaning','spell','pt','pp'].includes(t.skill))||!Number.isFinite(z.done)||!Number.isFinite(z.total))return false;}
    return true;
  }
- const api={day,addDays,normalize,skills,sameForms,taskSkills,mergeSession,fresh,daily,due,plan,start,grade,known,valid};
+ const api={day,addDays,normalize,skills,sameForms,taskSkills,mergeSession,DIFFICULTIES,getDifficulty,matchesDifficulty,setDifficulty,fresh,daily,due,plan,start,grade,known,valid};
  if(typeof module!=='undefined')module.exports=api;else root.PET=api;
 })(typeof window!=='undefined'?window:globalThis);

@@ -1,0 +1,21 @@
+{
+  "method": "練習用分級，非 Cambridge 官方試題難度；優先對照 Oxford 3000/5000 與 Oxford Phrase List，採相符詞性的較基礎分級；未列詞使用明確標示的本題庫補充分級。",
+  "groups": {
+    "challenge": 876,
+    "intermediate": 1441,
+    "basic": 1207
+  },
+  "sources": {
+    "Oxford 詞表／片語表對照": 2493,
+    "本題庫 PET 字彙補充分級": 41,
+    "本題庫基礎字群補充分級": 286,
+    "本題庫補充分級（未列於參考詞表）": 686,
+    "本題庫複數詞形對照推估": 18
+  },
+  "links": [
+    "https://www.oxfordlearnersdictionaries.com/about/wordlists/cefr.html",
+    "https://www.oxfordlearnersdictionaries.com/external/pdf/wordlists/oxford-3000-5000/The_Oxford_3000_by_CEFR_level.pdf",
+    "https://www.oxfordlearnersdictionaries.com/external/pdf/wordlists/oxford-3000-5000/The_Oxford_5000_by_CEFR_level.pdf",
+    "https://www.oxfordlearnersdictionaries.com/external/pdf/wordlists/oxford-phrase-list/Oxford%20Phrase%20List.pdf"
+  ]
+}

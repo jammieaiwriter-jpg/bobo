@@ -7,3 +7,5 @@
 .practice-head{flex-wrap:wrap;gap:8px}.new-word-total{font-size:14px;white-space:normal}.practice-counts{display:flex;flex-wrap:wrap;gap:8px 16px;color:var(--muted);font-size:12px;margin:8px 0}.practice-stage{font-size:15px;font-weight:700;margin:12px 0;color:var(--green)}
 
 .library-theme{margin:18px 0 12px;padding:16px;background:#edf3df;border-radius:14px}.library-theme label{display:block;font-size:14px;font-weight:700;margin-bottom:7px}.library-theme select{display:block;width:100%;min-height:46px;background:#fffef9;border:1px solid var(--line);border-radius:9px;padding:10px;color:var(--ink)}.library-theme small{display:block;font-size:12px;color:var(--muted);margin-top:8px}
+
+.difficulty-badge{display:inline-block;margin:4px 0 4px 7px;border:1px solid var(--line);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;vertical-align:middle;color:#516249;background:#edf3df}.difficulty-badge[data-difficulty="challenge"]{background:#f8e4cf;color:#7b4322;border-color:#e8bd91}.difficulty-badge[data-difficulty="intermediate"]{background:#e4edf5;color:#365774}.training-difficulty small{line-height:1.8}.training-difficulty a{color:inherit}
