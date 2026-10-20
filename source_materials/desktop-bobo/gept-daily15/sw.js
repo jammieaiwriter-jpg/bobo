@@ -1,5 +1,5 @@
-const CACHE='gept15-v1.0.3';
-const FILES=['./','./index.html','./style.css?v=1.0.1','./engine.js','./app.js?v=1.0.3','./words.json','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./LICENSE-ECDICT.txt'];
+const CACHE='gept15-v1.0.4';
+const FILES=['./','./index.html','./style.css?v=1.0.1','./engine.js?v=1.0.4','./app.js?v=1.0.4','./words.json','./manifest.webmanifest','./icon.svg','./icon-192.png','./icon-512.png','./LICENSE-ECDICT.txt'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('gept15-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;

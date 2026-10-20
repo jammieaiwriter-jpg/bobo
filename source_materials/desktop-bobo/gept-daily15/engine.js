@@ -5,7 +5,7 @@
  const addDays=(s,n)=>{let [y,m,d]=s.split('-').map(Number);return day(new Date(y,m-1,d+n,12));};
  const normalize=s=>s.trim().toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
  const skills=w=>['meaning','spell',...(w.pt.length&&w.pp.length?['pt','pp']:[])];
- const fresh=()=>({version:1,records:{},days:{},session:null,exam:'',settings:{daily:15},history:[]});
+ const fresh=()=>({version:1,records:{},days:{},session:null,exam:'',settings:{daily:10},history:[]});
  function daily(s,date=day()){return s.days[date]||(s.days[date]={ids:[],completed:[],answers:0,correct:0});}
  function due(s,words,date=day()){
    let q=[];for(let w of words){let r=s.records[w.id];if(!r)continue;for(let k of skills(w)){let x=r[k];if(x&&x.due<=date)q.push({id:w.id,skill:k,due:x.due,errors:x.errors||0});}}
@@ -13,9 +13,11 @@
  }
  function plan(s,words,date=day()){
    let d=daily(s,date);
-   if(d.ids.length<15){let selected=new Set(d.ids);let candidates=words.filter(w=>!s.records[w.id]&&!selected.has(w.id));
+   if(d.ids.length>10){const keep=[...d.completed,...d.ids.filter(id=>!d.completed.includes(id))].slice(0,Math.max(10,d.completed.length));const removed=new Set(d.ids.filter(id=>!keep.includes(id)));d.ids=keep;if(s.session?.date===date&&['daily','new'].includes(s.session.mode)){const z=s.session;if(removed.has(z.queue[0]?.id)){z.feedback=null;z.hinted=false;}z.queue=z.queue.filter(t=>!removed.has(t.id));z.total=z.done+z.queue.length;}}
+   s.settings={...s.settings,daily:10};
+   if(d.ids.length<10){let selected=new Set(d.ids);let candidates=words.filter(w=>!s.records[w.id]&&!selected.has(w.id));
      // Interleave 3 verbs in a daily set when the pool allows it.
-     while(d.ids.length<15&&candidates.length){let count=d.ids.map(id=>words.find(w=>w.id===id)).filter(w=>w?.pt.length).length;let wantVerb=[2,7,12].includes(d.ids.length)&&count<3;let ix=wantVerb?candidates.findIndex(w=>w.pt.length&&w.pp.length):candidates.findIndex(w=>!w.pt.length);if(ix<0)ix=0;d.ids.push(candidates.splice(ix,1)[0].id);}
+     while(d.ids.length<10&&candidates.length){let count=d.ids.map(id=>words.find(w=>w.id===id)).filter(w=>w?.pt.length).length;let wantVerb=[2,7].includes(d.ids.length)&&count<2;let ix=wantVerb?candidates.findIndex(w=>w.pt.length&&w.pp.length):candidates.findIndex(w=>!w.pt.length);if(ix<0)ix=0;d.ids.push(candidates.splice(ix,1)[0].id);}
    }return d;
  }
  function start(s,words,mode='daily',date=day()){
