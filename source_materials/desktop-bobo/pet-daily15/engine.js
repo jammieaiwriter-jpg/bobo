@@ -11,14 +11,35 @@
    let q=[];for(let w of words){let r=s.records[w.id];if(!r)continue;for(let k of skills(w)){let x=r[k];if(x&&x.due<=date)q.push({id:w.id,skill:k,due:x.due,errors:x.errors||0});}}
    return q.sort((a,b)=>a.due.localeCompare(b.due)||b.errors-a.errors);
  }
+ const ORDER_VERSION='mixed-scenes-v1',LIMIT=15;
+ const SCENES=[{"id": "school", "title": "學校的一天"}, {"id": "home", "title": "在家過生活"}, {"id": "food", "title": "吃飯與點餐"}, {"id": "shopping", "title": "一起去買東西"}, {"id": "travel", "title": "搭車與出遊"}, {"id": "hobbies", "title": "放學後的興趣"}, {"id": "health", "title": "照顧自己的身體"}, {"id": "feelings", "title": "心情與朋友相處"}, {"id": "nature", "title": "看看天氣與大自然"}, {"id": "time", "title": "安排今天的生活"}, {"id": "communication", "title": "說話與傳遞訊息"}, {"id": "work", "title": "認識工作與城市"}, {"id": "learning", "title": "想一想與解決問題"}];
+ const stableRank=w=>{let h=0;for(const c of w.id)h=(h*31+c.charCodeAt(0))>>>0;return h;};
+ const commonSort=(a,b)=>(a.commonRank??999)-(b.commonRank??999)||a.word.length-b.word.length||stableRank(a)-stableRank(b);
  function plan(s,words,date=day()){
-   let d=daily(s,date);
-   if(d.ids.length<15){let selected=new Set(d.ids);let candidates=words.filter(w=>!s.records[w.id]&&!selected.has(w.id));
-     // Interleave 3 verbs in a daily set when the pool allows it.
-     while(d.ids.length<15&&candidates.length){let count=d.ids.map(id=>words.find(w=>w.id===id)).filter(w=>w?.pt.length).length;let wantVerb=[2,7,12].includes(d.ids.length)&&count<3;let ix=wantVerb?candidates.findIndex(w=>w.pt.length&&w.pp.length):candidates.findIndex(w=>!w.pt.length);if(ix<0)ix=0;d.ids.push(candidates.splice(ix,1)[0].id);}
-   }return d;
+  let d=daily(s,date);s.settings={...s.settings,daily:LIMIT};
+  if(d.orderVersion!==ORDER_VERSION){
+   const untouched=d.answers===0&&d.completed.length===0&&!d.ids.some(id=>s.records[id]);
+   if(untouched){d.ids=[];if(s.session?.date===date&&['daily','new'].includes(s.session.mode)&&!s.session.attempts)s.session=null;}
+   if(!untouched){d.sceneTitle=d.sceneTitle||'原有學習計畫';d.sceneWordIds=d.sceneWordIds||[];d.commonWordIds=d.commonWordIds||d.ids.slice();}
+   d.orderVersion=ORDER_VERSION;
+  }
+  if(d.ids.length>=LIMIT)return d;
+  const selected=new Set(d.ids),pool=words.filter(w=>!s.records[w.id]&&!selected.has(w.id));if(!pool.length)return d;
+  const sceneGoal=Math.round(LIMIT*.6),commonGoal=LIMIT-sceneGoal;
+  let scene=SCENES.find(x=>x.id===d.sceneId);
+  if(!scene){const prior=Object.entries(s.days).filter(([k,v])=>k<date&&v.answers>0).length;const rotated=SCENES.map((_,i)=>SCENES[(prior+i)%SCENES.length]);scene=rotated.find(x=>pool.filter(w=>w.learningScene===x.id).length>=sceneGoal)||rotated.find(x=>pool.some(w=>w.learningScene===x.id))||{id:'general',title:'綜合實用'};}
+  const scenePool=pool.filter(w=>w.learningScene===scene.id).sort((a,b)=>a.sceneRank-b.sceneRank||commonSort(a,b));
+  const sceneWords=scenePool.slice(0,sceneGoal),sceneIds=new Set(sceneWords.map(w=>w.id));
+  const commonWords=pool.filter(w=>!sceneIds.has(w.id)&&w.learningScene!==scene.id).sort(commonSort).slice(0,commonGoal);
+  const used=new Set([...sceneWords,...commonWords].map(w=>w.id));
+  const spare=pool.filter(w=>!used.has(w.id)).sort(commonSort);
+  const additions=[];for(let i=0;additions.length<LIMIT-d.ids.length;i++){let w=(i%5<3?sceneWords.shift():commonWords.shift())||sceneWords.shift()||commonWords.shift()||spare.shift();if(!w)break;additions.push(w);}
+  d.sceneId=scene.id;d.sceneTitle=scene.title;d.ids.push(...additions.map(w=>w.id));
+  d.sceneWordIds=d.ids.filter(id=>words.find(w=>w.id===id)?.learningScene===scene.id);
+  d.commonWordIds=d.ids.filter(id=>!d.sceneWordIds.includes(id));return d;
  }
  function start(s,words,mode='daily',date=day()){
+   if(mode==='daily'||mode==='new')plan(s,words,date);
    if(s.session?.date===date&&s.session.queue.length)return s.session;
    let q=[];if(mode!=='new')q=due(s,words,date).filter(t=>mode!=='errors'||t.errors>0).slice(0,mode==='errors'?60:30).map(({id,skill})=>({id,skill}));
    if(mode==='daily'||mode==='new'){
