@@ -3,3 +3,5 @@
 .form-pronunciation{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px;margin-top:6px}.form-pronunciation b{overflow-wrap:anywhere;min-width:0}.form-pronunciation .sound{width:44px;height:44px;font-size:18px}
 
 .brand-mascot{width:52px;height:52px;border-radius:16px;object-fit:cover;box-shadow:0 3px 0 #d8dfc9}
+
+.related-words{margin:22px 0;text-align:left}.related-words h3{font-size:16px}.related-list{display:grid;gap:8px}.related-word{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fffef9}.related-word.current{background:#edf3df;border-color:#b7c9a0}.related-title{border:0;background:none;color:var(--ink);font-size:19px;font-weight:750;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px}.related-word small{display:block;color:var(--muted);font-size:12px}.related-word p{margin:3px 0 0;font-size:13px;line-height:1.5}
