@@ -28,23 +28,20 @@ function render(){
 const NOTIFY_ENDPOINT='https://bobo-math-notify.bobo-math-grader.workers.dev';
 let notifying=false;
 function taskReady(){const d=E.daily(state);return d.ids.length>0&&d.completed.length===d.ids.length&&E.due(state,words).length===0&&!(state.session?.date===today()&&state.session.queue.length);}
-function notificationCard(){const d=E.daily(state),sent=!!d.notifiedAt,ready=taskReady();return `<section class="card"><h3>今天完成任務，通知 Emma</h3><p class="muted">完成今日新字與到期複習後，按下按鈕傳送到 Emma 的 Telegram。</p><label for="learnerName">孩子稱呼</label><input id="learnerName" type="text" maxlength="24" autocomplete="off" placeholder="例如：Bobo" value="${esc(state.settings.learnerName||'')}" ${sent?'disabled':''}><button id="notifyEmma" type="button" class="primary" style="margin-top:12px" ${sent||!ready||notifying||writeBlocked?'disabled':''}>${sent?'✓ 今天已通知 Emma':notifying?'正在傳送…':'今天任務完成，通知 Emma'}</button><p id="notifyStatus" class="muted" role="status">${sent?'今天的完成紀錄已傳送。':ready?'準備好了！請填寫稱呼後傳送。':'先完成今日新字、到期複習及目前回合，再來通知。'}</p></section>`;}
-function bindNotification(){const input=$('#learnerName');if(input)input.onchange=()=>{state.settings.learnerName=input.value.trim().slice(0,24);persist();};const button=$('#notifyEmma');if(button)button.onclick=notifyEmma;}
+function dailyAttemptStats(){const d=E.daily(state);if(!d.itemAttempts){d.itemAttempts={};for(const h of state.history.filter(h=>h.date===today())){const key=h.id+'|'+h.skill;const x=d.itemAttempts[key]||(d.itemAttempts[key]={attempts:0,successes:0});x.attempts++;if(h.ok)x.successes++;}}return d.itemAttempts;}
+function completionMessage(name){const d=E.daily(state),items=dailyAttemptStats();const lines=Object.entries(items).sort(([a],[b])=>a.localeCompare(b)).map(([key,x])=>{const [id,skill]=key.split('|');return `${byId[id]?.word||id} · ${labels[skill]||skill}：${x.attempts} 次，無提示答對 ${x.successes} 次`;});return `${name} 國中＋GEPT 初級每日單字完成。\n日期：${today()}\n新字 Completed ${d.completed.length} / ${d.ids.length}\n總練習：${d.answers} 次\n無提示答對：${d.correct} / ${d.answers}\n到期複習：已完成\n口說：本版未設口說測驗\n單字練習明細：\n${lines.join('\n')}`;}
+function reportParts(text){const parts=[];let current='';for(const line of text.split('\n')){if(current.length+line.length+1>3200){parts.push(current);current='';}current+=(current?'\n':'')+line;}if(current)parts.push(current);return parts.map((part,i)=>parts.length>1?`GEPT 完成回報 (${i+1}/${parts.length})\n${part}`:part);}
+function maybeAutoNotify(){const d=E.daily(state);if(!d.notifiedAt&&!d.autoNotifyTried&&state.settings.learnerName&&taskReady()&&!writeBlocked){d.autoNotifyTried=true;persist();notifyEmma();}}
+function notificationCard(){const d=E.daily(state),sent=!!d.notifiedAt,ready=taskReady();return `<section class="card"><h3>今天完成任務，通知 Emma</h3><p class="muted">比照 OiKID，完成今日新字與到期複習後自動回報到 Emma 的 Telegram；若未收到，可按下方按鈕補送。</p><label for="learnerName">孩子稱呼</label><input id="learnerName" type="text" maxlength="24" autocomplete="off" placeholder="例如：Bobo" value="${esc(state.settings.learnerName||'')}" ${sent?'disabled':''}><button id="notifyEmma" type="button" class="primary" style="margin-top:12px" ${sent||!ready||notifying||writeBlocked?'disabled':''}>${sent?'✓ 今天已通知 Emma':notifying?'正在傳送…':'今天任務完成，通知 Emma'}</button><p id="notifyStatus" class="muted" role="status">${sent?'今天的完成紀錄已傳送。':ready?'準備好了！請填寫稱呼後傳送。':'先完成今日新字、到期複習及目前回合，再來通知。'}</p></section>`;}
+function bindNotification(){const input=$('#learnerName');if(input)input.onchange=()=>{state.settings.learnerName=input.value.trim().slice(0,24);persist();maybeAutoNotify();};const button=$('#notifyEmma');if(button)button.onclick=notifyEmma;}
 async function notifyEmma(){
  if(notifying||writeBlocked)return;
  const date=today(),d=E.daily(state);if(d.notifiedAt){toast('今天已通知 Emma。');return;}if(!taskReady()){toast('請先完成今天的任務。');return;}
  const name=($('#learnerName')?.value||'').trim().slice(0,24);if(!name){toast('請先填寫孩子稱呼。');$('#learnerName')?.focus();return;}
  state.settings.learnerName=name;if(!persist())return;notifying=true;const button=$('#notifyEmma');if(button){button.disabled=true;button.textContent='正在傳送…';}
- const text=`📚 國中＋GEPT 初級每日15字
-孩子：${name}
-日期：${date}
-✅ 今日任務完成
-今日新字：${d.completed.length} / ${d.ids.length}
-今日無提示答對：${d.correct} / ${d.answers} 次
-到期複習：已完成
-今日單字：${d.ids.map(id=>byId[id]?.word||id).join('、')}`;
+ const parts=d.notificationReportParts||(d.notificationReportParts=reportParts(completionMessage(name)));persist();
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
- try{const response=await fetch(NOTIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text}),signal:controller.signal});const result=await response.json();if(!response.ok||result.ok!==true)throw Error('send_failed');d.notifiedAt=new Date().toISOString();persist();toast('已通知 Emma！');}
+ try{for(let i=d.notificationSentParts||0;i<parts.length;i++){const response=await fetch(NOTIFY_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:parts[i],to:'default'}),signal:controller.signal});const result=await response.json();if(!response.ok||result.ok!==true)throw Error('send_failed');d.notificationSentParts=i+1;persist();}d.notifiedAt=new Date().toISOString();persist();toast('已通知 Emma！');}
  catch(error){toast('傳送未成功，請檢查網路後再試；若已收到通知，就不必重送。');}
  finally{clearTimeout(timer);notifying=false;if(view==='home'||view==='practice')render();}
 }
@@ -59,7 +56,7 @@ function home(){
  <div class="section-head"><h2>今天的練習路線</h2><span class="pill">每天 15 字</span></div><div class="card"><div class="row"><div><h3>01　到期複習</h3><span class="muted">意思、拼字、動詞變化分開追蹤</span></div><b>${st.due.length}<small class="muted"> 項</small></b></div><div style="height:1px;background:var(--line);margin:15px 0"></div><div class="row"><div><h3>02　今日新字</h3><span class="muted">每個動詞連同 PT、PP 一起學</span></div><b>${newCount}<small class="muted"> 待練</small></b></div><div class="daily-strip">${Array.from({length:15},(_,i)=>`<span class="${i<count?'done':''}"></span>`).join('')}</div></div>
  <div class="section-head"><h2>${upcoming.length?'即將認識':'今天已完成'}</h2><a href="#library" class="text-btn">全部單字</a></div>${(upcoming.length?upcoming:d.ids.slice(0,3).map(id=>byId[id])).map(w=>`<div class="card word-preview"><div><b>${esc(w.word)}</b><small>${esc(w.pos)} ${w.phonetic?' /'+esc(w.phonetic)+'/':''}</small><div class="meaning">${esc(w.meaning)}</div></div>${sound(w)}</div>`).join('')}
  <div class="safe-note">新字完成表示今天已練過；跨日熟練需每項能力在至少 3 個不同日子無提示答對。<br>複習間隔：1、3、7、14、30 天。三態不另占新字名額。</div>${notificationCard()}<footer>國中＋GEPT 初級 · 本機整理字庫 · 個人練習工具</footer>`;
- $('#startDaily').onclick=()=>startSession('daily');bindNotification();
+ $('#startDaily').onclick=()=>startSession('daily');bindNotification();maybeAutoNotify();
 }
 function startSession(mode){if(writeBlocked){toast('目前進度未能儲存，請先在設定匯出備份。');return;}E.start(state,words,mode);persist();view='practice';location.hash='practice';render();}
 function choices(w){let options=[w];let pool=words.filter(x=>x.id!==w.id&&x.meaning!==w.meaning);let seed=[...w.id].reduce((a,c)=>a+c.charCodeAt(0),0);for(let i=0;options.length<4;i++){let x=pool[(seed*13+i*277)%pool.length];if(!options.some(o=>o.meaning===x.meaning))options.push(x);}let rotate=seed%4;return options.slice(rotate).concat(options.slice(0,rotate));}
@@ -124,14 +121,14 @@ function practice(){
  }
  if(f)$('#next').onclick=()=>{ss.queue.shift();ss.done++;ss.feedback=null;ss.hinted=false;persist();practice();window.scrollTo(0,0);};
 }
-function submit(rawOK,extra){let ss=state.session;if(ss.feedback)return;let t=ss.queue[0],w=byId[t.id];let ok=E.grade(state,w,t.skill,rawOK,{hint:!!ss.hinted,retry:!!t.retry});
+function submit(rawOK,extra){let ss=state.session;if(ss.feedback)return;let t=ss.queue[0],w=byId[t.id];let items=dailyAttemptStats();let ok=E.grade(state,w,t.skill,rawOK,{hint:!!ss.hinted,retry:!!t.retry});let key=w.id+'|'+t.skill;let item=items[key]||(items[key]={attempts:0,successes:0});item.attempts++;if(ok)item.successes++;
  if(t.screen&&ok){E.known(state,w);}
  if(t.screen&&!ok){let missing=E.skills(w).filter(k=>k!=='spell'&&!state.records[w.id]?.[k]);ss.queue.splice(1,0,...missing.map(skill=>({id:w.id,skill})));}
  if(!ok&&(t.retries||0)<2){ss.queue.splice(Math.min(5,ss.queue.length),0,{id:w.id,skill:t.skill,retry:true,retries:(t.retries||0)+1});}
  ss.attempts++;if(ok)ss.correct++;ss.feedback={ok,rawOK,...extra};persist();practice();setTimeout(()=>$('#next')?.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
 function finish(ss){let d=E.daily(state),st=stats();let completed=d.completed.length;
  main.innerHTML=`<div class="eyebrow">TODAY'S PROGRESS</div><div class="empty"><div class="finish-icon">✦</div><h1>${ss?.attempts?'這一回合，完成了。':'今天的記憶，已就位。'}</h1><p class="muted">${completed>=15?'15 個新字已練習，明天再讓記憶更牢。':completed+' / 15 個今日新字已完成。'}</p></div><div class="stats"><div class="stat"><b>${completed}</b><span>今日新字</span></div><div class="stat"><b>${ss?.attempts?Math.round(ss.correct/ss.attempts*100):0}%</b><span>本回合無提示答對</span></div><div class="stat"><b>${st.due.length}</b><span>仍到期的能力項目</span></div></div><div class="card"><h3>答錯的字，有下一次機會。</h3><p class="muted">今天訂正完成的題目，隔天仍會出現。隔幾天還能想起來，才是記住了。</p></div>${notificationCard()}<div class="gap">${st.due.length?'<button id="moreReview" class="primary">繼續到期複習</button>':''}<a href="#home" class="secondary">回到今日首頁</a></div>`;
- bindNotification();if($('#moreReview'))$('#moreReview').onclick=()=>{state.session=null;startSession('review');};
+ bindNotification();maybeAutoNotify();if($('#moreReview'))$('#moreReview').onclick=()=>{state.session=null;startSession('review');};
 }
 function item(w,errorMode=false){let r=state.records[w.id],bad=Object.entries(r||{}).filter(([k,x])=>x.errors>0&&(!x.lastOK||x.wins<3));return `<button class="word-item" data-detail="${esc(w.id)}"><div class="row"><div><b>${esc(w.word)}</b><span class="pos">${esc(w.pos)}</span></div><span class="pill">${!r?'未開始':E.skills(w).every(k=>r[k]?.wins>=3)?'跨日熟練':'學習中'}</span></div><p>${esc(w.meaning)}</p>${errorMode?`<div class="list-meta"><span>${bad.map(([k])=>labels[k]).join('、')}</span><span class="badge-error">累計 ${bad.reduce((n,[k,x])=>n+x.errors,0)} 次需加強</span></div>`:''}</button>`;}
 function library(){main.innerHTML=`<div class="eyebrow">YOUR WORD COLLECTION</div><h1>把單字，慢慢變熟。</h1><p class="muted">${words.length} 個詞條 · 依本機 GEPT 整理字庫製作</p><input id="search" type="search" placeholder="搜尋英文或中文…" aria-label="搜尋單字" value="${esc(search)}"><div class="tabs">${[['all','全部'],['verbs','動詞三態'],['new','未開始'],['learning','學習中'],['mastered','跨日熟練']].map(([k,v])=>`<button class="tab ${filter===k?'active':''}" data-filter="${k}">${v}</button>`).join('')}</div><div id="listCount" class="muted"></div><div id="wordList" class="word-list"></div><button id="loadMore" class="text-btn" style="width:100%">顯示更多</button>`;
