@@ -5,10 +5,26 @@
  const addDays=(s,n)=>{let [y,m,d]=s.split('-').map(Number);return day(new Date(y,m-1,d+n,12));};
  const normalize=s=>s.trim().toLowerCase().replace(/[’‘]/g,"'").replace(/\s+/g,' ');
  const skills=w=>['meaning','spell',...(w.pt.length&&w.pp.length?['pt','pp']:[])];
+ const sameForms=w=>!!(w.pt.length&&w.pp.length)&&JSON.stringify([...new Set(w.pt.map(normalize))].sort())===JSON.stringify([...new Set(w.pp.map(normalize))].sort());
+ const taskSkills=w=>skills(w).filter(k=>!(sameForms(w)&&k==='pp'));
+ function mergeSession(s,words){
+  if(!s.session?.queue?.length)return;
+  const byId=Object.fromEntries(words.map(w=>[w.id,w])),seen=new Set();
+  s.session.queue=s.session.queue.filter((t,i)=>{
+   if(!['pt','pp'].includes(t.skill)||!sameForms(byId[t.id]))return true;
+   const key=t.id+'|'+(t.retries||0)+'|'+!!t.retry;
+   if(seen.has(key))return false;seen.add(key);
+   // Preserve the current feedback label; pending equal-form items use one PT/PP task.
+   if(!(i===0&&s.session.feedback))t.skill='pt';return true;
+  });s.session.total=s.session.done+s.session.queue.length;
+ }
  const fresh=()=>({version:1,records:{},days:{},session:null,exam:'2027-01-15',settings:{daily:15},history:[]});
  function daily(s,date=day()){return s.days[date]||(s.days[date]={ids:[],completed:[],answers:0,correct:0});}
  function due(s,words,date=day()){
-   let q=[];for(let w of words){let r=s.records[w.id];if(!r)continue;for(let k of skills(w)){let x=r[k];if(x&&x.due<=date)q.push({id:w.id,skill:k,due:x.due,errors:x.errors||0});}}
+   let q=[];for(let w of words){let r=s.records[w.id];if(!r)continue;for(let k of taskSkills(w)){
+    const keys=k==='pt'&&sameForms(w)?['pt','pp']:[k];const xs=keys.map(key=>r[key]).filter(x=>x&&x.due<=date);
+    if(xs.length)q.push({id:w.id,skill:k,due:xs.map(x=>x.due).sort()[0],errors:Math.max(...xs.map(x=>x.errors||0))});
+   }}
    return q.sort((a,b)=>a.due.localeCompare(b.due)||b.errors-a.errors);
  }
  const ORDER_VERSION='mixed-scenes-v1',LIMIT=15;
@@ -39,24 +55,27 @@
   d.commonWordIds=d.ids.filter(id=>!d.sceneWordIds.includes(id));return d;
  }
  function start(s,words,mode='daily',date=day()){
+   mergeSession(s,words);
    if(mode==='daily'||mode==='new')plan(s,words,date);
    if(s.session?.date===date&&s.session.queue.length)return s.session;
    let q=[];if(mode!=='new')q=due(s,words,date).filter(t=>mode!=='errors'||t.errors>0).slice(0,mode==='errors'?60:30).map(({id,skill})=>({id,skill}));
    if(mode==='daily'||mode==='new'){
      let d=plan(s,words,date);
      for(let id of d.ids){if(d.completed.includes(id))continue;let w=words.find(w=>w.id===id);if(!w)continue;
-       let existing=s.records[id];let missing=skills(w).filter(k=>!existing?.[k]);
+       let existing=s.records[id];let missing=taskSkills(w).filter(k=>!existing?.[k]||(k==='pt'&&sameForms(w)&&!existing?.pp));
        if(missing.length){q.push({id,skill:'learn'});for(let skill of missing)q.push({id,skill});}
      }
    }
    s.session={date,mode,queue:q,done:0,total:q.length,correct:0,attempts:0,feedback:null};return s.session;
  }
  function grade(s,w,skill,ok,{hint=false,retry=false,date=day()}={}){
-   let r=s.records[w.id]||(s.records[w.id]={});let old=r[skill]||{level:-1,errors:0,wins:0};
-   let success=ok&&!hint;let sameDay=old.last===date;
-   let level=success&&!sameDay?Math.min(4,old.level+1):success?old.level:0;
-   let dueDate=success&&!sameDay?addDays(date,intervals[level]):sameDay&&success?old.due:addDays(date,1);
-   r[skill]={...old,level,last:date,due:dueDate,errors:old.errors+(success?0:1),wins:success?old.wins+(!sameDay?1:0):0,lastOK:success};
+   let r=s.records[w.id]||(s.records[w.id]={});let success=ok&&!hint;
+   const keys=['pt','pp'].includes(skill)&&sameForms(w)?['pt','pp']:[skill];
+   for(const key of keys){const old=r[key]||{level:-1,errors:0,wins:0};const sameDay=old.last===date;
+    const level=success&&!sameDay?Math.min(4,old.level+1):success?old.level:0;
+    const dueDate=success&&!sameDay?addDays(date,intervals[level]):sameDay&&success?old.due:addDays(date,1);
+    r[key]={...old,level,last:date,due:dueDate,errors:old.errors+(success?0:1),wins:success?old.wins+(!sameDay?1:0):0,lastOK:success};
+   }
    let d=daily(s,date);d.answers++;if(success)d.correct++;
    if(d.ids.includes(w.id)&&skills(w).every(k=>r[k])&&!d.completed.includes(w.id))d.completed.push(w.id);
    s.history.push({date,id:w.id,skill,ok:success});s.history=s.history.slice(-5000);
@@ -74,6 +93,6 @@
    if(s.session){let z=s.session;if(!Array.isArray(z.queue)||z.queue.length>2000||z.queue.some(t=>!ids.has(t.id)||!['learn','meaning','spell','pt','pp'].includes(t.skill))||!Number.isFinite(z.done)||!Number.isFinite(z.total))return false;}
    return true;
  }
- const api={day,addDays,normalize,skills,fresh,daily,due,plan,start,grade,known,valid};
+ const api={day,addDays,normalize,skills,sameForms,taskSkills,mergeSession,fresh,daily,due,plan,start,grade,known,valid};
  if(typeof module!=='undefined')module.exports=api;else root.PET=api;
 })(typeof window!=='undefined'?window:globalThis);
