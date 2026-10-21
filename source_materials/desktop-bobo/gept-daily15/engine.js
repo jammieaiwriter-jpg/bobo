@@ -55,7 +55,8 @@ function plan(s,words,date=day()){
  if(active&&started){
   for(const t of ss.queue)if(!d.ids.includes(t.id)&&!d.reviewIds.includes(t.id))addReview(due(s,words,date).find(x=>x.id===t.id&&x.skill===t.skill)||{...t,core:['meaning','spell'].includes(t.skill)});
   ss.queue=ss.queue.filter(t=>reserved.has(t.id));for(const t of ss.queue){t.kind=t.kind||'legacy';if(d.reviewIds.includes(t.id)&&!d.reviewSkills[t.id])d.reviewSkills[t.id]=t.skill;}
-  ss.total=ss.done+ss.queue.length;ss.protocol='legacy';
+  ss.total=ss.done+ss.queue.length;ss.protocol='legacy';if(ss.hinted&&!ss.help)ss.help='hint';
+  d.wordPending={};for(const t of ss.queue)(d.wordPending[t.id]||(d.wordPending[t.id]=[])).push({...t});
  }
  const legacyFinished=started&&d.completed.length===d.ids.length&&(!active||!ss.queue.length);
  if(!legacyFinished)for(const t of due(s,words,date))addReview(t);
@@ -78,7 +79,7 @@ function start(s,words,mode='daily',date=day()){
    for(const skill of ['meaning','spell'])for(const id of pending)if(!d.screenResults[id]?.[skill])q.push({id,skill,kind:'screen'});
    // A paused teaching stage can be reconstructed even if the user ended the round.
    for(const id of pending){if(q.some(t=>t.id===id))continue;const w=words.find(w=>w.id===id);if(!w)continue;const todo=d.wordPending?.[id]||[];for(const t of todo)q.push({...t});if(!todo.length)d.completed.push(id);}
-  }else for(const id of pending){const w=words.find(w=>w.id===id);if(!w)continue;const missing=tasksFor(s,w,'legacy');if(missing.length)q.push({id,skill:'learn',kind:'legacy'},...missing);else d.completed.push(id);}
+  }else for(const id of pending){const w=words.find(w=>w.id===id);if(!w)continue;const saved=d.wordPending?.[id];if(saved?.length){q.push(...saved.map(t=>({...t})));continue;}const missing=tasksFor(s,w,'legacy');if(missing.length)q.push({id,skill:'learn',kind:'legacy'},...missing);else d.completed.push(id);}
  }
  s.session={date,mode,queue:q,done:0,total:q.length,correct:0,attempts:0,feedback:null,protocol:PROTOCOL};return s.session;
 }
